@@ -1,0 +1,9 @@
+{
+  "hero": {
+    "title": "Pour commencer, modifiez le fichier page.js.",
+    "description": "Besoin d'un point de départ ou de plus d'instructions ? Rendez-vous sur les Modèles ou le Centre d'apprentissage.",
+    "deploy": "Déployer maintenant",
+    "docs": "Documentation"
+  }
+}
+
