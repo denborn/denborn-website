@@ -7,11 +7,6 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
-  i18n: {
-    // Keep in sync with src/config/site.js
-    locales: ["en", "fr"],
-    defaultLocale: "en",
-  },
   async headers() {
     return [
       {

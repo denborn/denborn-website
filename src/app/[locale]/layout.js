@@ -7,7 +7,8 @@ export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
-export async function generateMetadata({ params: { locale } }) {
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
   return {
     openGraph: {
       locale,
@@ -18,7 +19,8 @@ export async function generateMetadata({ params: { locale } }) {
   };
 }
 
-export default async function LocaleLayout({ children, params: { locale } }) {
+export default async function LocaleLayout({ children, params }) {
+  const { locale } = await params;
   const dictionary = await getDictionary(locale);
   return (
     <TranslationsProvider locale={locale} dictionary={dictionary}>
@@ -26,4 +28,3 @@ export default async function LocaleLayout({ children, params: { locale } }) {
     </TranslationsProvider>
   );
 }
-

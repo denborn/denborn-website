@@ -3,7 +3,8 @@ import { getDictionary } from "@/i18n/get-dictionary";
 
 export const revalidate = 3600; // Re-generate this page every hour
 
-export default async function Home({ params: { locale } }) {
+export default async function Home({ params }) {
+  const { locale } = await params;
   const dict = await getDictionary(locale);
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
