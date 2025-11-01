@@ -52,7 +52,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang={siteConfig.defaultLocale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
