@@ -223,6 +223,10 @@ Each row is the owner's answer to a question asked that day.
 | 92 | What the battlefield shows besides the terrain | The weather, the whole-field effects (Trick Room, Gravity, Magic Room, Wonder Room) and each side's conditions (Reflect, Light Screen, Aurora Veil, Tailwind, Safeguard, Mist, and the hazards). |
 | 93 | Durations, and how the effects are laid out | "yes but better, X turns restants or something like that. instead of displaying everything add a more button, that displays all current things, and who does it affects, direction ect...". A duration reads "3 turns left" / "3 tours restants". The plan does not list everything: a MORE button opens the list of all that is in effect, each entry saying whom it touches and on which side. |
 | 94 | Effects that sit on one Pokémon (stat boosts and drops, Leech Seed, Substitute, Taunt, confusion…) | Asked by the owner on 2026-11-14 ("what happens for buffs that are unique on only one or 2 allies?"), then ruled "Both places": they are in the MORE list, each entry marked with the Pokémon's letter, and on that Pokémon's own sheet. A small mark on its tile and its HUD box says it carries some. Seen on the board, with a Pokémon's stat changes grouped into one entry: "yes looks okay for a first a try". |
+| 95 | Roleplay points of a character created above level 1 | 300, plus 1 per level above 1: a character created at level 30 has 329, the same as one that levelled from 1 to 30. |
+| 96 | How those extra points are placed | Like level-up points: first the 300 are placed, 5 to 75 per attribute; then the extra points go on top, can raise an attribute up to 95, and may be kept unspent for later. |
+| 97 | Characters a nickname can use | Latin letters, accents included, digits, the space, the apostrophe, the hyphen and the period. No emoji, no other alphabets. (Length: 1 to 24, from the kickoff prompt.) |
+| 98 | What the printed character sheet shows | Identity (nickname, species, level, gender, nature, Ability) and the six roleplay attributes; the combat stats and the six moves with type, category, PP and description; the held item, the Bag and the Pokédollars; the character's QR code, when the character fits one. |
 
 ---
 
@@ -254,7 +258,7 @@ Each of these is in section 4 under the milestone that first needs it. Four othe
 
 - Enemy builds include a held item.
 - The party's hypothetical order is computed by the GM's engine from the priority of locked actions and current turn-order Speeds.
-- A character that starts above level 1 still gets exactly 300 roleplay points.
+- ~~A character that starts above level 1 still gets exactly 300 roleplay points.~~ Settled otherwise on 2026-11-14: decisions 95 and 96.
 - A Speed exchange (Switch) changes the order of actions only. End-of-round effects and Ability triggers keep the engine's order by real Speed, since the rule says "for turn order only".
 
 Raised while building the battle adapter (milestone 1). Each is what the adapter does today:
@@ -343,7 +347,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 - **Milestone 2 (data pack)**: settled on 2026-11-14 as decisions 71 to 81.
 - **Milestone 3 (art direction)**: settled on 2026-11-14 as decisions 82 to 86. The smaller words nobody ruled on are listed in 2.2.
 - **The battle view**: settled on 2026-11-14 as decisions 87 to 94.
-- **Milestone 4 (offline flows)**: nickname character set; QR size cap; what the printed sheet shows; and from 2.2: roleplay points above level 1.
+- **Milestone 4 (offline flows)**: settled on 2026-11-14 as decisions 95 to 98. Still to ask, with measured sizes once the character code exists: the largest QR code allowed before a character falls back to its file.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer. Also to settle then: the names of the effects no move is named after (confusion, a flinch, a trap, a stat stage's multiplier) and what each effect in the MORE list says it does (the board shows the description of the move that sets it, which speaks of the move: "Goes last. For 5 turns, turn order is reversed."); where the French of the engine's ordinary battle messages comes from (moves, damage, status, weather…); the engine's own text is English, and no French source has been looked for yet.
 - **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
 
