@@ -14,4 +14,9 @@ describe('ids and texts', () => {
     expect(tidy('Un médi­\ncament en spray.')).toBe('Un médicament en spray.')
     expect(tidy('A spray-\ntype medicine.\fIt heals.')).toBe('A spray-type medicine. It heals.')
   })
+
+  it('joins lines whose break was written out as a backslash and an n', () => {
+    expect(tidy('il entre\\ndans une colère noire')).toBe('il entre dans une colère noire')
+    expect(tidy('tout en\\naugmentant')).toBe('tout en augmentant')
+  })
 })

@@ -29,6 +29,8 @@ On a phone 393 px wide a DS pixel is about 1.5 px; on a 768 px tablet, 3 px. Sha
 - **Pixel art** (sprites, icons) is drawn at the nearest size that gives each of its pixels a whole number of device pixels (`snapScale` in `src/ui/pixel.ts`, tested). Components take a `scale` in DS pixels per sprite pixel: 1 is as large as on the DS.
 - **Dither** (the two-colour checker of dark panels) is rounded up to whole pixels with CSS `round()`, or it would blur into grey.
 
+A **tall** screen (`Screen tall`) keeps the width and the grid but is as long as what it holds. Menus and forms are a **page** of two screens (`.dn-page`): a 4:3 screen that stays at the top, showing what is being worked on, and a tall one under it that the page scrolls. The battle keeps its two 4:3 screens.
+
 `Screen` comes in three kinds: `scene` (the battle, with Denborn's own sky-and-grass backdrop), `touch` (the brown shell of the games' touch screen) and `menu` (black with the options screen's faint plus marks).
 
 ## 3. Colour
@@ -94,6 +96,10 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `FieldEffects` | Everything in effect on the battlefield | Denborn's own | The list behind MORE (decisions 92 to 94): terrain, weather, rooms, each side's screens and hazards, then what sits on a single Pokémon (its stat changes as one entry, each other effect as its own). Each entry: a mark for whom it touches (a diamond for the whole field, an arrow up for the foes' side, an arrow down for the party's, as they lie on the plan, followed by the Pokémon's letter when it is one Pokémon's), its name, the turns it has left in gold, the scope in words, what it does. It scrolls, by touch or keyboard. |
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
+| `TextField` | A line of text to type | B2W2 option boxes | Label above, a line of help or of what is wrong underneath, tied to the field for screen readers. |
+| `StatRow` | One stat: name, bar, value | BW summary | A stat raised by the nature is red with an arrow up, a lowered one blue with an arrow down, as in the games. |
+| `StepHeader` | The title of a step of a flow | — | With "Step 2 of 7". It takes focus when the step changes, so the change is announced. |
+| `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |
 | `QrCode` | A code as a QR code | — | Always black on white with its quiet border, as wide as its container. The finest shown is 101 × 101 squares (decision 99); for a longer text it shows what it is given instead, such as the way to the file. |
 
 ### The battle view

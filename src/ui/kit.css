@@ -97,6 +97,42 @@
   font-size: calc(10 * var(--dn-t));
 }
 
+/*
+ * A tall screen: as wide as a DS screen, as long as what it holds. Menus and
+ * forms use it under a fixed screen, and the page scrolls: a phone is taller
+ * than two DS screens, and a list of 151 Pokémon is longer than one.
+ */
+.dn-screen--tall {
+  aspect-ratio: auto;
+  overflow: visible;
+}
+
+.dn-screen--tall .dn-screen__stage {
+  position: relative;
+  inset: auto;
+  min-height: calc(192 * var(--dn-u));
+}
+
+/* What takes focus in a tall screen is scrolled clear of the screen that stays above it. */
+.dn-screen--tall :is(button, input, [tabindex]) {
+  scroll-margin-top: calc(200 * var(--dn-u));
+  scroll-margin-bottom: calc(40 * var(--dn-u));
+}
+
+/* A page of two screens: the first stays in sight while the second scrolls under it. */
+.dn-page {
+  display: grid;
+  align-content: start;
+  min-height: 100%;
+  background: var(--dn-backdrop);
+}
+
+.dn-page__top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 /* The battle scene. The backdrop is Denborn's own: the games paint one per place. */
 .dn-screen--scene .dn-screen__stage {
   background:
@@ -1158,6 +1194,330 @@
   gap: calc(3 * var(--dn-u));
   height: calc(5 * var(--dn-u));
   align-items: center;
+}
+
+/* --- Forms and lists: the pieces of a menu page ------------------------------------ */
+.dn-stack {
+  display: grid;
+  align-content: start;
+  gap: calc(4 * var(--dn-u));
+  padding: calc(6 * var(--dn-u));
+}
+
+/* The title of a step, with where it stands among the steps. */
+.dn-step {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: calc(6 * var(--dn-u));
+  padding: calc(5 * var(--dn-u)) calc(6 * var(--dn-u)) calc(3 * var(--dn-u));
+  border-bottom: calc(1 * var(--dn-u)) solid var(--dn-backdrop-mark);
+  background: var(--dn-backdrop);
+}
+
+.dn-step__title {
+  margin: 0;
+  font-size: calc(12 * var(--dn-t));
+  font-weight: normal;
+  line-height: calc(14 * var(--dn-u));
+}
+
+.dn-step__title:focus-visible {
+  outline-offset: calc(2 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-step__count {
+  font-size: calc(8 * var(--dn-t));
+  color: var(--dn-text-muted);
+  white-space: nowrap;
+}
+
+.dn-label {
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-select);
+}
+
+.dn-note {
+  margin: 0;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  color: var(--dn-text-muted);
+}
+
+.dn-note--error {
+  color: var(--dn-slot-down-outline);
+}
+
+/* A text field or a group of choices under its label. */
+.dn-entry {
+  display: grid;
+  gap: calc(2 * var(--dn-u));
+}
+
+/* The dark box of a slot, with the selection colour around it. */
+.dn-entry__input {
+  width: 100%;
+  min-height: max(calc(20 * var(--dn-u)), var(--dn-target));
+  padding: calc(3 * var(--dn-u)) calc(6 * var(--dn-u));
+  font: inherit;
+  font-size: calc(12 * var(--dn-t));
+  color: var(--dn-text);
+  background: var(--dn-slot);
+  border: calc(1 * var(--dn-u)) solid var(--dn-select-soft);
+  border-radius: 0;
+}
+
+.dn-entry__input::placeholder {
+  color: var(--dn-text-muted);
+  opacity: 0.7;
+}
+
+.dn-entry__input[aria-invalid='true'] {
+  border-color: var(--dn-slot-down-outline);
+}
+
+/* Inside a slot: what it is, then what there is to know about it, pushed to the end. */
+.dn-slot__main {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dn-slot__side {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  flex: none;
+}
+
+.dn-slot--text {
+  flex-direction: column;
+  align-items: stretch;
+  gap: calc(1 * var(--dn-u));
+  padding-top: calc(5 * var(--dn-u));
+  padding-bottom: calc(5 * var(--dn-u));
+}
+
+.dn-slot__text {
+  display: grid;
+  gap: calc(1 * var(--dn-u));
+  flex: 1;
+  min-width: 0;
+}
+
+.dn-slot__tag {
+  font-size: calc(8 * var(--dn-t));
+  color: var(--dn-label-gold);
+}
+
+/* Choices side by side, wrapping when they do not fit. */
+.dn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(4 * var(--dn-u));
+}
+
+/* A table of choices, such as the natures: one stat raised per row, one lowered per column. */
+.dn-table {
+  display: grid;
+  gap: calc(1 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+}
+
+/* The natures: a column of row titles, then one column per stat lowered. */
+.dn-table--natures {
+  grid-template-columns: calc(40 * var(--dn-u)) repeat(5, minmax(0, 1fr));
+}
+
+.dn-table__head {
+  display: grid;
+  place-items: center;
+  padding: calc(1 * var(--dn-u));
+  line-height: calc(9 * var(--dn-u));
+  text-align: center;
+  color: var(--dn-text-muted);
+}
+
+.dn-cell {
+  display: grid;
+  place-items: center;
+  min-height: var(--dn-target);
+  padding: calc(1 * var(--dn-u));
+  color: var(--dn-text-muted);
+  background: var(--dn-option);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition: background-color var(--dn-quick) var(--dn-ease-out), color var(--dn-quick) var(--dn-ease-out);
+}
+
+.dn-cell[aria-pressed='true'] {
+  color: var(--dn-text);
+  background: var(--dn-option-selected);
+  border-color: var(--dn-select-line);
+}
+
+/* One stat: its name, a bar, its value. Raised by the nature, it points up; lowered, down. */
+.dn-stat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(34 * var(--dn-u)) calc(16 * var(--dn-u));
+  align-items: center;
+  gap: calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+.dn-stat__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dn-stat__value {
+  text-align: right;
+}
+
+.dn-stat--up .dn-stat__name,
+.dn-stat--up .dn-stat__value {
+  color: var(--dn-hp-low);
+}
+
+.dn-stat--down .dn-stat__name,
+.dn-stat--down .dn-stat__value {
+  color: var(--dn-exp);
+}
+
+/* The foot of a step: the way back and the way on, always in reach. */
+.dn-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: calc(6 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u)) max(calc(4 * var(--dn-u)), env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--dn-backdrop) calc(8 * var(--dn-u)));
+}
+
+/* The Pokémon being created, on the top screen: itself on the left, what is known of it on the right. */
+.dn-preview {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: calc(96 * var(--dn-u)) minmax(0, 1fr);
+  gap: calc(4 * var(--dn-u));
+  padding: calc(5 * var(--dn-u));
+}
+
+.dn-preview--empty {
+  grid-template-columns: 1fr;
+  place-items: center;
+  text-align: center;
+}
+
+.dn-preview--empty .dn-note {
+  color: var(--dn-text);
+}
+
+.dn-preview__who {
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: calc(2 * var(--dn-u));
+  padding-bottom: calc(6 * var(--dn-u));
+  text-align: center;
+}
+
+.dn-preview__name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* Room for the outline, which overflow would otherwise cut. */
+  padding: calc(1 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+.dn-preview__level {
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+}
+
+/* A dark plate, so that the facts read on any backdrop. */
+.dn-preview__facts {
+  display: grid;
+  align-content: start;
+  gap: calc(1 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(5 * var(--dn-u));
+  background: var(--dn-message-band);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+.dn-preview__types {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  margin-bottom: calc(2 * var(--dn-u));
+}
+
+.dn-preview__species {
+  flex: 1;
+  font-size: calc(10 * var(--dn-t));
+}
+
+.dn-preview__ability {
+  margin-top: calc(2 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  color: var(--dn-label-gold);
+}
+
+/* The app's first screen. */
+.dn-home {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  justify-items: center;
+  gap: calc(4 * var(--dn-u));
+  padding: calc(16 * var(--dn-u)) calc(6 * var(--dn-u)) calc(8 * var(--dn-u));
+}
+
+.dn-home__tagline {
+  margin: 0;
+  font-size: calc(9 * var(--dn-t));
+  text-align: center;
+}
+
+.dn-home__faces {
+  display: flex;
+  align-items: end;
+  gap: calc(10 * var(--dn-u));
+  align-self: end;
+}
+
+/* The app's name on its first screen. */
+.dn-title {
+  margin: 0;
+  font-size: calc(40 * var(--dn-t));
+  font-weight: normal;
+  line-height: 1;
+  letter-spacing: calc(3 * var(--dn-u));
+  text-align: center;
+  color: var(--dn-text);
+  text-shadow:
+    calc(2 * var(--dn-u)) 0 0 var(--dn-ink),
+    calc(-2 * var(--dn-u)) 0 0 var(--dn-ink),
+    0 calc(2 * var(--dn-u)) 0 var(--dn-ink),
+    0 calc(-2 * var(--dn-u)) 0 var(--dn-ink),
+    calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-ink),
+    calc(-2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-ink),
+    calc(2 * var(--dn-u)) calc(-2 * var(--dn-u)) 0 var(--dn-ink),
+    calc(-2 * var(--dn-u)) calc(-2 * var(--dn-u)) 0 var(--dn-ink),
+    calc(4 * var(--dn-u)) calc(4 * var(--dn-u)) 0 var(--dn-cmd-fight);
 }
 
 /* --- Message band ---------------------------------------------------------------- */

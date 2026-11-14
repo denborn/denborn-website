@@ -277,6 +277,8 @@ Raised while building the battle adapter (milestone 1). Each is what the adapter
 
 **Interface wording nobody ruled on (raised 2026-11-14 with the design kit).** The board's ruling pages covered the buttons, the badges' letters and Denborn's battle messages. These smaller words went into `src/i18n/` without a ruling and are open to correction: the Agony badge's word in French (AGONIE); BACK / RETOUR and Next / Suite; the labels read out by screen readers (HP 34 of 120 / PV 34 sur 120; male, female / mâle, femelle; the conditions' full names, such as Badly poisoned / Gravement empoisonné; the categories Physical, Special, Status / Physique, Spéciale, Statut). French sentences keep their space before ! and ? as a no-break space, which changes no word. The battle view added a few more, visible on the board the owner approved but not ruled one by one: FOES / ENNEMIS and PARTY / ÉQUIPE over the two lines, Ability / Talent and Item / Objet on the sheet, and the spoken names of the arrows and tiles (Next Pokémon: C, your Pokémon, out of reach / Pokémon suivant : C, votre Pokémon, hors de portée). With the list of effects came: MORE / PLUS on its button (the owner said "a more button"; PLUS is my French), In effect / En cours, Nothing is in effect. / Aucun effet en cours., the three scopes (Whole field, Foes' side, Your side / Tout le terrain, Côté ennemi, Votre côté), "under effects" / "sous effets" for the mark of a Pokémon that carries some (read out, not shown) and the weather's names, which are the games' own (Rain, Harsh sunlight, Sandstorm, Snow / Pluie, Soleil, Tempête de sable, Neige).
 
+**Wording of the first screens (2026-11-14).** The home and character creation brought ordinary interface wording in both languages (CHARACTERS / PERSONNAGES, Choose a Pokémon / Choisir un Pokémon, Nickname / Surnom, Gender / Sexe, Who is it? / Qui est-ce ?, the hints and error lines). Game terms are the games' own (Nature, Talent, Talent Caché, the natures' and stats' names from the data pack). All of it is in `src/i18n/` (`home`, `creation`) and open to correction.
+
 **Raised by the saved documents (2026-11-14), kept and to be confirmed.** None was needed to ask before building; each is one line to change.
 
 - An item pack may be empty: a name and no item.
@@ -362,6 +364,9 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | An invitation opened on a device is kept as the very creation code it came as. | One format to read back, already bounded and checked. |
 | 2026-11-14 | A campaign's or a character's id is 12 random bytes written as 16 characters. | It travels in the character's QR code; 96 random bits do not collide. |
 | 2026-11-14 | Files are indented JSON, named after the character or the campaign in plain letters (`denborn-eclair-2.json`). A file longer than 5 million characters is refused unread. | A person can open and read their own save. The limit is far above any campaign and far below what could freeze a phone. |
+
+| 2026-11-14 | A menu or a form is a page of two screens: the first, a DS screen, stays at the top of the phone; the second keeps the DS's width and grid but is as long as what it holds, and the page scrolls under the first (`Screen tall`, `.dn-page`). What takes focus is scrolled clear of the screen that stays. | A phone is taller than two DS screens, and a list of 151 Pokémon is longer than one. The battle keeps its two 4:3 screens. **Shown to the owner on the board** with the home and character creation. |
+| 2026-11-14 | A screen of the app is built as the real feature (`src/features/…`), with its choices and checks in a pure module (`draft.ts`, tested), and shown on the board with sample rules before it is wired into the app. The board's language switch drives the app's own language. | No throw-away mock, and the limits the owner sees enforced on the board are the real ones. |
 
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
@@ -543,3 +548,7 @@ Measured with `node scripts/measure/code-sizes.ts` on the real data pack. "Squar
 A creation link is the code after the app's address, 46 characters more; the largest above is a link of 3,690 characters, which no QR code holds but any message can carry.
 
 Checked: the browser's own barcode reader (Chromium on macOS) read all six sample QR codes of the board back, character for character, from the drawn image. A real phone's camera pointed at the screen was the owner's test, on the board: the samples up to 101 × 101 read quickly, which set decision 99.
+
+### A stray line-break code in 32 French descriptions — 2026-11-14
+
+Seen on the board: the French description of Lightning Rod read "les capacités\nde type Électrik". In PokéAPI's table, 32 French Ability descriptions carry a line break written out as a backslash and an "n" instead of the character. The text cleaner now joins those lines like the others (`scripts/data/lib/texts.ts`, with a test). The rebuilt pack is `0.10.12+pokeapi.f841170+df613249`; the build listed exactly those 32 entries as changed, and no other, before the new pack was accepted. No rule or number changed.

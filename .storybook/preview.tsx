@@ -1,9 +1,16 @@
 import type { Decorator, Preview } from '@storybook/react-vite'
 import { MotionConfig } from 'motion/react'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import '../src/ui/styles.css'
 import './preview.css'
+import { setLanguage } from '../src/i18n'
 import { type Locale, LocaleContext } from '../src/ui/stories/board'
+
+/** The app's own screens read the app's language: the toolbar's choice is passed on to it. */
+function AppLanguage({ locale }: { locale: Locale }) {
+  useEffect(() => setLanguage(locale), [locale])
+  return null
+}
 
 /** Every story runs inside the kit's root, in the language picked in the toolbar. */
 const withDenborn: Decorator = (Story, context) => {
@@ -11,6 +18,7 @@ const withDenborn: Decorator = (Story, context) => {
   return (
     <MotionConfig reducedMotion="user">
       <LocaleContext.Provider value={locale}>
+        <AppLanguage locale={locale} />
         <div className="dn-root sb-board" lang={locale}>
           <Suspense fallback={null}>
             <Story />
@@ -40,7 +48,7 @@ const preview: Preview = {
   initialGlobals: { locale: 'en' },
   parameters: {
     layout: 'fullscreen',
-    options: { storySort: { order: ['Scenes', 'Foundations', 'Components'] } },
+    options: { storySort: { order: ['Screens', 'Scenes', 'Foundations', 'Components'] } },
   },
 }
 

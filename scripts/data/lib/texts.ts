@@ -44,9 +44,14 @@ const TEXT_PREFERENCE = [
   'champions',
 ]
 
-/** In-game texts are stored with the games' line breaks and soft hyphens. */
+/**
+ * In-game texts are stored with the games' line breaks and soft hyphens. A
+ * few rows carry a line break written out as a backslash and an "n" instead
+ * of the character itself.
+ */
 export function tidy(text: string): string {
   return text
+    .replace(/\\n/g, '\n')
     .replace(/­\s*\n/g, '')
     .replace(/-\n(?=\p{Ll})/gu, '-')
     .replace(/[\n\f\r]+/g, ' ')
