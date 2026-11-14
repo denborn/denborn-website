@@ -276,6 +276,15 @@ Raised while building the battle adapter (milestone 1). Each is what the adapter
 
 **Interface wording nobody ruled on (raised 2026-11-14 with the design kit).** The board's ruling pages covered the buttons, the badges' letters and Denborn's battle messages. These smaller words went into `src/i18n/` without a ruling and are open to correction: the Agony badge's word in French (AGONIE); BACK / RETOUR and Next / Suite; the labels read out by screen readers (HP 34 of 120 / PV 34 sur 120; male, female / mâle, femelle; the conditions' full names, such as Badly poisoned / Gravement empoisonné; the categories Physical, Special, Status / Physique, Spéciale, Statut). French sentences keep their space before ! and ? as a no-break space, which changes no word. The battle view added a few more, visible on the board the owner approved but not ruled one by one: FOES / ENNEMIS and PARTY / ÉQUIPE over the two lines, Ability / Talent and Item / Objet on the sheet, and the spoken names of the arrows and tiles (Next Pokémon: C, your Pokémon, out of reach / Pokémon suivant : C, votre Pokémon, hors de portée). With the list of effects came: MORE / PLUS on its button (the owner said "a more button"; PLUS is my French), In effect / En cours, Nothing is in effect. / Aucun effet en cours., the three scopes (Whole field, Foes' side, Your side / Tout le terrain, Côté ennemi, Votre côté), "under effects" / "sous effets" for the mark of a Pokémon that carries some (read out, not shown) and the weather's names, which are the games' own (Rain, Harsh sunlight, Sandstorm, Snow / Pluie, Soleil, Tempête de sable, Neige).
 
+**Raised by the saved documents (2026-11-14), kept and to be confirmed.** None was needed to ask before building; each is one line to change.
+
+- An item pack may be empty: a name and no item.
+- In a campaign where every Pokémon is neutral, a character has no nature at all (the engine is given a neutral one).
+- At creation the held item comes out of the chosen pack: the held item and the bag together are exactly that pack.
+- A character's level is never under its campaign's starting level.
+- The campaign's list of species limits creation only; whether it also limits evolution is already a milestone 7 question.
+- Money has no ceiling after creation in the saved format (the 9,999,999 of the kickoff prompt is the starting money's); to be asked with the rewards (milestone 7).
+
 ---
 
 ## 3. Engineering choices
@@ -334,6 +343,12 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | A character's rules are pure modules in `src/game-rules/` (stats, IV and EV budgets, EXP, roleplay attributes, nickname). Each check returns the list of what is wrong, not a yes or no. | The same checks will serve the creation screen (which says what to fix), the reading of a file or a QR code (untrusted) and the GM's revalidation when a character joins. |
 | 2026-11-14 | Roleplay attributes are kept as two layers: the 300 points of creation, and the points gained with levels and placed since. | Decisions 95 and 96 give the two layers different limits (75, then 95), and only the second may wait unplaced. One total could not be checked against both. |
 | 2026-11-14 | A typed nickname is tidied before it is checked and stored: accents are joined to their letters, a phone's curly apostrophe is made straight, outer spaces go and runs of spaces become one. | Phones type the curly apostrophe by themselves. Tidying changes nothing in decision 97's set of characters. |
+
+| 2026-11-14 | Saved documents are checked in two layers. A schema (Zod 4.6.7, `src/shared/schema/`) checks shape and plain ranges, and gives every list a largest size. Checks in `src/domain/` then hold the document against the campaign's rules and the data pack. | A document from a file, a link or a QR code is untrusted: the schema bounds the work it can cause before anything looks at its content. The second layer is the one the GM's device will run on every character that joins. |
+| 2026-11-14 | Every document says its kind and the version of its format. One written by a newer app is refused, not half-read; unknown fields are dropped. | Spec section 8. A newer format may mean something this version cannot know. |
+| 2026-11-14 | A character is checked twice over: what must hold at any time (`checkCharacter`), and what must also hold when it has just been created (`checkCreation`: starting level, starting money, full HP and PP, exactly one item pack, a species the campaign offers). | "Every limit is enforced at creation" (kickoff prompt), while a character that has played has levelled, spent and been hurt. |
+| 2026-11-14 | Maximum PP is `base × (5 + PP Ups) / 5`, with a test comparing it to the engine's for every move. | Same reason as the stats: the sheet must show what the battle uses. |
+| 2026-11-14 | Two item packs of a campaign cannot share a name, whatever the capitals. | A player picks a pack by its name. |
 
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
