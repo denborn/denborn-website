@@ -4,7 +4,11 @@ A fan-made companion app for a Pokémon tabletop RPG. Friends roleplay at the ta
 
 Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and GAME FREAK inc. See [CREDITS.md](CREDITS.md).
 
-**Status:** V0 in progress. Milestone 0 (foundations) is done: the toolchain, the pinned battle engine, the offline shell and a relay skeleton. Nothing of the game is playable yet.
+**Status:** V0 in progress.
+
+- Milestone 0 (foundations) is done and live on Cloudflare's Free plan: the toolchain, the offline shell and a relay skeleton.
+- Milestone 1 (battle engine) is done: `src/battle/` runs Denborn's fights on the real simulator, with every rule proven by tests (see DECISIONS.md, section 5).
+- Nothing of the game is playable in the app yet: there is no character, campaign or battle screen. The only screen is a system check.
 
 ## What is authoritative
 
@@ -35,6 +39,7 @@ pnpm dev              # app + Worker + Durable Object, locally
 pnpm verify           # type check, lint, all tests, production build, end-to-end tests
 pnpm test             # unit, engine and Worker tests
 pnpm test:e2e         # browser tests against the production build (run `pnpm build` first)
+node scripts/engine-probes/hit-fainted.mjs   # what the unmodified engine does (also action-layer, snapshot-restore)
 ```
 
 Deploys are not run by hand: Cloudflare builds and deploys every push to `main` (Workers Builds, project `denborn-website`). To run the browser tests against the live site: `E2E_BASE_URL=https://<the deployed URL> pnpm test:e2e`.

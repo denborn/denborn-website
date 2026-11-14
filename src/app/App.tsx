@@ -4,12 +4,31 @@ import { probeRelay } from '../network/relay-probe'
 import { useOfflineStatus } from '../pwa/use-offline-status'
 
 type RelayCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; ms: number } | { state: 'failed' }
+type EngineCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; rounds: number; ms: number } | { state: 'failed' }
 
 export function App() {
   const t = useMessages()
   const language = useLanguage()
   const offline = useOfflineStatus()
   const [relay, setRelay] = useState<RelayCheck>({ state: 'idle' })
+  const [engine, setEngine] = useState<EngineCheck>({ state: 'idle' })
+
+  // The engine is its own chunk: it is only fetched (or read from the offline cache) here, on demand.
+  const checkEngine = (): void => {
+    setEngine({ state: 'checking' })
+    const startedAt = performance.now()
+    import('../battle/self-check').then(
+      ({ runEngineSelfCheck }) => {
+        try {
+          const { rounds } = runEngineSelfCheck()
+          setEngine({ state: 'ok', rounds, ms: Math.round(performance.now() - startedAt) })
+        } catch {
+          setEngine({ state: 'failed' })
+        }
+      },
+      () => setEngine({ state: 'failed' }),
+    )
+  }
 
   const checkRelay = (): void => {
     setRelay({ state: 'checking' })
@@ -32,6 +51,13 @@ export function App() {
     failed: t.system.relayFailed,
   }[relay.state]
 
+  const engineText = {
+    idle: '',
+    checking: t.system.engineChecking,
+    ok: engine.state === 'ok' ? t.system.engineOk(engine.rounds, engine.ms) : '',
+    failed: t.system.engineFailed,
+  }[engine.state]
+
   return (
     <main className="shell">
       <header>
@@ -46,6 +72,13 @@ export function App() {
           <dd>{__APP_VERSION__}</dd>
           <dt>{t.system.engineVersion}</dt>
           <dd>@pkmn/sim {__ENGINE_VERSION__}</dd>
+          <dt>{t.system.engine}</dt>
+          <dd>
+            <button type="button" onClick={checkEngine} disabled={engine.state === 'checking'}>
+              {t.system.engineCheck}
+            </button>{' '}
+            <span role="status">{engineText}</span>
+          </dd>
           <dt>{t.system.offline}</dt>
           <dd role="status">{offlineText}</dd>
           <dt>{t.system.relay}</dt>

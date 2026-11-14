@@ -37,7 +37,8 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
-    files: ['**/*.js'],
+    // Plain JavaScript: this config file and the engine probes (diagnostic scripts).
+    files: ['**/*.{js,mjs}'],
     extends: [tseslint.configs.disableTypeChecked],
     languageOptions: { globals: globals.node },
   },

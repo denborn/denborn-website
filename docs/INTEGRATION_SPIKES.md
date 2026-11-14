@@ -1,24 +1,24 @@
 # Required integration spikes before V0 implementation is claimed viable
 
-These are **checklists**, not completed tests. No test has been executed as part of creating this rules pack.
+These are **checklists**. An item is ticked only with the date and the test or check that proves it; an unticked item has not been proven.
 
 ## Spike A — Showdown-derived simulator in browser
 
 - [x] Install a real compatible locked set of `@pkmn/sim`, `@pkmn/dex`, `@pkmn/data`. Done 2026-11-14: all three install at 0.10.12 (`pnpm-lock.yaml`); `src/battle/engine-install.test.ts` fails if they ever differ.
-- [ ] Bundle in Vite production build, load after offline airplane-mode reload with no CDN or dynamic Node imports.
-- [ ] Start canonical Gen9 match, log moves, seeded outcome and rendered HP; compare to upstream fixture.
-- [ ] Inspect actual API behavior for **six active moves** without truncation; do not fake extra buttons.
-- [ ] Inspect 4v4 or greater line targeting for every target category; report unsupported moves explicitly.
-- [ ] Implement/test free Run/reposition, mutual Switch Speed swap while honoring move priority, and 60s lock timer without altering HP stats.
-- [ ] Validate status/KO hooks for Agony, death, healing and manual enemy extra actions (owner-pending semantics flagged).
-- [ ] Rehydrate unfinished battle deterministically with same engine/data versions. Check RNG, PP, targeting, order, statuses, pending locks, item use.
+- [x] Bundle in Vite production build, load after offline airplane-mode reload with no CDN or dynamic Node imports. Done 2026-11-14 in headless Chromium (`tests/e2e/smoke.spec.ts`); a real phone in airplane mode is still to be tried by the owner.
+- [x] Start canonical Gen9 match, log moves, seeded outcome and rendered HP; compare to upstream fixture. Done as differential tests against the unmodified engine (`src/battle/differential.test.ts`). Rendered HP waits for the battle screens (milestone 6).
+- [x] Inspect actual API behavior for **six active moves** without truncation; do not fake extra buttons. Done: the engine takes six moves as they are; every engine test uses them.
+- [x] Inspect 4v4 or greater line targeting for every target category; report unsupported moves explicitly. Done for lines of 1 to 6 (`src/battle/lines.test.ts`). Moves replaced or disabled are listed in `src/battle/engine/mod.ts`: Ally Switch, Imposter, Revival Blessing.
+- [x] Implement/test free Run/reposition, mutual Switch Speed swap while honoring move priority. Done (`positions.test.ts`, `turn-order.test.ts`). The timer belongs to the GM's session (milestone 6); the engine side of a timeout, forced Struggle, is done.
+- [x] Validate status/KO hooks for Agony, death, healing and manual enemy extra actions. Done (`agony.test.ts`, `bag.test.ts`, `actions.test.ts`), on the owner's rulings in DECISIONS.md.
+- [x] Rehydrate unfinished battle deterministically with same engine/data versions. Done: restoring after every round gives the same battle as never interrupting it (`snapshot.test.ts`).
 
 **Pass condition:** a repeatable browser test plus a documented adapter surface; unknown behavior is a blocker, not proof.
 
 ## Spike B — Cloudflare Free realtime relay
 
-- [ ] Create a Free-plan Worker + **SQLite-backed** Durable Object namespace.
-- [ ] Static PWA path bypasses Worker where possible; SPA refresh works; WSS upgrade works.
+- [x] Create a Free-plan Worker + **SQLite-backed** Durable Object namespace. Done 2026-11-14: live at denborn-website.kori-san.workers.dev.
+- [x] Static PWA path bypasses Worker where possible; SPA refresh works; WSS upgrade works. Checked on the live deployment 2026-11-14.
 - [ ] DO Hibernation WebSocket API relays 1 GM + 4 players with schema-validated envelopes.
 - [ ] Authorize GM vs player; attempt forged GM command, replayed/duplicate intents and oversized frames.
 - [ ] Sleep/hibernate/recreate DO and reconnect; verify attachments, room and GM snapshot recovery.

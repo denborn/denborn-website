@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { Battle, type PokemonSet, toID } from '@pkmn/sim'
 import { describe, expect, it } from 'vitest'
+import { ENGINE_VERSION } from './versions'
 
 const ROOT = new URL('../../', import.meta.url)
 
@@ -23,6 +24,11 @@ describe('engine packages', () => {
     expect(new Set(pins).size, `pins differ: ${pins.join(', ')}`).toBe(1)
     expect(pins[0]).toMatch(/^\d+\.\d+\.\d+$/)
     expect(installed).toEqual(pins)
+  })
+
+  // Saved battles carry this version and only resume under it.
+  it('are the version the adapter says it was proven against', () => {
+    expect(readJson('node_modules/@pkmn/sim/package.json').version).toBe(ENGINE_VERSION)
   })
 })
 

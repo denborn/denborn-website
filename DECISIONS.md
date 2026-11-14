@@ -184,6 +184,21 @@ Each row is the owner's answer to a question asked that day.
 | 53 | Wide Guard and Quick Guard | They protect a downed teammate from losing a stack. |
 | 54 | Third-party skill files | Commit `skills-lock.json` only; `.agents/` and its symlink stay out of git. |
 | 55 | How deploys happen | Through Cloudflare's Git integration (Workers Builds) on the GitHub repo, project name `denborn-website`, build command `npm run build`, deploy command `npx wrangler deploy`. "I prefer it that way it's easier for me." A push to `main` is therefore a production deploy. |
+| 56 | Empty slots | When a Pokémon dies, or an enemy with Agony off faints, its slot stays: the line keeps its length and everyone's reach is unchanged. |
+| 57 | Aiming at a downed foe | Allowed. A single-target move locked on a foe that is already downed stays on it. (Decision 45's redirection is for a target that was standing when the move was locked.) |
+| 58 | Carry-over between encounters | HP, PP and status conditions carry over, as in the games. |
+| 59 | Return and Frustration | Not available: left out of eligible moves and of the common-move supplement. |
+| 60 | A damaging move whose only target is downed | Only the stack is lost. The move spends its PP; nothing else happens to the user: no recoil, no Life Orb damage, no recharge, no stat drop, no crash. |
+| 61 | Order of an enemy's extra moves | Among one enemy's moves of equal priority, they happen in the order the GM entered them. |
+| 62 | Extra actions and the user's conditions | Superseded by decision 68. My description of the engine was wrong on two points (recharging and rampages), so the question was asked again. |
+| 63 | Future Sight and Doom Desire on a downed Pokémon | Nothing happens (engine default); no stack is removed. |
+| 64 | Speed of the Agony turn | The Pokémon's plain Speed stat (no item, Ability, stat changes or Tailwind), reversed under Trick Room. |
+| 65 | Ally Switch: who can be swapped | Standing Pokémon only. Downed Pokémon and empty slots cannot be moved. |
+| 66 | A locked move whose target is out of reach after an Ally Switch | It fails: the move is used, spends its PP, and has no valid target. |
+| 67 | One-against-one fights | Always the engine's Doubles rules: screens cut damage by a third; Follow Me, After You and Quash work. |
+| 68 | Extra enemy moves and the user's conditions | As the engine does. Sleep and confusion tick once per action. A flinch cancels every action of the round. A recharge costs one action: the others still happen, and Hyper Beam followed by an extra move in the same round spends that move recharging. A rampage (Outrage, Thrash) lasts 2 to 3 rounds however many actions the enemy has. A two-turn move charges on one action and fires on the next, even in the same round. Protect covers the whole round while the other actions still attack. |
+| 69 | A move with nobody in its reach | Cannot be locked. The player picks another move, Runs first, or uses the Bag. |
+| 70 | A charged two-turn move whose target is out of reach on the second round (after a Run) | It fails, like decision 66. |
 
 ---
 
@@ -211,18 +226,29 @@ Changed since: PP Up and PP Max are no longer left out (decision 3).
 
 ### 2.2 Raised while planning — to be asked, not kept silently
 
-Each of these is in section 4 under the milestone that first needs it.
+Each of these is in section 4 under the milestone that first needs it. Four others raised at the same time were settled on 2026-11-14 as decisions 56 to 59.
 
-- Line length includes dead and fainted slots.
-- Happiness stays at the engine's default (255).
-- A move deliberately locked on a foe that is already downed stays on it; redirection (decision 45) only applies when the target was standing when the move was locked.
-- HP, PP and status conditions carry over between encounters as in the games.
 - Baby species from later generations (Pichu, Cleffa and so on) count as "earlier stages" for learnsets.
 - Dream World learnset sources do not count.
 - Berries are held items only, not Bag actions.
 - Enemy builds include a held item.
 - The party's hypothetical order is computed by the GM's engine from the priority of locked actions and current turn-order Speeds.
 - A character that starts above level 1 still gets exactly 300 roleplay points.
+- A Speed exchange (Switch) changes the order of actions only. End-of-round effects and Ability triggers keep the engine's order by real Speed, since the rule says "for turn order only".
+
+Raised while building the battle adapter (milestone 1). Each is what the adapter does today:
+
+- A Pokémon the engine has locked into a move (a rampage, a charging move, a recharge) has no choice that round, as in the games: no Bag, and a timeout does not turn its action into Struggle.
+- Ally Switch used without a chosen pair (when another move calls it) fails.
+- Effects the games attach to a slot rather than a Pokémon (Wish, Future Sight, the healing from Leech Seed) stay with the slot when Pokémon trade places.
+- A status condition carried into a battle starts the way the engine starts a new one: the length of a sleep is drawn again and a bad poisoning counts from the beginning.
+- A status move aimed at a downed Pokémon does nothing; Follow Me and similar effects redirect a move aimed at a downed Pokémon like any other.
+- A Bag action counts as the Pokémon's action for moves that only work on its first turn (Fake Out fails on the following round).
+- An enemy's extra move never wins a Speed tie against another Pokémon's action (a side effect of keeping the GM's order, decision 61).
+- The Bag effect "raises the critical-hit rate" uses the engine's Focus Energy effect; the Dire Hit ruling in milestone 2 decides whether that is right.
+- Extra moves are for enemies only (the spec gives them to the GM for an "enemy/boss").
+- The adapter lets two standing allies exchange Speed on either side. Whether the GM may do it for enemies is a milestone 6 question.
+- Revival Blessing always fails: only revival items bring a downed Pokémon back (Agony rule 5), and the move needs a bench to choose from.
 
 ---
 
@@ -246,6 +272,14 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | The Worker is named `denborn-website` and the `build` script calls no package manager itself. | Workers Builds fails when the Worker name differs from the dashboard's project name, and its build command is `npm run build` (decision 55). Cloudflare installs with the pnpm version in `packageManager`. |
 | 2026-11-14 | `.nvmrc` pins Node 22 for Cloudflare's builds. | Same major version as local development; the build image's default is Node 24. |
 
+| 2026-11-14 | The battle adapter is one class, `DenbornBattle` (`src/battle/denborn-battle.ts`), over a registered engine format and data mod (`src/battle/engine/`). Nothing else imports the engine. | One door into the engine keeps the overrides in one place and the engine in its own chunk. |
+| 2026-11-14 | Engine functions are replaced through the format's own override hooks, never by editing the package. Where a function had to be copied to change its middle, a tripwire test fingerprints the engine's version. | An upgrade cannot silently drift away from a copy: the test fails and names the function. |
+| 2026-11-14 | Denborn's own events travel in the engine's log as `|denborn|…` lines; the adapter returns them parsed, in order with the engine's lines. | One ordered stream for playback; wording stays in the interface. |
+| 2026-11-14 | The engine gets short names (`P1`, `E2`) and the adapter maps them to combatant ids. | The engine cuts names at 20 characters; ids and nicknames can be longer. |
+| 2026-11-14 | A saved battle is the engine's own state snapshot plus the engine version, an adapter version and the format id. It resumes only when all three match. | The engine's input log cannot replay Denborn's actions; a snapshot can, and was shown to resume identically. A different engine or adapter could play it out differently, so it is refused, not guessed. |
+| 2026-11-14 | The engine is loaded with `import()` from one place only; the system-check screen has a button that loads it and plays a short fight. | Player pages never download it up front; the button proves the chunk works on the GM's device, offline included. |
+| 2026-11-14 | Engine tests compare against the unmodified engine (differential tests) and each rule has a test with a control case where one is possible. A mutation pass (breaking one rule at a time) was run by hand: 11 of 12 breaks were caught, the 12th was a redundant guard. | Owner rule: prove every rule against the real engine, not by assumption. |
+
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
 1. Integrity checks that stop the build: every referenced move, Ability, item and evolution target exists; every species has at least one eligible move at every level under both move-access rulings; every species and item has its sprite; English and French names exist; every Bag item has an effect handler.
@@ -258,11 +292,11 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 
 ## 4. Rulings to ask, by milestone
 
-- **Milestone 1 (engine proof)**: user-side effects when a move's only target is downed (recoil, recharge, crash damage, Life Orb); Future Sight landing on a downed Pokémon; which Speed orders the Agony turn; extra enemy actions and per-action counters (sleep, confusion, Protect, flinch); what resumes on revival for Abilities the engine had switched off; whether Switch also reorders end-of-round effects and Ability triggers; Ally Switch details (a downed or dead ally; a locked move whose target leaves reach mid-round); Doubles-base behaviour in a one-on-one (screens, Follow Me, After You, Quash); and from 2.2: line length, happiness, deliberate targeting of a downed foe, carry-over between encounters.
+- **Milestone 1 (engine proof)**: settled on 2026-11-14 as decisions 56 to 70. The interpretations it raised are listed in 2.2.
 - **Milestone 2 (data pack)**: which nonstandard moves the supplement may include; the full Bag effect table, Dire Hit included; where the Linking Cord's name and icon come from; cross-check disagreements; and from 2.2: baby stages, Dream World sources, Berries.
 - **Milestone 3 (art direction)**: font; wording of custom battle messages in both languages.
 - **Milestone 4 (offline flows)**: nickname character set; QR size cap; what the printed sheet shows; and from 2.2: roleplay points above level 1.
-- **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps; what happens to a battle saved under an older engine or adapter version.
+- **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer.
 - **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
 
 ---
@@ -279,3 +313,83 @@ Known before any adapter code, from reading the 0.10.12 source (2026-11-14):
 - The engine mirrors the two sides' slot numbers and has one shared line size. Unequal, table-ordered lines need the reach functions replaced.
 - A Pokémon at 0 HP is filtered out of targeting in about ten places. Hitting a downed Pokémon needs those replaced and the hit pipeline wrapped.
 - The engine's input log does not record custom actions, so save and resume uses the engine's state snapshot (`toJSON` / `fromJSON`), which restores silently to a plain format if the custom one is not registered. Every restore therefore asserts the format.
+
+### Stock-engine probes — 2026-11-14
+
+Three scripts in `scripts/engine-probes/` run the unmodified engine in the situations Denborn's rules create. Re-run them after any engine upgrade and compare with what is written here.
+
+**`hit-fainted.mjs` — a move run against a Pokémon at 0 HP**
+
+| Observed | Consequence |
+|---|---|
+| The type-immunity step works on a fainted target (a Ground type is immune to Thunderbolt, a Ghost type to Tackle) and logs `-immune`. | Agony rule 4's immunity check can use the engine's own step. |
+| The accuracy step works: Thunder (70%) hit 1,396 of 2,000 rolls. | Rule 4's accuracy check can use the engine's own step. |
+| The fainted target's Ability is ignored: Earthquake passes against a fainted Levitate user. | Matches rule 2 (the Ability stops working). |
+| The `TryHit` step still applies its side's Wide Guard to a fainted target (Earthquake blocked, Tackle not). | Decision 53 needs no custom code beyond running that step. |
+| With only a fainted target, the hit loop stops at once and the whole move counts as failed: no recoil, recharge, Life Orb, drain or stat drop, but High Jump Kick's crash damage is applied. | Ruled as decision 60: nothing happens to the user, crash included. |
+| A spread move given one fainted and one standing target logs `[spread]` and deals 0.75× damage to the standing one (13 instead of 18). | Decision 44 holds as soon as downed Pokémon are in the target list. |
+
+**`action-layer.mjs` — several actions for one Pokémon, and a custom +1 action**
+
+| Observed | Consequence |
+|---|---|
+| A second `move` action pushed onto a side's choice runs like any other; PP is spent for each. | Extra enemy actions (decision 30) need no engine change. |
+| One Pokémon's moves of equal priority are shuffled like a Speed tie (first-entered went first in 18 of 40 rounds). | Ruled as decision 61; the adapter sets the queue's `subOrder` to keep the GM's order. |
+| A move the engine has locked (Outrage, a charging Solar Beam, recharge) is the only one it will accept. | The adapter queues exactly what the engine would for a locked Pokémon, and the Pokémon is given no choice. |
+| Each action spends a turn of sleep or confusion; a flinch cancels every action; Protect then an attack both happen. The probe ran with the engine's random order between one Pokémon's actions, which hid how a recharge and a rampage really behave; I first reported both wrongly. | Asked again with the facts from the adapter's tests: decision 68. |
+| A move the engine has locked (Outrage, a charging Solar Beam, recharge) is the only one it will accept, and it wants a target number for it. | The engine's own validation is kept by going through `chooseMove`. |
+| An `event` action with `priority: 1` runs after +2 moves and in Speed order among +1 moves; it follows Speed drops and Trick Room. | The Bag action can be queued this way. |
+
+**`snapshot-restore.mjs` — saving and restoring after every turn**
+
+| Observed | Consequence |
+|---|---|
+| 210 of 210 seeded stock doubles battles were identical to their uninterrupted run. | State snapshots are a sound basis for save and resume. |
+| 70 of 70 battles were identical under a registered custom format with an overridden method, three Pokémon against one, and plain data stored on a Pokémon. | Unequal lines, overrides and adapter data survive a restore. |
+| The largest snapshot was 29.4 KiB, a third of it the engine's log. | Saves fit easily in browser storage and in an exported file. |
+| Restoring under a format id that is not registered does not throw; it returns a battle whose `format.exists` is false. | Every restore asserts the format before the battle is used. |
+
+### The adapter, built and proven — 2026-11-14
+
+`pnpm test` runs 124 tests; 102 of them drive the real `@pkmn/sim` 0.10.12.
+
+| Rule | Proven in |
+|---|---|
+| Reach on lines of any length, the lone-boss examples, spread and random targets | `src/game-rules/reach.test.ts`, `src/battle/lines.test.ts` |
+| Agony rules 1 to 10 and decisions 44 to 46, 51 to 53, 56, 57, 60, 63, 64 | `src/battle/agony.test.ts` |
+| The Bag: its place in the round, what blocks it, what an item can do (decisions 19 to 21) | `src/battle/bag.test.ts` |
+| Switch: order only, priority kept, Gyro Ball unchanged, chaining | `src/battle/turn-order.test.ts` |
+| Extra enemy moves (decisions 30, 61, 68), forced Struggle, move locks, Disable, PP, carried HP, PP and status, decision 69 | `src/battle/actions.test.ts` |
+| Run, Ally Switch (decisions 48, 65, 66, 70), Imposter (decision 47) | `src/battle/positions.test.ts` |
+| Saving and resuming a battle | `src/battle/snapshot.test.ts` |
+| No drift from the unmodified engine | `src/battle/differential.test.ts`, `src/battle/tripwires.test.ts` |
+
+**What the differential tests showed**
+
+- Two against two, with Agony off: 36 seeded battles, most fought to the end, are identical line for line to the engine's Doubles. Getting there needed one correction: the engine draws a random number when it looks for the target of a queued action even if that action's user has since fainted, so reach must not depend on the user's own state.
+- Three against three: from every slot, the same targets are offered and spread moves hit the same Pokémon as in the engine's Triples; battles with single-target moves are identical up to the first faint.
+- Not identical, and not a rules difference: in Triples the engine lists the second side in mirror image, so a spread move's targets draw their damage rolls in the opposite order. After a faint, Triples also re-centres the last Pokémon, which Denborn does not (decided).
+
+**What the engine would not do as it stands, and what the adapter does**
+
+| Found | Done |
+|---|---|
+| `setStatus` refuses a Pokémon that has not entered yet, so a carried status cannot be set through it. | The status is applied directly at setup, with the status's own start-up (decision 58). |
+| The engine re-orders the remaining actions after each action only when the next one is a move. | The same step is taken when a Bag action or an Agony turn is next, so they stay "in Speed order" when Speeds change mid-round. |
+| A move lock is only enforced when a choice is submitted. Extra moves are queued by the adapter. | The lock is applied when the move is used, with the engine's own rule (the locked move replaces the one queued). |
+| A two-turn move's lock lasts two rounds on the assumption of one action per round; released in the round it was charged, it would charge again the next round. | The lock is lifted once the move has been released (decision 68). |
+| At a faint the engine ends the Ability and the item and discards their state. | Their state at the moment of going down is kept and picked up on revival, without starting them again (Agony rule 7). An Ability the Pokémon had only copied is not brought back. |
+| Revival Blessing asks for a bench Pokémon to revive, which would leave the battle waiting for a choice nobody can make. | The move always fails (Agony rule 5). |
+| Stored targets are slot numbers; they go stale when two Pokémon trade places. | They are rewritten at every swap so that they follow the Pokémon. |
+
+**Measurements**
+
+- The engine chunk is 6.56 MB, 1.04 MB compressed. The app without it is 229 kB (72 kB compressed). The engine is fetched only on demand and works offline once the app has cached itself (`tests/e2e/smoke.spec.ts`).
+- A saved battle of six against six, 60 rounds in, is 88 KiB of JSON (the engine's log is saved with it and grows with the fight). Browser storage holds about 5 MiB per site.
+
+### Cloudflare Free, live — 2026-11-14
+
+Milestone 0 was pushed by the owner and built by Cloudflare's Git integration (Workers Builds, project `denborn-website`, commit `faeb1b5`). Against <https://denborn-website.kori-san.workers.dev>, milestone 0's browser tests passed: the app loads and caches itself, reloads with no network, and a frame makes the round trip through the Worker and the SQLite-backed Durable Object. A client route falls back to the app, and a mistyped room code is answered 404 by the Worker.
+
+Not checked by me: the account's request and Durable Object usage, which only the Cloudflare dashboard shows.
+

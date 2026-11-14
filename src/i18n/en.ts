@@ -21,10 +21,15 @@ export const en = {
     updateAvailable: 'A new version is ready.',
     updateNow: 'Update now',
     relay: 'Live relay',
-    relayCheck: 'Check',
+    relayCheck: 'Check the relay',
     relayChecking: 'Checking…',
     relayOk: (ms: number) => `Reachable (${ms} ms)`,
     relayFailed: 'Not reachable',
+    engine: 'Battle engine (GM device)',
+    engineCheck: 'Check the engine',
+    engineChecking: 'Loading…',
+    engineOk: (rounds: number, ms: number) => `Working (${rounds} rounds in ${ms} ms)`,
+    engineFailed: 'Not working',
   },
 }
 
