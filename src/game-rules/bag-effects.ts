@@ -14,8 +14,8 @@ export type MajorStatus = 'psn' | 'tox' | 'brn' | 'par' | 'slp' | 'frz'
 export type BagStat = 'atk' | 'def' | 'spa' | 'spd' | 'spe' | 'accuracy'
 
 export interface BagEffect {
-  /** Restores HP to a standing Pokémon: a fixed amount, or all of it. */
-  heal?: number | 'full'
+  /** Restores HP to a standing Pokémon: a fixed amount, a fraction of its maximum, or all of it. */
+  heal?: number | 'full' | { fraction: number }
   /** Cures the listed status conditions, or any of them. */
   cure?: readonly MajorStatus[] | 'all'
   cureConfusion?: boolean

@@ -282,6 +282,13 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | The engine is loaded with `import()` from one place only; the system-check screen has a button that loads it and plays a short fight. | Player pages never download it up front; the button proves the chunk works on the GM's device, offline included. |
 | 2026-11-14 | Engine tests compare against the unmodified engine (differential tests) and each rule has a test with a control case where one is possible. A mutation pass (breaking one rule at a time) was run by hand: 11 of 12 breaks were caught, the 12th was a redundant guard. | Owner rule: prove every rule against the real engine, not by assumption. |
 
+| 2026-11-14 | PokéAPI's tables, the games' texts and the artwork are not committed. The repository only names the items Denborn gives an effect to (`data-sources/bag-effects.json`) and keeps a generated report. A build downloads the rest into git-ignored folders; lock files in `data-sources/` pin the exact version and the SHA-256 of every file, and a file that differs stops the build. | Decision 40 (not ours, not in git), and one mechanism for artwork, texts and tables alike. The cost: each deploy downloads about 14 MB of tables and 12 MB of sprites, and fails if GitHub or Showdown's server cannot be reached. |
+| 2026-11-14 | PokéAPI's tables are pinned at commit `f841170` (2026-10-30) and its sprite repository at `1dd55c0` (2026-10-28). | The newest commits at least 14 days old, like every other dependency. |
+| 2026-11-14 | The data pack takes game facts from `@pkmn/dex`, and from `@pkmn/sim` only the item icon numbers that `@pkmn/dex` lacks. The build stops if the two disagree on anything a battle uses. `@pkmn/data` is installed but not used yet. | The interface must show what the battle really runs on. |
+| 2026-11-14 | The accepted data pack's fingerprint is committed (`data-sources/pack-fingerprint.json`). A build whose pack differs stops and lists what changed; `pnpm data:accept` records a new one. | Spec section 8: a changed data pack must never silently rewrite saved games. This is also the "list of what changed" of the approved cross-check. |
+| 2026-11-14 | Build scripts are TypeScript files run by Node itself (`node scripts/….ts`), sharing the app's pure rules (`src/game-rules/`). | The generator and the app must agree on move eligibility; one implementation, no extra runner. |
+| 2026-11-14 | An item Showdown does not have (Potion, Revive…) takes its English description from the games' text as well, like the French one. | Showdown has nothing to say about it, and PokéAPI's own English prose still carries pre-Gen 7 numbers. |
+
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
 1. Integrity checks that stop the build: every referenced move, Ability, item and evolution target exists; every species has at least one eligible move at every level under both move-access rulings; every species and item has its sprite; English and French names exist; every Bag item has an effect handler.
@@ -295,7 +302,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 ## 4. Rulings to ask, by milestone
 
 - **Milestone 1 (engine proof)**: settled on 2026-11-14 as decisions 56 to 70. The interpretations it raised are listed in 2.2.
-- **Milestone 2 (data pack)**: decisions 71 to 74 settle the supplement, baby stages, Berries and descriptions. Still to show for a ruling once generated: the full Bag effect table (Dire Hit and the Berries included), the disagreements between Showdown and PokéAPI, names missing in French, and from 2.2 the Dream World source. The Linking Cord's name and icon come from PokéAPI, since Showdown has no such item (decision 39).
+- **Milestone 2 (data pack)**: decisions 71 to 74 settle the supplement, baby stages, Berries and descriptions. The pack is generated; waiting for the owner's ruling (see section 5, "The data pack"): the Bag effect table as a whole, Dire Hit's strength, whether Heal Powder cures confusion, the Linking Cord's description, the Dream World source, and what to do about the 25 French descriptions PokéAPI lacks.
 - **Milestone 3 (art direction)**: font; wording of custom battle messages in both languages.
 - **Milestone 4 (offline flows)**: nickname character set; QR size cap; what the printed sheet shows; and from 2.2: roleplay points above level 1.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer.
@@ -394,4 +401,25 @@ Three scripts in `scripts/engine-probes/` run the unmodified engine in the situa
 Milestone 0 was pushed by the owner and built by Cloudflare's Git integration (Workers Builds, project `denborn-website`, commit `faeb1b5`). Against <https://denborn-website.kori-san.workers.dev>, milestone 0's browser tests passed: the app loads and caches itself, reloads with no network, and a frame makes the round trip through the Worker and the SQLite-backed Durable Object. A client route falls back to the app, and a mistyped room code is answered 404 by the Worker.
 
 Not checked by me: the account's request and Durable Object usage, which only the Cloudflare dashboard shows.
+
+### The data pack — 2026-11-14
+
+`pnpm data` builds pack `0.10.12+pokeapi.f841170+b0eee860`: 151 species, 831 moves, 114 Abilities, 269 items, 25 natures, 18 types, in English and French. The full report is `data-sources/reports/data-pack.md`.
+
+**Integrity checks that stop the build** (all pass): 151 base species; every move, Ability, item and evolution a species refers to exists; every species has at least one eligible move at every level from 1 to 100 under both move-access rulings; English and French names exist for everything; every item of the Bag categories has an effect or a stated reason to be left out; every species has its battle sprites and every item its icon pinned; `@pkmn/dex` and `@pkmn/sim` agree.
+
+**Showdown against PokéAPI.** Over the 151 species (types, base stats, Abilities, Hidden Ability, gender ratio) and the 831 moves (type, category, power, accuracy, PP, priority), they disagree on six values, all on Gen 9 moves that only the common-move supplement can give: Burning Bulwark, Dragon Cheer and Tachyon Cutter (PokéAPI writes "never misses" as accuracy 0), Comeuppance and Ruination (PokéAPI writes a variable power as 1), and Take Heart (15 PP in Showdown, 10 in PokéAPI). The battle runs on Showdown's values.
+
+**What the sources lack**
+
+| Found | Done, pending the owner's ruling |
+|---|---|
+| The Linking Cord has no description in PokéAPI, in either language. | A description written for Denborn is in `data-sources/rulings.json`, marked for approval. |
+| PokéAPI has no French in-game text for 20 Gen 9 items (Ability Shield, Booster Energy, Covert Cloak, Loaded Dice…) and 5 moves (the Torque moves). | Their French description falls back to Showdown's English. |
+| Berry Juice is flagged "past" by Showdown. | It is a Bag item only; it cannot be held. |
+| PokéAPI's Bag categories also hold items the kickoff prompt does not list: three flutes, and four items without English effect text (Hopo Berry, Max Honey, Pewter Crunchies, Max Mushrooms). | Left out, each with its reason in `data-sources/bag-effects.json`. |
+
+**The Bag effect table** (`data-sources/bag-effects.json`, 52 items) holds current-game values. Each was checked against Serebii, PokémonDB or PokéAPI on 2026-11-14, except two that the sources leave open: how much Dire Hit raises the critical-hit rate (older texts say one stage, the current games say "sharply", which is the wording of two stages), and whether Heal Powder cures confusion. For Antidote and Pecha Berry curing a bad poisoning, and Lum Berry curing confusion, the engine's own held Berries behave that way.
+
+**Size.** The first visit now downloads about 13.5 MB: 12 MB of sprites, 1 MB for the engine and 0.14 MB for the data pack once compressed.
 

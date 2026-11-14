@@ -44,7 +44,12 @@ function apply(battle: Battle, user: Pokemon, use: BagUse): boolean {
   let applied = false
 
   if (effect.heal !== undefined) {
-    const amount = effect.heal === 'full' ? target.maxhp : effect.heal
+    const amount =
+      effect.heal === 'full'
+        ? target.maxhp
+        : typeof effect.heal === 'number'
+          ? effect.heal
+          : Math.floor(target.maxhp * effect.heal.fraction)
     if (battle.heal(amount, target, user, item)) applied = true
   }
   if (effect.cure && target.status && (effect.cure === 'all' || effect.cure.some((id) => id === target.status))) {

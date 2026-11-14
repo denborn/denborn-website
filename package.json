@@ -9,14 +9,17 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "wrangler types && tsc -b && vite build",
+    "build": "node scripts/assets/sync-sprites.ts && node scripts/data/build-datapack.ts && wrangler types && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "wrangler types && tsc -b",
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "verify": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build && pnpm run test:e2e",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "data": "node scripts/assets/sync-sprites.ts && node scripts/data/build-datapack.ts",
+    "data:accept": "node scripts/data/build-datapack.ts --accept --report",
+    "data:pin": "node scripts/data/fetch-sources.ts --pin && node scripts/assets/sync-sprites.ts --pin"
   },
   "dependencies": {
     "@pkmn/data": "0.10.12",

@@ -1,0 +1,73 @@
+{
+  "note": "What each Bag item does in Denborn. Showdown has no Bag and PokéAPI has no machine-readable effects, so this table is the project's own. Values are those of the current main-series games (decision 29). The owner approves every row before it ships.",
+  "effects": {
+    "potion": { "heal": 20 },
+    "super-potion": { "heal": 60 },
+    "hyper-potion": { "heal": 120 },
+    "max-potion": { "heal": "full" },
+    "full-restore": { "heal": "full", "cure": "all", "cureConfusion": true },
+    "fresh-water": { "heal": 30 },
+    "soda-pop": { "heal": 50 },
+    "lemonade": { "heal": 70 },
+    "moomoo-milk": { "heal": 100 },
+    "energy-powder": { "heal": 60 },
+    "energy-root": { "heal": 120 },
+    "berry-juice": { "heal": 20 },
+    "sweet-heart": { "heal": 20 },
+
+    "ether": { "restorePp": { "amount": 10, "scope": "one" } },
+    "max-ether": { "restorePp": { "amount": "full", "scope": "one" } },
+    "elixir": { "restorePp": { "amount": 10, "scope": "all" } },
+    "max-elixir": { "restorePp": { "amount": "full", "scope": "all" } },
+
+    "revive": { "revive": "half" },
+    "max-revive": { "revive": "full" },
+    "revival-herb": { "revive": "full" },
+    "sacred-ash": { "reviveAll": true },
+
+    "antidote": { "cure": ["psn", "tox"] },
+    "burn-heal": { "cure": ["brn"] },
+    "ice-heal": { "cure": ["frz"] },
+    "awakening": { "cure": ["slp"] },
+    "paralyze-heal": { "cure": ["par"] },
+    "full-heal": { "cure": "all", "cureConfusion": true },
+    "heal-powder": { "cure": "all", "cureConfusion": true },
+    "lava-cookie": { "cure": "all", "cureConfusion": true },
+    "old-gateau": { "cure": "all", "cureConfusion": true },
+    "casteliacone": { "cure": "all", "cureConfusion": true },
+    "lumiose-galette": { "cure": "all", "cureConfusion": true },
+    "shalour-sable": { "cure": "all", "cureConfusion": true },
+    "big-malasada": { "cure": "all", "cureConfusion": true },
+
+    "x-attack": { "boost": { "stat": "atk", "stages": 2 } },
+    "x-defense": { "boost": { "stat": "def", "stages": 2 } },
+    "x-sp-atk": { "boost": { "stat": "spa", "stages": 2 } },
+    "x-sp-def": { "boost": { "stat": "spd", "stages": 2 } },
+    "x-speed": { "boost": { "stat": "spe", "stages": 2 } },
+    "x-accuracy": { "boost": { "stat": "accuracy", "stages": 2 } },
+    "dire-hit": { "crit": true },
+    "guard-spec": { "guard": true },
+
+    "oran-berry": { "heal": 10 },
+    "sitrus-berry": { "heal": { "fraction": 0.25 } },
+    "leppa-berry": { "restorePp": { "amount": 10, "scope": "one" } },
+    "cheri-berry": { "cure": ["par"] },
+    "chesto-berry": { "cure": ["slp"] },
+    "pecha-berry": { "cure": ["psn", "tox"] },
+    "rawst-berry": { "cure": ["brn"] },
+    "aspear-berry": { "cure": ["frz"] },
+    "persim-berry": { "cureConfusion": true },
+    "lum-berry": { "cure": "all", "cureConfusion": true }
+  },
+  "ppUps": {
+    "pp-up": 1,
+    "pp-max": 3
+  },
+  "evolution": ["linking-cord"],
+  "excluded": {
+    "hopo-berry": "No English effect text in PokéAPI (Legends: Z-A item).",
+    "max-honey": "No English effect text in PokéAPI.",
+    "pewter-crunchies": "No English effect text in PokéAPI.",
+    "max-mushrooms": "No English effect text in PokéAPI."
+  }
+}

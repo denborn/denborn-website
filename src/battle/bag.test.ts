@@ -100,6 +100,8 @@ describe('the Bag action: what an item can do', () => {
     expect(topped.hp).toBe(topped.maxHp)
     const full = use({ heal: 'full' }, { hp: 1 }).patient
     expect(full.hp).toBe(full.maxHp)
+    const quarter = use({ heal: { fraction: 0.25 } }, { hp: 1 }).patient
+    expect(quarter.hp).toBe(1 + Math.floor(quarter.maxHp / 4))
   })
 
   it('cures the conditions it lists and no other', () => {

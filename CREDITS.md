@@ -12,16 +12,18 @@ This file lists where everything that is not ours comes from. It is updated when
 |---|---|---|
 | Battle simulator | [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) by Smogon and its contributors, through [`@pkmn/sim`](https://github.com/pkmn/ps) | MIT (code) |
 | Species, moves, Abilities, items, learnsets | Pokémon Showdown's data, through `@pkmn/dex` and `@pkmn/data` | MIT (code); the game facts belong to the games |
-| Bag items, French names and descriptions, base EXP | [PokéAPI](https://pokeapi.co/) ([api-data](https://github.com/PokeAPI/api-data), [pokeapi](https://github.com/PokeAPI/pokeapi)) | Recorded with the pinned snapshot in milestone 2 |
+| Bag item list, French names, base EXP | [PokéAPI](https://pokeapi.co/)'s data tables ([PokeAPI/pokeapi](https://github.com/PokeAPI/pokeapi), commit `f841170`) | BSD 3-Clause (the repository); the game facts belong to the games |
+| French descriptions of moves, Abilities and items, and both descriptions of items Showdown lacks | The games' own texts, as collected by PokéAPI | © Nintendo, Creatures Inc., GAME FREAK inc. Downloaded when the app is built; never stored in this repository |
+| What each Bag item does | The project's own table (`data-sources/bag-effects.json`), with values checked against [Serebii](https://www.serebii.net/itemdex/) and [PokémonDB](https://pokemondb.net/item) | Ours; the values are the games' |
 
 ## Artwork shown in the app
 
-Not stored in this repository. A script downloads it at build time, and a manifest records each file's source URL and checksum (from milestone 2).
+Not stored in this repository. `scripts/assets/sync-sprites.ts` downloads it at build time, and `data-sources/sprites.lock.json` records each file's source and checksum.
 
 | What | Source | Rights |
 |---|---|---|
 | Pokémon battle sprites (Gen 5 animated, with the `ani` set as fallback), Pokémon icons, item icons, type and category icons | [Pokémon Showdown's sprite collection](https://play.pokemonshowdown.com/sprites/), maintained in [smogon/sprites](https://github.com/smogon/sprites) | "The sprites themselves are property of Nintendo / Game Freak / The Pokémon Company" (smogon/sprites README) |
-| Item icons Showdown does not have | [PokéAPI sprites](https://github.com/PokeAPI/sprites) | "All image contents within are Copyright The Pokémon Company" (PokéAPI sprites licence file) |
+| Icons of the 45 items Showdown does not have (Potion, Revive, Linking Cord…) | [PokéAPI sprites](https://github.com/PokeAPI/sprites), commit `1dd55c0` | "All image contents within are Copyright The Pokémon Company" (PokéAPI sprites licence file) |
 
 ## Design references
 

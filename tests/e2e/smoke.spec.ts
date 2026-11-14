@@ -11,6 +11,10 @@ test('the app caches itself and reloads with no network', async ({ page, context
   await page.reload()
   await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeVisible()
   await expect(page.getByText('Ready', { exact: true })).toBeVisible()
+  // The game data and a sprite come from the offline cache too.
+  await expect(page.getByText(/^\d+ Pokémon, \d+ moves \(/)).toBeVisible()
+  const sprite = await page.evaluate(async () => (await fetch('/sprites/gen5ani/pikachu.gif')).status)
+  expect(sprite).toBe(200)
 })
 
 test('the battle engine is fetched on demand and runs with no network once cached', async ({ page, context }) => {

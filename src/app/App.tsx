@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { loadDataPack } from '../data/pack'
 import { LANGUAGES, setLanguage, useLanguage, useMessages } from '../i18n'
 import { probeRelay } from '../network/relay-probe'
 import { useOfflineStatus } from '../pwa/use-offline-status'
 
 type RelayCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; ms: number } | { state: 'failed' }
+type PackState = { state: 'loading' } | { state: 'ok'; version: string; species: number; moves: number } | { state: 'failed' }
 type EngineCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; rounds: number; ms: number } | { state: 'failed' }
 
 export function App() {
@@ -12,6 +14,28 @@ export function App() {
   const offline = useOfflineStatus()
   const [relay, setRelay] = useState<RelayCheck>({ state: 'idle' })
   const [engine, setEngine] = useState<EngineCheck>({ state: 'idle' })
+  const [pack, setPack] = useState<PackState>({ state: 'loading' })
+
+  useEffect(() => {
+    let cancelled = false
+    loadDataPack().then(
+      (data) => {
+        if (cancelled) return
+        setPack({
+          state: 'ok',
+          version: data.version,
+          species: Object.keys(data.species).length,
+          moves: Object.keys(data.moves).length,
+        })
+      },
+      () => {
+        if (!cancelled) setPack({ state: 'failed' })
+      },
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // The engine is its own chunk: it is only fetched (or read from the offline cache) here, on demand.
   const checkEngine = (): void => {
@@ -51,6 +75,13 @@ export function App() {
     failed: t.system.relayFailed,
   }[relay.state]
 
+  const packText =
+    pack.state === 'ok'
+      ? t.system.dataPackOk(pack.version, pack.species, pack.moves)
+      : pack.state === 'loading'
+        ? t.system.dataPackLoading
+        : t.system.dataPackFailed
+
   const engineText = {
     idle: '',
     checking: t.system.engineChecking,
@@ -72,6 +103,8 @@ export function App() {
           <dd>{__APP_VERSION__}</dd>
           <dt>{t.system.engineVersion}</dt>
           <dd>@pkmn/sim {__ENGINE_VERSION__}</dd>
+          <dt>{t.system.dataPack}</dt>
+          <dd role="status">{packText}</dd>
           <dt>{t.system.engine}</dt>
           <dd>
             <button type="button" onClick={checkEngine} disabled={engine.state === 'checking'}>

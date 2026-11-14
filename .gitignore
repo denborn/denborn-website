@@ -34,3 +34,6 @@ npm-debug.log*
 # third-party skills: reinstall from skills-lock.json
 /.agents
 /.claude/skills/design-taste-frontend
+
+# sources downloaded at build time from their pinned versions (see data-sources/*.lock.json)
+/.cache

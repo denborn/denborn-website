@@ -8,6 +8,7 @@ Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and 
 
 - Milestone 0 (foundations) is done and live on Cloudflare's Free plan: the toolchain, the offline shell and a relay skeleton.
 - Milestone 1 (battle engine) is done: `src/battle/` runs Denborn's fights on the real simulator, with every rule proven by tests (see DECISIONS.md, section 5).
+- Milestone 2 (game data) is generated: 151 species, their moves, Abilities and items in English and French, with the sprites. Some of its content waits for the owner's ruling (DECISIONS.md, section 4).
 - Nothing of the game is playable in the app yet: there is no character, campaign or battle screen. The only screen is a system check.
 
 ## What is authoritative
@@ -35,6 +36,7 @@ Requires Node 22.12 or later and pnpm 12.
 
 ```sh
 pnpm install          # exact, locked versions; nothing newer than 14 days is ever installed
+pnpm data             # download the pinned sprites and tables, build the game data pack (needed once before `pnpm dev`)
 pnpm dev              # app + Worker + Durable Object, locally
 pnpm verify           # type check, lint, all tests, production build, end-to-end tests
 pnpm test             # unit, engine and Worker tests
@@ -46,6 +48,8 @@ Deploys are not run by hand: Cloudflare builds and deploys every push to `main` 
 
 The first end-to-end run needs a browser: `pnpm exec playwright install chromium`.
 
-## Artwork is not in this repository
+## Artwork and game texts are not in this repository
 
-Sprites, icons and the reference sheets used for the art direction belong to their rights holders and are never committed. A script downloads the sprites at build time (from milestone 2), and `CREDITS.md` lists every source.
+Sprites, icons, the games' texts and the reference sheets used for the art direction belong to their rights holders and are never committed. A build downloads the sprites and PokéAPI's tables from the versions pinned in `data-sources/*.lock.json`, checks every file against its recorded checksum, and generates the data pack from them. `CREDITS.md` lists every source.
+
+When a pinned source or the engine changes: `pnpm data:pin` re-pins the downloads, `pnpm data:accept` shows what changed in the game data and records the new pack.
