@@ -227,6 +227,7 @@ Each row is the owner's answer to a question asked that day.
 | 96 | How those extra points are placed | Like level-up points: first the 300 are placed, 5 to 75 per attribute; then the extra points go on top, can raise an attribute up to 95, and may be kept unspent for later. |
 | 97 | Characters a nickname can use | Latin letters, accents included, digits, the space, the apostrophe, the hyphen and the period. No emoji, no other alphabets. (Length: 1 to 24, from the kickoff prompt.) |
 | 98 | What the printed character sheet shows | Identity (nickname, species, level, gender, nature, Ability) and the six roleplay attributes; the combat stats and the six moves with type, category, PP and description; the held item, the Bag and the Pokédollars; the character's QR code, when the character fits one. |
+| 99 | The largest QR code the app shows | 101 × 101 squares: on 2026-11-14 the owner scanned six real samples of growing size on the board and chose "Sample 4 (101 × 101)", a character carrying every Bag item. A character or a set of rules that would need a finer code gets none: the app offers the character's file, or the link as text, instead. Nothing is ever cut. |
 
 ---
 
@@ -372,7 +373,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 - **Milestone 2 (data pack)**: settled on 2026-11-14 as decisions 71 to 81.
 - **Milestone 3 (art direction)**: settled on 2026-11-14 as decisions 82 to 86. The smaller words nobody ruled on are listed in 2.2.
 - **The battle view**: settled on 2026-11-14 as decisions 87 to 94.
-- **Milestone 4 (offline flows)**: settled on 2026-11-14 as decisions 95 to 98. Asked on 2026-11-14 with measured sizes and sample QR codes to scan on the board (*To decide → QR size*): the largest QR code allowed before a character falls back to its file.
+- **Milestone 4 (offline flows)**: settled on 2026-11-14 as decisions 95 to 99.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer. Also to settle then: the names of the effects no move is named after (confusion, a flinch, a trap, a stat stage's multiplier) and what each effect in the MORE list says it does (the board shows the description of the move that sets it, which speaks of the move: "Goes last. For 5 turns, turn order is reversed."); where the French of the engine's ordinary battle messages comes from (moves, damage, status, weather…); the engine's own text is English, and no French source has been looked for yet.
 - **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
 
@@ -535,4 +536,4 @@ Measured with `node scripts/measure/code-sizes.ts` on the real data pack. "Squar
 
 A creation link is the code after the app's address, 46 characters more; the largest above is a link of 3,690 characters, which no QR code holds but any message can carry.
 
-Checked: the browser's own barcode reader (Chromium on macOS) read all six sample QR codes of the board back, character for character, from the drawn image. Not checked: a real phone's camera pointed at a screen, which is what the size limit depends on; that test is the owner's, on the board.
+Checked: the browser's own barcode reader (Chromium on macOS) read all six sample QR codes of the board back, character for character, from the drawn image. A real phone's camera pointed at the screen was the owner's test, on the board: the samples up to 101 × 101 read quickly, which set decision 99.

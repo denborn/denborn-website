@@ -36,7 +36,7 @@ const invite = (rules: CampaignRules): string => encodeCreationCode({ campaign: 
 const bagKinds = Object.values(pack.items).filter((item) => item.bag).length
 const HEAD = '| Characters, code | Characters, link | QR, code | QR, link | QR, without capitals |\n|---|---|---|---|---|---|'
 
-console.log(`Data pack ${pack.version}\n`)
+console.log(`Data pack ${pack.version}. The app shows no QR code finer than 101 × 101 (decision 99).\n`)
 console.log(`| Character ${HEAD}`)
 console.log(row('Just created: level 5, 2 moves, 4 kinds of item', encodeCharacterCode(sampleCharacter(pack, 5, 'Volt', 2, 4))))
 console.log(row('Played: level 50, 24-letter name, 6 moves, 12 kinds of item', encodeCharacterCode(sampleCharacter(pack, 50, 'Éclair-de-Lune du Matin.', 6, 12))))

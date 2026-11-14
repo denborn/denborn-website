@@ -1,30 +1,15 @@
-import { type Bitmap2D, correction, generate } from 'lean-qr'
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
+import { qrFor } from './qr-size'
 
-/** Modules of quiet, white border a QR code needs around it to be read. */
+/** Squares of quiet, white border a QR code needs around it to be read. */
 const QUIET = 4
-
-function encode(text: string): Bitmap2D | undefined {
-  try {
-    // The lowest error correction: the code is read from a clean screen or a fresh print, and smaller is easier to scan.
-    return generate(text, { minCorrectionLevel: correction.L })
-  } catch {
-    // The library throws when no QR code is large enough for the text.
-    return undefined
-  }
-}
-
-/** Side of the QR code that holds a text, in modules, without its border; nothing when no QR code can hold it. */
-export function qrSide(text: string): number | undefined {
-  return encode(text)?.size
-}
 
 export interface QrCodeProps {
   /** What the QR code holds. */
   text: string
   /** What it is, for assistive technology. */
   label: string
-  /** Shown in its place when the text is too long for any QR code. */
+  /** Shown in its place when the text would need a finer QR code than the app shows (decision 99). */
   tooLong: ReactNode
 }
 
@@ -35,7 +20,7 @@ export interface QrCodeProps {
  */
 export function QrCode({ text, label, tooLong }: QrCodeProps) {
   const canvas = useRef<HTMLCanvasElement>(null)
-  const code = useMemo(() => encode(text), [text])
+  const code = useMemo(() => qrFor(text), [text])
 
   useEffect(() => {
     if (code && canvas.current) code.toCanvas(canvas.current, { on: [0, 0, 0, 255], off: [255, 255, 255, 255], pad: QUIET })

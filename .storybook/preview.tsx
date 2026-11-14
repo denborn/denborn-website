@@ -40,7 +40,7 @@ const preview: Preview = {
   initialGlobals: { locale: 'en' },
   parameters: {
     layout: 'fullscreen',
-    options: { storySort: { order: ['To decide', 'Scenes', 'Foundations', 'Components'] } },
+    options: { storySort: { order: ['Scenes', 'Foundations', 'Components'] } },
   },
 }
 
