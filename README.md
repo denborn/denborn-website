@@ -9,6 +9,7 @@ Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and 
 - Milestone 0 (foundations) is done and live on Cloudflare's Free plan: the toolchain, the offline shell and a relay skeleton.
 - Milestone 1 (battle engine) is done: `src/battle/` runs Denborn's fights on the real simulator, with every rule proven by tests (see DECISIONS.md, section 5).
 - Milestone 2 (game data) is done: 151 species, their moves, Abilities and items in English and French, with the sprites, built from pinned sources.
+- Milestone 3 (art direction) is built: the design system Denborn DA, after Pokémon Black / White, with its components shown in Storybook. Four choices on it await the owner (the font among them).
 - Nothing of the game is playable in the app yet: there is no character, campaign or battle screen. The only screen is a system check.
 
 ## What is authoritative
@@ -17,6 +18,7 @@ Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and 
 |---|---|
 | [DECISIONS.md](DECISIONS.md) | Every rule and product decision the owner has made, with dates; unconfirmed interpretations; engineering choices; rulings still to ask. |
 | [tasks/V0_SPEC.md](tasks/V0_SPEC.md), `V1_SPEC.md`, `V2_SPEC.md` | The specifications. Decisions in `DECISIONS.md` complete and override them. |
+| [DESIGN.md](DESIGN.md) | The design system: how every screen must look, move and stay accessible. |
 | [.claude/CLAUDE.md](.claude/CLAUDE.md), [.claude/rules/](.claude/rules/) | Engineering guardrails for work in this repository. |
 | [docs/](docs/) | Research notes, sources and the integration proofs required before a dependency is trusted. |
 
@@ -29,6 +31,7 @@ The owner alone decides game rules. A TBD in a spec is a question to ask, never 
 - One Cloudflare Worker serves the app as static assets and relays WebSocket messages between the GM and the players through one Durable Object per room. The relay stores no game data.
 - No database. Saves are versioned JSON files plus copies in the browser's storage.
 - Everything must run on Cloudflare's Free plan.
+- The interface follows one design system, Denborn DA: its rules are in [DESIGN.md](DESIGN.md), its components in `src/ui/`, and Storybook shows each of them alone. Storybook is a development tool; it is not deployed.
 
 ## Commands
 
@@ -41,6 +44,7 @@ pnpm dev              # app + Worker + Durable Object, locally
 pnpm verify           # type check, lint, all tests, production build, end-to-end tests
 pnpm test             # unit, engine and Worker tests
 pnpm test:e2e         # browser tests against the production build (run `pnpm build` first)
+pnpm storybook        # the design system's board, on http://localhost:6006 (needs `pnpm data` once)
 node scripts/engine-probes/hit-fainted.mjs   # what the unmodified engine does (also action-layer, snapshot-restore)
 ```
 

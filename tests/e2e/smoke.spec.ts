@@ -1,11 +1,15 @@
 import { expect, test } from '@playwright/test'
 
+// The first visit downloads the whole app for offline use: sprites, game data and the battle engine.
+// On a real network that takes a while, so "Ready" is waited for patiently.
+const CACHED = { timeout: 120_000 }
+
 test('the app caches itself and reloads with no network', async ({ page, context }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeVisible()
 
   // "Ready" is only shown once the service worker has stored the whole precache.
-  await expect(page.getByText('Ready', { exact: true })).toBeVisible()
+  await expect(page.getByText('Ready', { exact: true })).toBeVisible(CACHED)
 
   await context.setOffline(true)
   await page.reload()
@@ -24,7 +28,7 @@ test('the battle engine is fetched on demand and runs with no network once cache
   })
 
   await page.goto('/')
-  await expect(page.getByText('Ready', { exact: true })).toBeVisible()
+  await expect(page.getByText('Ready', { exact: true })).toBeVisible(CACHED)
   // The page itself never asks for the engine: only the offline cache has fetched it, in the background.
   expect(engineRequests).toEqual([])
 

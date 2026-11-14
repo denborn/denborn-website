@@ -1,0 +1,172 @@
+/*
+ * Denborn DA — design tokens.
+ *
+ * Colours marked "measured" were read from the Black/White and Black 2/White 2
+ * reference sheets (see DESIGN.md for the sheet and the place). Everything
+ * else is Denborn's own choice in the same spirit. Components use these
+ * tokens only; no colour or duration is written anywhere else.
+ */
+:root {
+  /* --- Ink, frames and panels (measured: B2W2 HP boxes) -------------------- */
+  --dn-ink: #101010; /* frames and outlines */
+  --dn-ink-soft: #181818; /* the outline around white text */
+  --dn-panel: #181818; /* dark panel, first dither colour */
+  --dn-panel-2: #303030; /* dark panel, second dither colour */
+  --dn-panel-edge: #495151; /* lower-right edge of a dark panel */
+  --dn-panel-light: #c6c6c6; /* White 2 panel */
+  --dn-panel-light-2: #adadad;
+  --dn-text: #f3f3f3; /* text on dark */
+  --dn-text-shadow: #9a929a; /* its one-pixel shadow */
+  --dn-text-dark: #212121; /* text on light */
+  --dn-text-muted: #9c9cad; /* unselected label (B2W2 options) */
+
+  /* --- Selection and menus (measured: BW party screen, B2W2 options) ------- */
+  --dn-select: #48f8f0; /* selection outline */
+  --dn-select-soft: #88f8f0; /* resting outline of a slot */
+  --dn-slot: #002038; /* party slot: middle, left band, right band */
+  --dn-slot-band: #386890;
+  --dn-slot-tail: #004060;
+  --dn-slot-selected: #086890;
+  --dn-slot-selected-band: #00a8f8;
+  --dn-slot-selected-tail: #0088d8;
+  --dn-slot-down: #601810; /* fainted slot; Denborn: downed */
+  --dn-slot-down-band: #a84028;
+  --dn-slot-down-tail: #801010;
+  --dn-slot-down-outline: #f88898;
+  --dn-slot-ok: #088068; /* confirmed slot */
+  --dn-slot-ok-band: #10d8b0;
+  --dn-slot-ok-tail: #08c0a0;
+  --dn-option: #393952; /* unselected option button */
+  --dn-option-selected: #085a8c;
+  --dn-option-selected-band: #088cb5;
+  --dn-select-line: #63b5b5; /* outline of the selected option */
+  --dn-backdrop: #000000; /* menu background */
+  --dn-backdrop-mark: #183931; /* its faint pattern */
+
+  /* --- Command menu (measured: BW battle touch screen) --------------------- */
+  --dn-tile: #393939;
+  --dn-tile-2: #424242;
+  --dn-tile-3: #313131;
+  --dn-tile-4: #292929;
+  --dn-tile-line: #737373;
+  --dn-cmd-fight: #ce0039;
+  --dn-cmd-bag: #ffb529;
+  --dn-cmd-run: #29bdf7;
+  --dn-cmd-switch: #73ff52;
+  --dn-shell: #4a3939; /* touch-screen background */
+  --dn-shell-2: #423131;
+  --dn-ball-red: #9c0021;
+  --dn-ball-red-2: #b50029;
+  --dn-ball-white: #cecee7;
+  --dn-ball-white-2: #dedee7;
+
+  /* --- Message band (measured: BW battle screen) ---------------------------- */
+  /* The games darken the scene behind the text: black at 60%, under two thin red lines. */
+  --dn-message-band: rgb(0 0 0 / 0.6);
+  --dn-message-line: rgb(122 2 0 / 0.6);
+  --dn-message-line-2: rgb(52 2 0 / 0.6);
+
+  /* --- Battle scene (Denborn's own: the games paint a backdrop per place) --- */
+  --dn-scene-sky: #5a8cd6;
+  --dn-scene-sky-2: #bde0f7;
+  --dn-scene-haze: rgb(255 255 255 / 0.45);
+  --dn-scene-ground: #6bbd73;
+  --dn-scene-ground-2: #3f8f5a;
+  --dn-scene-shadow: rgb(16 16 16 / 0.28); /* the shadow a Pokémon casts */
+
+  /* --- Meters (measured: B2W2 HP bars) ------------------------------------ */
+  --dn-hp-high: #00fb49;
+  --dn-hp-high-shade: #008a28;
+  --dn-hp-mid: #f3b200;
+  --dn-hp-mid-shade: #9a6110;
+  --dn-hp-low: #fb3041;
+  --dn-hp-low-shade: #922030;
+  --dn-exp: #00baf3;
+  --dn-exp-shade: #00799a;
+  --dn-label-gold: #f3b200; /* "Lv." and "HP" labels */
+  --dn-label-gold-shade: #9a6110;
+
+  /* --- Status conditions (measured: B2W2 status icons) --------------------- */
+  --dn-status-slp: #4a4a4a;
+  --dn-status-psn: #6b2942;
+  --dn-status-tox: #391042;
+  --dn-status-tox-text: #d631de;
+  --dn-status-brn: #b50000;
+  --dn-status-frz: #005a8c;
+  --dn-status-par: #ad6b00;
+  /* Denborn's own: Agony has no counterpart in the games. */
+  --dn-agony: #2b0a12;
+  --dn-agony-pip: #fb3041;
+  --dn-agony-pip-spent: #5a2a30;
+
+  /* --- Gender marks (measured: B2W2 HP box examples) ----------------------- */
+  --dn-male: #00baf3;
+  --dn-male-shade: #00799a;
+  --dn-female: #fb3041;
+  --dn-female-shade: #922030;
+
+  /* --- Types: fill and shade (measured: BW type labels; Fairy from Showdown's label) --- */
+  --dn-type-normal: #ada594;
+  --dn-type-normal-shade: #525252;
+  --dn-type-fire: #f75231;
+  --dn-type-fire-shade: #732108;
+  --dn-type-water: #399cff;
+  --dn-type-water-shade: #425294;
+  --dn-type-electric: #ffc631;
+  --dn-type-electric-shade: #735218;
+  --dn-type-grass: #7bce52;
+  --dn-type-grass-shade: #426b39;
+  --dn-type-ice: #5acee7;
+  --dn-type-ice-shade: #425294;
+  --dn-type-fighting: #a55239;
+  --dn-type-fighting-shade: #4a3931;
+  --dn-type-poison: #b55aa5;
+  --dn-type-poison-shade: #4a3952;
+  --dn-type-ground: #d6b55a;
+  --dn-type-ground-shade: #735218;
+  --dn-type-flying: #9cadf7;
+  --dn-type-flying-shade: #425294;
+  --dn-type-psychic: #ff73a5;
+  --dn-type-psychic-shade: #6b3939;
+  --dn-type-bug: #adbd21;
+  --dn-type-bug-shade: #426b39;
+  --dn-type-rock: #bda55a;
+  --dn-type-rock-shade: #735218;
+  --dn-type-ghost: #6363b5;
+  --dn-type-ghost-shade: #4a3952;
+  --dn-type-dragon: #7b63e7;
+  --dn-type-dragon-shade: #4a3994;
+  --dn-type-dark: #735a4a;
+  --dn-type-dark-shade: #4a3931;
+  --dn-type-steel: #adadc6;
+  --dn-type-steel-shade: #525252;
+  --dn-type-fairy: #ff65d5;
+  --dn-type-fairy-shade: #6b3952;
+
+  /* --- Type ----------------------------------------------------------------- */
+  /* The display font is chosen on the style board; until then the first candidate. */
+  --dn-font: 'DotGothic16', system-ui, sans-serif;
+  /* Evens out the candidates' letter heights: text sizes are multiplied by it. */
+  --dn-font-scale: 1;
+
+  /* --- Motion (Denborn's own; the games' timings are not documented) -------- */
+  --dn-press: 90ms; /* a button going down */
+  --dn-quick: 160ms; /* a selection moving, a badge appearing */
+  --dn-move: 280ms; /* a panel sliding in */
+  --dn-slow: 480ms; /* a screen wipe */
+  --dn-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dn-ease-in: cubic-bezier(0.6, 0, 0.9, 0.4);
+  --dn-ease-snap: cubic-bezier(0.3, 1.4, 0.5, 1); /* a small overshoot, for arrivals */
+
+  /* --- Sizes ---------------------------------------------------------------- */
+  /*
+   * One DS pixel, in CSS pixels. Inside a .dn-screen it is the screen's width
+   * divided by 256, so the whole interface keeps the proportions of the DS
+   * at any size. Outside a screen it falls back to 2.
+   */
+  --dn-u: 2px;
+  /* One DS pixel of text: every font size is a multiple of it. */
+  --dn-t: calc(var(--dn-u) * var(--dn-font-scale));
+  --dn-target: 44px; /* smallest touch target */
+  --dn-focus-ring: #ffffff;
+}

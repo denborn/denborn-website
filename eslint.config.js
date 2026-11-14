@@ -13,6 +13,7 @@ export default tseslint.config(
       'tmp',
       'playwright-report',
       'test-results',
+      'storybook-static',
       'src/data/generated',
       'worker-configuration.d.ts',
     ],
@@ -31,7 +32,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/**/*.{ts,tsx}'],
+    files: ['src/**/*.{ts,tsx}', '.storybook/preview.tsx'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,

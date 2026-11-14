@@ -3,6 +3,7 @@
 
 # build output
 /dist
+/storybook-static
 *.tsbuildinfo
 
 # Cloudflare local state and secrets

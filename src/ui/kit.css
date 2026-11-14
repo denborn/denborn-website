@@ -1,0 +1,871 @@
+/*
+ * Denborn DA — the component kit's styles.
+ *
+ * Sizes are written in DS pixels, `calc(N * var(--dn-u))`, and text sizes in
+ * `var(--dn-t)`, so that every component keeps the proportions of the DS at
+ * any screen size. Colours and timings come from tokens.css.
+ *
+ * Shaped controls (cut corners, pointed ends) are painted by their ::before
+ * and ::after: the rim, then the face. The control itself is never clipped,
+ * so its focus ring always shows.
+ */
+
+/* --- Base ------------------------------------------------------------------ */
+.dn-root {
+  --dn-t: calc(var(--dn-u) * var(--dn-font-scale));
+  font-family: var(--dn-font);
+  font-size: calc(10 * var(--dn-t));
+  line-height: 1.2;
+  color: var(--dn-text);
+}
+
+.dn-root *,
+.dn-root *::before,
+.dn-root *::after {
+  box-sizing: border-box;
+}
+
+/* :where() keeps this reset weaker than any component class. */
+:where(.dn-root) button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: 0;
+  padding: 0;
+  background: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(.dn-root) button:disabled {
+  cursor: default;
+}
+
+/* One focus style for everything that can take focus: a white ring inside a dark one, visible on any colour. */
+.dn-root :focus-visible {
+  outline: calc(2 * var(--dn-u)) solid var(--dn-focus-ring);
+  outline-offset: calc(1 * var(--dn-u));
+  box-shadow: 0 0 0 calc(4 * var(--dn-u)) var(--dn-ink);
+}
+
+/* Text with the games' one-pixel drop shadow (messages, labels on colour). */
+.dn-text-shadow {
+  text-shadow:
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-text-shadow),
+    calc(1 * var(--dn-u)) 0 0 var(--dn-text-shadow),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-text-shadow);
+}
+
+/* Text with a dark line all around it (names and levels over the scene). */
+.dn-text-outline {
+  text-shadow:
+    calc(1 * var(--dn-u)) 0 0 var(--dn-ink-soft),
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-ink-soft),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-ink-soft),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-ink-soft),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-ink-soft),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-ink-soft),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-ink-soft),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-ink-soft);
+}
+
+.dn-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Screen: one DS screen, 256 × 192 DS pixels ----------------------------- */
+.dn-screen {
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--dn-backdrop);
+  overflow: hidden;
+  position: relative;
+}
+
+.dn-screen__stage {
+  /* cqw resolves against .dn-screen: one DS pixel. */
+  --dn-u: calc(100cqw / 256);
+  --dn-t: calc(var(--dn-u) * var(--dn-font-scale));
+  position: absolute;
+  inset: 0;
+  font-size: calc(10 * var(--dn-t));
+}
+
+/* The battle scene. The backdrop is Denborn's own: the games paint one per place. */
+.dn-screen--scene .dn-screen__stage {
+  background:
+    radial-gradient(ellipse 80% 9% at 50% 31%, var(--dn-scene-haze) 0, transparent 100%),
+    linear-gradient(var(--dn-scene-sky) 0, var(--dn-scene-sky-2) 30%, var(--dn-scene-ground) 30%, var(--dn-scene-ground-2) 100%);
+}
+
+.dn-screen--touch .dn-screen__stage {
+  background:
+    radial-gradient(circle at 50% calc(84 * var(--dn-u)), var(--dn-shell-2) 0 calc(90 * var(--dn-u)), transparent calc(90 * var(--dn-u))),
+    var(--dn-shell);
+}
+
+/* The options screen's black with faint plus marks. The mark's colour is --dn-backdrop-mark, written out: a data URI cannot read a token. */
+.dn-screen--menu .dn-screen__stage {
+  background-color: var(--dn-backdrop);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M11 15h10v2H11zM15 11h2v10h-2z' fill='%23183931'/%3E%3C/svg%3E");
+  background-size: calc(32 * var(--dn-u)) calc(32 * var(--dn-u));
+}
+
+/* --- Panel: the dithered dark box of Black 2, or the light one of White 2 --- */
+.dn-panel {
+  --dn-panel-a: var(--dn-panel);
+  --dn-panel-b: var(--dn-panel-2);
+  color: var(--dn-text);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  box-shadow: calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-panel-edge);
+  background-image: conic-gradient(var(--dn-panel-b) 25%, var(--dn-panel-a) 0 50%, var(--dn-panel-b) 0 75%, var(--dn-panel-a) 0);
+  background-size: calc(2 * var(--dn-u)) calc(2 * var(--dn-u));
+  /* Whole pixels, where the browser can round: a checker of fractions blurs into grey. */
+  background-size: round(up, calc(2 * var(--dn-u)), 2px) round(up, calc(2 * var(--dn-u)), 2px);
+  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u));
+}
+
+.dn-panel--light {
+  --dn-panel-a: var(--dn-panel-light);
+  --dn-panel-b: var(--dn-panel-light-2);
+  color: var(--dn-text-dark);
+}
+
+/* --- Slot: a row that can be chosen (party screen) -------------------------- */
+.dn-slot {
+  --dn-slot-fill: var(--dn-slot);
+  --dn-slot-stripe: var(--dn-slot-band);
+  --dn-slot-end: var(--dn-slot-tail);
+  --dn-slot-line: var(--dn-select-soft);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--dn-u));
+  width: 100%;
+  min-height: max(calc(24 * var(--dn-u)), var(--dn-target));
+  padding: calc(3 * var(--dn-u)) calc(10 * var(--dn-u));
+  text-align: left;
+  transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-quick) var(--dn-ease-out);
+}
+
+/* The cut corners of the games' party slots: the rim, then the face. */
+.dn-slot::before,
+.dn-slot::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(
+    var(--dn-cut) 0,
+    calc(100% - var(--dn-cut)) 0,
+    100% var(--dn-cut),
+    100% calc(100% - var(--dn-cut)),
+    calc(100% - var(--dn-cut)) 100%,
+    var(--dn-cut) 100%,
+    0 calc(100% - var(--dn-cut)),
+    0 var(--dn-cut)
+  );
+}
+
+.dn-slot::before {
+  --dn-cut: calc(5 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-slot-line);
+}
+
+.dn-slot::after {
+  --dn-cut: calc(4.41 * var(--dn-u));
+  /* Three bands split by two arrowheads pointing left, as in the games. */
+  --dn-slot-bands: var(--dn-slot-stripe) 0 calc(20 * var(--dn-u)), var(--dn-slot-fill) calc(20 * var(--dn-u)) calc(100% - 18 * var(--dn-u)),
+    var(--dn-slot-end) calc(100% - 18 * var(--dn-u));
+  inset: calc(1 * var(--dn-u));
+  background:
+    linear-gradient(135deg, var(--dn-slot-bands)) top / 100% calc(50% + 1px) no-repeat,
+    linear-gradient(45deg, var(--dn-slot-bands)) bottom / 100% 50% no-repeat,
+    var(--dn-slot-fill);
+}
+
+.dn-slot[aria-pressed='true'],
+.dn-slot[aria-selected='true'],
+.dn-slot[aria-current='true'] {
+  --dn-slot-fill: var(--dn-slot-selected);
+  --dn-slot-stripe: var(--dn-slot-selected-band);
+  --dn-slot-end: var(--dn-slot-selected-tail);
+  --dn-slot-line: var(--dn-text);
+}
+
+.dn-slot--down {
+  --dn-slot-fill: var(--dn-slot-down);
+  --dn-slot-stripe: var(--dn-slot-down-band);
+  --dn-slot-end: var(--dn-slot-down-tail);
+  --dn-slot-line: var(--dn-slot-down-outline);
+}
+
+.dn-slot--ok {
+  --dn-slot-fill: var(--dn-slot-ok);
+  --dn-slot-stripe: var(--dn-slot-ok-band);
+  --dn-slot-end: var(--dn-slot-ok-tail);
+  --dn-slot-line: var(--dn-text);
+}
+
+.dn-slot:active:not(:disabled) {
+  transform: translateY(calc(1 * var(--dn-u)));
+}
+
+.dn-slot:disabled {
+  filter: grayscale(0.7) brightness(0.7);
+}
+
+/* --- Option button (B2W2 options screen) ------------------------------------ */
+.dn-option {
+  --dn-option-fill: var(--dn-option);
+  --dn-option-line: var(--dn-ink);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(56 * var(--dn-u));
+  min-height: max(calc(20 * var(--dn-u)), var(--dn-target));
+  padding: 0 calc(12 * var(--dn-u));
+  color: var(--dn-text-muted);
+  transition: color var(--dn-quick) var(--dn-ease-out), transform var(--dn-press) var(--dn-ease-out), filter var(--dn-quick) var(--dn-ease-out);
+}
+
+/* Pointed at both ends. */
+.dn-option::before,
+.dn-option::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(var(--dn-cut) 0, calc(100% - var(--dn-cut)) 0, 100% 50%, calc(100% - var(--dn-cut)) 100%, var(--dn-cut) 100%, 0 50%);
+}
+
+.dn-option::before {
+  --dn-cut: calc(7 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-option-line);
+}
+
+.dn-option::after {
+  --dn-cut: calc(6.4 * var(--dn-u));
+  inset: calc(1 * var(--dn-u));
+  background: var(--dn-option-fill);
+}
+
+.dn-option[aria-pressed='true'],
+.dn-option[aria-checked='true'],
+.dn-option--primary {
+  --dn-option-fill: linear-gradient(var(--dn-option-selected-band) 0 45%, var(--dn-option-selected) 45% 100%);
+  --dn-option-line: var(--dn-select-line);
+  color: var(--dn-text);
+}
+
+.dn-option:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.dn-option:disabled {
+  filter: grayscale(1) brightness(0.6);
+}
+
+/* --- Command menu (BW touch screen): FIGHT, BAG, RUN, SWITCH ---------------- */
+.dn-commands {
+  position: absolute;
+  inset: 0;
+}
+
+.dn-command {
+  --dn-command-ink: var(--dn-text);
+  position: absolute;
+  isolation: isolate;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: calc(82 * var(--dn-u));
+  height: calc(46 * var(--dn-u));
+  padding-top: calc(8 * var(--dn-u));
+  font-size: calc(13 * var(--dn-t));
+  letter-spacing: calc(1 * var(--dn-u));
+  color: var(--dn-command-ink);
+  transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
+}
+
+/* The games' dark dotted tile with its thick white rim, running off the bottom of the screen. */
+.dn-command::before,
+.dn-command::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(var(--dn-cut-x) 0, calc(100% - var(--dn-cut-x)) 0, 100% var(--dn-cut-y), 100% 100%, 0 100%, 0 var(--dn-cut-y));
+}
+
+.dn-command::before {
+  --dn-cut-x: calc(16 * var(--dn-u));
+  --dn-cut-y: calc(16 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-text);
+}
+
+.dn-command::after {
+  --dn-cut-x: calc(15 * var(--dn-u));
+  --dn-cut-y: calc(15 * var(--dn-u));
+  inset: calc(3 * var(--dn-u)) calc(3 * var(--dn-u)) 0;
+  background:
+    radial-gradient(circle, var(--dn-tile-2) 0 38%, transparent 40%) 0 0 / calc(4 * var(--dn-u)) calc(4 * var(--dn-u)),
+    linear-gradient(var(--dn-tile), var(--dn-tile-4));
+}
+
+.dn-command__label {
+  text-shadow:
+    calc(1 * var(--dn-u)) 0 0 var(--dn-ink),
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-ink),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-ink),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-ink),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-ink),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-ink),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-ink),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-ink);
+}
+
+.dn-command--bag {
+  --dn-command-ink: var(--dn-cmd-bag);
+  left: calc(2 * var(--dn-u));
+}
+
+.dn-command--run {
+  --dn-command-ink: var(--dn-cmd-run);
+  left: calc(87 * var(--dn-u));
+  height: calc(38 * var(--dn-u));
+}
+
+.dn-command--switch {
+  --dn-command-ink: var(--dn-cmd-switch);
+  right: calc(2 * var(--dn-u));
+}
+
+/* FIGHT is the games' great Poké Ball, filling the middle of the touch screen. */
+.dn-command--fight {
+  --dn-command-ink: var(--dn-cmd-fight);
+  top: calc(4 * var(--dn-u));
+  bottom: auto;
+  left: calc(50% - 78 * var(--dn-u));
+  width: calc(156 * var(--dn-u));
+  height: calc(156 * var(--dn-u));
+  padding: 0;
+  border-radius: 50%;
+  font-size: calc(22 * var(--dn-t));
+  letter-spacing: calc(2 * var(--dn-u));
+}
+
+.dn-command--fight::before {
+  inset: 0;
+  clip-path: none;
+  border-radius: 50%;
+  background: var(--dn-ink);
+}
+
+.dn-command--fight::after {
+  inset: calc(3 * var(--dn-u));
+  clip-path: none;
+  border-radius: 50%;
+  background:
+    linear-gradient(transparent 0 46%, var(--dn-ink) 46% 54%, transparent 54%),
+    radial-gradient(ellipse 62% 70% at 50% 100%, var(--dn-ball-red-2) 0 99%, transparent 100%) top / 100% 46% no-repeat,
+    radial-gradient(ellipse 62% 70% at 50% 0, var(--dn-ball-white-2) 0 99%, transparent 100%) bottom / 100% 46% no-repeat,
+    linear-gradient(var(--dn-ball-red) 0 50%, var(--dn-ball-white) 50% 100%);
+}
+
+.dn-command--fight .dn-command__label {
+  padding: calc(3 * var(--dn-u)) calc(12 * var(--dn-u)) calc(4 * var(--dn-u));
+  background: var(--dn-ink);
+  border: calc(2 * var(--dn-u)) solid var(--dn-shell);
+  border-radius: calc(20 * var(--dn-u));
+  text-shadow:
+    calc(1 * var(--dn-u)) 0 0 var(--dn-text),
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-text),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-text),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-text),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-text),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-text),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-text),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-text);
+}
+
+.dn-command:active:not(:disabled),
+.dn-command[aria-pressed='true'] {
+  transform: translateY(calc(2 * var(--dn-u)));
+  filter: brightness(1.25);
+}
+
+.dn-command--fight:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.dn-command:disabled {
+  filter: grayscale(1) brightness(0.6);
+}
+
+/* --- Move button: coloured by the move's type -------------------------------- */
+/* The six moves, two by three, over a last row for the way back. */
+.dn-moves {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: repeat(3, 1fr) auto;
+  gap: calc(3 * var(--dn-u)) calc(4 * var(--dn-u));
+  padding: calc(5 * var(--dn-u)) calc(6 * var(--dn-u));
+}
+
+.dn-moves__back {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+.dn-move {
+  --dn-move-fill: var(--dn-type-normal);
+  --dn-move-shade: var(--dn-type-normal-shade);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: 1fr auto;
+  align-items: center;
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  width: 100%;
+  min-height: max(calc(40 * var(--dn-u)), var(--dn-target));
+  padding: calc(5 * var(--dn-u)) calc(9 * var(--dn-u));
+  text-align: left;
+  color: var(--dn-text);
+  border-radius: calc(9 * var(--dn-u));
+  text-shadow:
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-move-shade),
+    calc(1 * var(--dn-u)) 0 0 var(--dn-move-shade),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-move-shade);
+  transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-move::before,
+.dn-move::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+}
+
+/* A dark line, then the white rim. */
+.dn-move::before {
+  inset: 0;
+  background: var(--dn-text);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  border-radius: calc(9 * var(--dn-u));
+}
+
+.dn-move::after {
+  inset: calc(3 * var(--dn-u));
+  background: linear-gradient(color-mix(in srgb, var(--dn-move-fill) 72%, white) 0 14%, var(--dn-move-fill) 14% 80%, var(--dn-move-shade) 80% 100%);
+  border-radius: calc(6 * var(--dn-u));
+}
+
+.dn-move__name {
+  grid-column: 1 / -1;
+  font-size: calc(12 * var(--dn-t));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dn-move__tags {
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+}
+
+.dn-move__pp {
+  justify-self: end;
+  font-size: calc(9 * var(--dn-t));
+  white-space: nowrap;
+}
+
+.dn-move:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(1.12);
+}
+
+/* The chosen move: the rim takes the selection colour. */
+.dn-move[aria-pressed='true']::before {
+  background: var(--dn-select);
+}
+
+.dn-move:disabled {
+  filter: grayscale(0.85) brightness(0.65);
+}
+
+@media (hover: hover) {
+  .dn-slot:hover:not(:disabled),
+  .dn-option:hover:not(:disabled),
+  .dn-command:hover:not(:disabled),
+  .dn-move:hover:not(:disabled) {
+    filter: brightness(1.12);
+  }
+}
+
+/* --- Meters: HP and EXP ------------------------------------------------------ */
+.dn-meter {
+  --dn-meter-fill: var(--dn-hp-high);
+  --dn-meter-shade: var(--dn-hp-high-shade);
+  display: block;
+  height: calc(5 * var(--dn-u));
+  background: var(--dn-panel-edge);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  overflow: hidden;
+}
+
+.dn-meter__fill {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  background: linear-gradient(var(--dn-meter-fill) 0 67%, var(--dn-meter-shade) 67% 100%);
+}
+
+.dn-meter[data-tone='mid'] {
+  --dn-meter-fill: var(--dn-hp-mid);
+  --dn-meter-shade: var(--dn-hp-mid-shade);
+}
+
+.dn-meter[data-tone='low'] {
+  --dn-meter-fill: var(--dn-hp-low);
+  --dn-meter-shade: var(--dn-hp-low-shade);
+}
+
+.dn-meter--exp {
+  --dn-meter-fill: var(--dn-exp);
+  --dn-meter-shade: var(--dn-exp-shade);
+  height: calc(4 * var(--dn-u));
+}
+
+.dn-meter--exp .dn-meter__fill {
+  transition: transform var(--dn-slow) linear;
+}
+
+/* --- Status badges ------------------------------------------------------------ */
+.dn-status {
+  display: inline-block;
+  min-width: calc(20 * var(--dn-u));
+  padding: 0 calc(2 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  text-align: center;
+  color: #ffffff;
+  background: var(--dn-status-slp);
+}
+
+.dn-status[data-status='psn'] {
+  background: var(--dn-status-psn);
+}
+
+.dn-status[data-status='tox'] {
+  background: var(--dn-status-tox);
+  color: var(--dn-status-tox-text);
+}
+
+.dn-status[data-status='brn'] {
+  background: var(--dn-status-brn);
+}
+
+.dn-status[data-status='frz'] {
+  background: var(--dn-status-frz);
+}
+
+.dn-status[data-status='par'] {
+  background: var(--dn-status-par);
+}
+
+/* Agony: Denborn's own. The stacks left are shown as pips, not by colour alone. */
+.dn-agony {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  padding: 0 calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  color: #ffffff;
+  background: var(--dn-agony);
+  border: calc(1 * var(--dn-u)) solid var(--dn-agony-pip);
+}
+
+.dn-agony__pip {
+  width: calc(4 * var(--dn-u));
+  height: calc(4 * var(--dn-u));
+  background: var(--dn-agony-pip);
+  transform: rotate(45deg);
+}
+
+.dn-agony__pip--spent {
+  background: transparent;
+  outline: calc(1 * var(--dn-u)) solid var(--dn-agony-pip-spent);
+  outline-offset: calc(-1 * var(--dn-u));
+}
+
+/* --- HUD box: name, level and HP of one Pokémon ------------------------------ */
+.dn-hud {
+  display: grid;
+  gap: calc(1 * var(--dn-u));
+  /* A crowded field may narrow it: the badges' room shrinks first. */
+  width: var(--dn-hud-width, calc(118 * var(--dn-u)));
+  font-size: calc(10 * var(--dn-t));
+  color: var(--dn-text);
+}
+
+/* Name, gender and level sit above the plate, straight on the scene. */
+.dn-hud__title {
+  display: flex;
+  align-items: baseline;
+  gap: calc(3 * var(--dn-u));
+  padding: 0 calc(7 * var(--dn-u));
+  line-height: calc(10 * var(--dn-u));
+  white-space: nowrap;
+}
+
+.dn-hud__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Room for the outline, which overflow would otherwise cut. */
+  padding: calc(1 * var(--dn-u));
+  margin: calc(-1 * var(--dn-u));
+}
+
+.dn-hud__label {
+  color: var(--dn-label-gold);
+  font-size: calc(8 * var(--dn-t));
+}
+
+.dn-hud__gender {
+  align-self: center;
+  flex: none;
+  width: calc(6 * var(--dn-u));
+  height: calc(10 * var(--dn-u));
+}
+
+.dn-hud__gender--m {
+  color: var(--dn-male);
+}
+
+.dn-hud__gender--f {
+  color: var(--dn-female);
+}
+
+/* The dark plate: badges at its outer end, then the HP label and the bar. */
+.dn-hud__plate {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1fr auto calc(50 * var(--dn-u));
+  align-items: center;
+  gap: calc(1 * var(--dn-u)) calc(3 * var(--dn-u));
+  min-height: calc(10 * var(--dn-u));
+  padding: calc(1 * var(--dn-u)) calc(9 * var(--dn-u));
+  line-height: 1;
+}
+
+.dn-hud__plate .dn-hud__label {
+  grid-column: 2;
+  font-style: italic;
+  color: var(--dn-text);
+}
+
+/* Its shape: a point at the outer end, a slant at the inner one, and a hard shadow. */
+.dn-hud__back {
+  --dn-hud-shape: polygon(var(--dn-cut) 0, 100% 0, calc(100% - var(--dn-cut)) 100%, var(--dn-cut) 100%, 0 50%);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  filter: drop-shadow(calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-panel-edge));
+}
+
+.dn-hud--foe .dn-hud__back {
+  --dn-hud-shape: polygon(0 0, calc(100% - var(--dn-cut)) 0, 100% 50%, calc(100% - var(--dn-cut)) 100%, var(--dn-cut) 100%);
+}
+
+.dn-hud__back::before,
+.dn-hud__back::after {
+  content: '';
+  position: absolute;
+  clip-path: var(--dn-hud-shape);
+}
+
+.dn-hud__back::before {
+  --dn-cut: calc(6 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-ink);
+}
+
+.dn-hud__back::after {
+  --dn-cut: calc(5.4 * var(--dn-u));
+  inset: calc(1 * var(--dn-u));
+  background-image: conic-gradient(var(--dn-panel-2) 25%, var(--dn-panel) 0 50%, var(--dn-panel-2) 0 75%, var(--dn-panel) 0);
+  background-size: calc(2 * var(--dn-u)) calc(2 * var(--dn-u));
+  background-size: round(up, calc(2 * var(--dn-u)), 2px) round(up, calc(2 * var(--dn-u)), 2px);
+}
+
+.dn-hud__numbers {
+  grid-column: 1 / -1;
+  justify-self: end;
+  font-size: calc(10 * var(--dn-t));
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: calc(1 * var(--dn-u));
+}
+
+.dn-hud__states {
+  grid-column: 1;
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+  min-width: 0;
+}
+
+/* Agony shown in the bar's place, or on a line of its own under the plate. */
+.dn-hud__instead {
+  grid-column: 2 / -1;
+  justify-self: end;
+}
+
+.dn-hud__below {
+  display: flex;
+  padding: 0 calc(7 * var(--dn-u));
+}
+
+/* --- Message band ---------------------------------------------------------------- */
+.dn-message {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: calc(46 * var(--dn-u));
+  padding: calc(8 * var(--dn-u)) calc(18 * var(--dn-u)) calc(6 * var(--dn-u)) calc(10 * var(--dn-u));
+  font-size: calc(12 * var(--dn-t));
+  line-height: calc(16 * var(--dn-u));
+  text-align: left;
+  color: var(--dn-text);
+  /* The games darken the scene behind the text, between two thin red lines. */
+  background: linear-gradient(
+    var(--dn-message-line) 0 calc(1 * var(--dn-u)),
+    var(--dn-message-line-2) calc(1 * var(--dn-u)) calc(2 * var(--dn-u)),
+    var(--dn-message-band) calc(2 * var(--dn-u)) calc(100% - 2 * var(--dn-u)),
+    var(--dn-message-line-2) calc(100% - 2 * var(--dn-u)) calc(100% - 1 * var(--dn-u)),
+    var(--dn-message-line) calc(100% - 1 * var(--dn-u))
+  );
+}
+
+.dn-root button.dn-message:focus-visible {
+  outline-offset: calc(-3 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-message__more {
+  position: absolute;
+  right: calc(6 * var(--dn-u));
+  bottom: calc(5 * var(--dn-u));
+  width: 0;
+  height: 0;
+  border-left: calc(4 * var(--dn-u)) solid transparent;
+  border-right: calc(4 * var(--dn-u)) solid transparent;
+  border-top: calc(5 * var(--dn-u)) solid var(--dn-select);
+  animation: dn-bob 700ms steps(2, jump-none) infinite;
+}
+
+@keyframes dn-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(2 * var(--dn-u)));
+  }
+}
+
+/* --- Sprites and icons ---------------------------------------------------------- */
+.dn-sprite {
+  display: block;
+  image-rendering: pixelated;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.dn-sprite--missing {
+  padding: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  border: calc(1 * var(--dn-u)) dashed var(--dn-text-muted);
+  font-size: calc(9 * var(--dn-t));
+}
+
+.dn-icon {
+  display: inline-block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  vertical-align: middle;
+  flex: none;
+}
+
+/* A type label drawn by the app, the size of the games' own (32 × 14), wider for a long word. */
+.dn-type {
+  --dn-type-fill: var(--dn-type-normal);
+  --dn-type-shade: var(--dn-type-normal-shade);
+  display: inline-block;
+  min-width: calc(32 * var(--dn-u));
+  height: calc(14 * var(--dn-u));
+  padding: 0 calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #ffffff;
+  background: var(--dn-type-fill);
+  border: calc(1 * var(--dn-u)) solid var(--dn-type-shade);
+  text-shadow:
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-type-shade),
+    calc(1 * var(--dn-u)) 0 0 var(--dn-type-shade),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-type-shade);
+}
+
+/* A Pokémon standing on the field: its sprite over the shadow it casts. */
+.dn-battler {
+  position: relative;
+  display: inline-grid;
+  justify-items: center;
+  align-items: end;
+}
+
+.dn-battler__base {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: calc(-3 * var(--dn-u));
+  height: calc(10 * var(--dn-u));
+  border-radius: 50%;
+  background: var(--dn-scene-shadow);
+}
+
+.dn-battler__body {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  transform-origin: 50% 100%;
+}
+
+/* --- Motion preferences ---------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .dn-root *,
+  .dn-root *::before,
+  .dn-root *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

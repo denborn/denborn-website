@@ -14,6 +14,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   reporter: [['list']],
+  // Generous: against the live site a first visit downloads about 14 MB before the app is ready offline.
+  timeout: 180_000,
   use: {
     baseURL: REMOTE_URL ?? LOCAL_URL,
     locale: 'en-US',

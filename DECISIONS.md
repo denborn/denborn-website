@@ -294,6 +294,17 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | Build scripts are TypeScript files run by Node itself (`node scripts/….ts`), sharing the app's pure rules (`src/game-rules/`). | The generator and the app must agree on move eligibility; one implementation, no extra runner. |
 | 2026-11-14 | An item Showdown does not have (Potion, Revive…) takes its English description from the games' text as well, like the French one. | Showdown has nothing to say about it, and PokéAPI's own English prose still carries pre-Gen 7 numbers. |
 
+| 2026-11-14 | The design system is sized in "DS pixels": a `Screen` is a 4:3 surface whose width is 256 of them, and every size in the kit is a multiple (`--dn-u`; `--dn-t` for text). Shapes are CSS and SVG. | The owner asked for the Gen 5 look at higher resolution, on phones first: proportions stay the games' at any size, and vector shapes stay sharp. |
+| 2026-11-14 | Sprites and icons are drawn at the nearest size that gives each of their pixels a whole number of device pixels (`src/ui/pixel.ts`); the two-colour checker of dark panels is rounded to whole pixels. | At a fractional scale pixel art shows uneven pixels and a checker blurs into grey. |
+| 2026-11-14 | Colours from the games are measured on the reference sheets with a small tool kept in the skill (`.claude/skills/denborn-da/tools/sheet-colors.ts`), recorded as tokens with the sheet they came from, and the interface is redrawn from them. The sheets stay in git-ignored `tmp/`. | Decision 40: the sheets are not ours. A measured value can be checked again; a copied image cannot be shipped. |
+| 2026-11-14 | Shaped controls are painted by pseudo-elements; the control itself is never clipped. One focus ring (white inside dark) serves every control. | A clipped element loses its focus ring, which would fail keyboard users. |
+| 2026-11-14 | Animated sprites are held still (their current frame copied to a canvas) for a downed Pokémon and for anyone who asks for reduced motion. A hit is three blinks in 0.42 s, and none with reduced motion. | A GIF cannot be paused. The accessibility rules ask that looping animation can stop and that nothing flashes more than three times a second. |
+| 2026-11-14 | Motion's numbers exist as CSS tokens and again in `src/ui/motion.ts` for script-driven animation; a test keeps the two equal. All timings are Denborn's own. | CSS cannot hand its values to script cheaply. No reachable source documents the games' timings, so none is claimed. |
+| 2026-11-14 | Storybook 10 is the design board (`pnpm storybook`), with its own Vite config that leaves out the Cloudflare and service-worker plugins, telemetry off, and toolbar switches for language and font. It is a development tool only: never deployed, its build output git-ignored. Storybook, Motion and the font packages all passed the 14-day rule. | The owner asked for it: "it's easier to show things that way and it create a real design system". Deploying it would publish the sprites a second time, which nobody asked for. |
+| 2026-11-14 | Components hold no wording. Wording that is not decided lives in `src/ui/stories/proposals.ts`, used by the board only. | So that a proposal can never ship by accident: it moves to the app's dictionaries when the owner rules. |
+| 2026-11-14 | The kit uses the pixel font for game data too (names, HP, PP), as the games do, and keeps the numbers a player acts on at 9 DS pixels or more (about 14 px on a 393 px phone). | The rules pack prefers an ordinary font for small critical numbers; the owner's art direction is the Gen 5 look. This keeps the look and the rule's intent. **Open to the owner's veto**; comfort on real phones is on the device checklist. |
+| 2026-11-14 | Tests added for the kit cover only its logic: HP ratio and colour thresholds, pixel-art scaling, sprite addresses, and the equality of the two copies of the motion numbers. No test of markup, colours or fixed values. | Decision 23. |
+
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
 1. Integrity checks that stop the build: every referenced move, Ability, item and evolution target exists; every species has at least one eligible move at every level under both move-access rulings; every species and item has its sprite; English and French names exist; every Bag item has an effect handler.
@@ -308,7 +319,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 
 - **Milestone 1 (engine proof)**: settled on 2026-11-14 as decisions 56 to 70. The interpretations it raised are listed in 2.2.
 - **Milestone 2 (data pack)**: settled on 2026-11-14 as decisions 71 to 81.
-- **Milestone 3 (art direction)**: font; wording of custom battle messages in both languages.
+- **Milestone 3 (art direction)**: asked on 2026-11-14, on the design board (*To decide*): the font; the French words on buttons and badges, and whether French type labels are Showdown's English images or drawn by the app; where Agony shows on a downed Pokémon's box; the wording of Denborn's own battle messages in both languages.
 - **Milestone 4 (offline flows)**: nickname character set; QR size cap; what the printed sheet shows; and from 2.2: roleplay points above level 1.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer.
 - **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
@@ -429,3 +440,22 @@ Not checked by me: the account's request and Durable Object usage, which only th
 
 **Size.** The first visit now downloads about 13.5 MB: 12 MB of sprites, 1 MB for the engine and 0.14 MB for the data pack once compressed.
 
+### The live site after milestone 2 — 2026-11-14
+
+Milestone 2 was pushed by the owner and built by Workers Builds: the first build that downloads the sprites and PokéAPI's tables and runs the TypeScript build scripts with Node. It succeeded, and the four browser tests pass against https://denborn-website.kori-san.workers.dev.
+
+**Found: the first visit takes about a minute and a half to become ready offline.** The service worker now has 425 files to fetch (about 14 MB, most of them sprites), and Workbox fetches a precache one file after another. The app is usable meanwhile; only "ready offline" is late. The browser tests' wait for "Ready" was raised from 5 seconds to 2 minutes for that reason (it changes no behaviour). To be dealt with in the release milestone, with options to put to the owner then: fetch the precache several files at a time, pack the sprites into a few files, or precache only what offline character creation needs and fetch battle sprites when a battle starts.
+
+### The design kit in a browser — 2026-11-14
+
+Checked with Playwright against Storybook at phone size (Pixel 7 emulation), not on a real device:
+
+| Checked | Result |
+|---|---|
+| Every story renders, in English and French, without a console error | Yes |
+| Reduced motion: the six sprites of the scene stand still (drawn on canvas), the message appears whole | Yes |
+| Keyboard: Tab reaches FIGHT, the focus ring shows, Enter opens the moves, Tab reaches the first move | Yes |
+| Touch targets of slots and option buttons at 412 px wide | 44 px tall or more |
+| Storybook builds as a static site | Yes (23 MB with the sprites; not kept, not deployed) |
+
+Not checked: real phones (smoothness, legibility of the pixel font at arm's length), screen readers, contrast measured value by value. These belong to the release milestone and the owner's device checklist.

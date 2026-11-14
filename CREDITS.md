@@ -44,13 +44,20 @@ Sprite sheets from [The Spriters Resource](https://www.spriters-resource.com/) (
 | Save Menu | Black 2 / White 2 | Ikard |
 | VS Backgrounds | Black 2 / White 2 | redblueyellow |
 
-The remaining sheets in the folder are credited here when they are studied for the art direction (milestone 3).
+The art direction (milestone 3) was measured on four of them: Battle HUD, HP Bars, Party Screen and the Black 2 / White 2 Options Screen. The other sheets in the folder were not used.
 
 Other references, consulted and not redistributed: the official Pokémon White and White 2 instruction manuals (Nintendo), and screenshots published by [Serebii.net](https://www.serebii.net/).
 
 ## Fonts
 
-None bundled yet. The font is chosen with the owner in milestone 3 and credited here with its licence.
+None is bundled in the app yet: the owner chooses one on the design board, and it will be credited here. The four candidates are installed for the board only (development dependencies, through [Fontsource](https://fontsource.org/)), each under the SIL Open Font License 1.1:
+
+| Font | Copyright |
+|---|---|
+| [DotGothic16](https://github.com/fontworks-fonts/DotGothic16/) | 2020 The DotGothic16 Project Authors |
+| [VT323](https://fonts.google.com/specimen/VT323) | 2011 The VT323 Project Authors |
+| [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) | 2021 The Pixelify Sans Project Authors |
+| [Tiny5](https://github.com/Gissio/font_tiny5) | 2022–2024 The Tiny5 Project Authors |
 
 ## Software
 

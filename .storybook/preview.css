@@ -1,0 +1,147 @@
+/* The board's own layout. Not part of the kit: the app never loads this file. */
+body {
+  margin: 0;
+  background: #101018;
+}
+
+.sb-board {
+  min-height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.sb-phone {
+  width: min(100%, 412px);
+  margin: 0 auto;
+}
+
+.sb-section {
+  margin: 0 auto 28px;
+  max-width: 960px;
+}
+
+.sb-heading {
+  margin: 0 0 8px;
+  font: 600 15px/1.3 system-ui, sans-serif;
+  color: #f3f3f3;
+}
+
+.sb-note {
+  margin: 0 0 10px;
+  max-width: 70ch;
+  font: 13px/1.5 system-ui, sans-serif;
+  color: #b9b9cc;
+}
+
+.sb-note strong {
+  color: #f3f3f3;
+}
+
+.sb-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.sb-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.sb-pad {
+  padding: calc(6 * var(--dn-u));
+}
+
+.sb-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px auto;
+  justify-content: center;
+}
+
+.sb-tools button {
+  font: 13px/1 system-ui, sans-serif;
+  color: #f3f3f3;
+  background: #2a2a3c;
+  border: 1px solid #55557a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.sb-tools button:hover {
+  background: #36364e;
+}
+
+.sb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 13px/1.4 system-ui, sans-serif;
+  color: #dcdcec;
+}
+
+.sb-table th,
+.sb-table td {
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #2c2c40;
+}
+
+.sb-table th {
+  color: #9c9cb8;
+  font-weight: 600;
+}
+
+.sb-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.sb-swatch {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  align-items: center;
+  font: 11px/1.3 ui-monospace, monospace;
+  color: #dcdcec;
+}
+
+.sb-swatch__chip {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #55557a;
+}
+
+.sb-swatch__note {
+  color: #9c9cb8;
+}
+
+/* Places on the battle scene, in DS pixels from the stage's corner. */
+.sb-spot {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.sb-hud-stack {
+  position: absolute;
+  display: grid;
+  gap: calc(3 * var(--dn-u));
+}
+
+.sb-message {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.sb-back {
+  position: absolute;
+  right: calc(4 * var(--dn-u));
+  bottom: calc(4 * var(--dn-u));
+}

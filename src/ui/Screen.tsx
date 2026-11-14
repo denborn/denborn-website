@@ -1,0 +1,65 @@
+import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { snapScale } from './pixel'
+
+/** Width of a DS screen, in DS pixels. Everything inside a Screen is sized in these. */
+const DS_WIDTH = 256
+
+interface ScreenMetrics {
+  /** One DS pixel, in CSS pixels. */
+  unit: number
+  /** Device pixels per CSS pixel. */
+  ratio: number
+}
+
+/** Outside a Screen: the same 2 px as the `--dn-u` fallback of tokens.css. */
+const MetricsContext = createContext<ScreenMetrics>({ unit: 2, ratio: 1 })
+
+/** The size of one DS pixel in CSS pixels, inside the nearest Screen. */
+export function useDsUnit(): number {
+  return useContext(MetricsContext).unit
+}
+
+/**
+ * The size, in CSS pixels, to give one pixel of a sprite or an icon so that it
+ * stays sharp. `dsScale` is the size wanted in DS pixels: 1 draws the art as
+ * large as the DS did.
+ */
+export function usePixelScale(dsScale = 1): number {
+  const { unit, ratio } = useContext(MetricsContext)
+  return snapScale(dsScale, unit, ratio)
+}
+
+export interface ScreenProps {
+  /** `scene`: the top screen of a battle. `touch`: the bottom screen. `menu`: a menu background. */
+  kind?: 'scene' | 'touch' | 'menu'
+  /** What the screen is, for assistive technology. */
+  label: string
+  children?: ReactNode
+}
+
+/**
+ * One DS screen: a 4:3 surface on which everything keeps the DS's proportions
+ * at any size. Two of them stacked make the portrait layout of a phone.
+ */
+export function Screen({ kind = 'scene', label, children }: ScreenProps) {
+  const ref = useRef<HTMLElement>(null)
+  const [metrics, setMetrics] = useState<ScreenMetrics>({ unit: 2, ratio: 1 })
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setMetrics({ unit: entry.contentRect.width / DS_WIDTH, ratio: window.devicePixelRatio })
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section ref={ref} className={`dn-root dn-screen dn-screen--${kind}`} aria-label={label}>
+      <div className="dn-screen__stage">
+        <MetricsContext.Provider value={metrics}>{children}</MetricsContext.Provider>
+      </div>
+    </section>
+  )
+}
