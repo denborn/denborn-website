@@ -60,6 +60,21 @@ export const en = {
       frz: { badge: 'FRZ', name: 'Frozen' },
     },
     category: { Physical: 'Physical', Special: 'Special', Status: 'Status' },
+    /** The battle view: walking along a line, and the battlefield plan (decisions 87 to 91). */
+    field: {
+      battlefield: 'BATTLEFIELD',
+      foes: 'FOES',
+      party: 'PARTY',
+      ability: 'Ability',
+      item: 'Item',
+      previous: (letter: string) => `Previous Pokémon: ${letter}`,
+      next: (letter: string) => `Next Pokémon: ${letter}`,
+      slot: (letter: string, name: string) => `${letter}: ${name}`,
+      yours: 'your Pokémon',
+      outOfReach: 'out of reach',
+      /** Rounds a terrain has left, out of how many it lasts. */
+      roundsLeft: (left: number, of: number) => `${left}/${of}`,
+    },
     agony: 'AGONY',
     agonyLabel: (stacks: number, of: number) => `Agonizing, ${stacks} of ${of} left`,
     messages: {

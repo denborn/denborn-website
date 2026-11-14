@@ -12,7 +12,7 @@
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |
 | `src/ui/field.tsx`, `line.ts` | `LineBrowser` and `FieldPlan`; how the arrows walk a line (pure, tested). |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |
-| `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories, never in `src/i18n/`, until the owner rules. |
+| `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories (`proposals.ts`, created when needed), never in `src/i18n/`, until the owner rules. |
 | `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language switch. |
 
 ## Adding a component

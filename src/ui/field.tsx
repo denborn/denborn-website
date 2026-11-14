@@ -96,6 +96,8 @@ export interface FieldPlanProps {
   onSelect: (id: string) => void
   /** Captions of the two lines. */
   labels: { foes: string; allies: string }
+  /** What lies between the lines: the terrain in effect. */
+  ground?: ReactNode
   /** The way back, shown bottom right. */
   children?: ReactNode
 }
@@ -103,9 +105,9 @@ export interface FieldPlanProps {
 /**
  * The battlefield seen from above: the two lines facing each other, each
  * centred on the other as the rules place them, so who faces whom can be read
- * off. Every Pokémon is a tile to tap.
+ * off, with the terrain in effect between them. Every Pokémon is a tile to tap.
  */
-export function FieldPlan({ foes, allies, shown = [], onSelect, labels, children }: FieldPlanProps) {
+export function FieldPlan({ foes, allies, shown = [], onSelect, labels, ground, children }: FieldPlanProps) {
   const line = (tiles: readonly FieldTile[], caption: string) => (
     <div className="dn-field__line" role="group" aria-label={caption}>
       <span className="dn-field__caption" aria-hidden="true">
@@ -144,6 +146,7 @@ export function FieldPlan({ foes, allies, shown = [], onSelect, labels, children
   return (
     <div className="dn-field">
       {line(foes, labels.foes)}
+      <div className="dn-field__ground">{ground}</div>
       {line(allies, labels.allies)}
       {children && <div className="dn-field__back">{children}</div>}
     </div>

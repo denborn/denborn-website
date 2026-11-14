@@ -23,7 +23,6 @@ import {
 import type { DataPack, Gender, StatId } from '../../data/types'
 import { type Spot, isAdjacent } from '../../game-rules/reach'
 import { Note, Phone, useBattleText, useLocale, usePack } from './board'
-import { fieldWording } from './proposals'
 
 interface Fighter {
   id: string
@@ -54,6 +53,8 @@ const PARTY: Fighter[] = [
 /** The viewer's own Pokémon: B on the party's line. */
 const MINE = 1
 const LETTERS = 'ABCDEF'
+/** The terrain in effect in this mock, named after the move that sets it and coloured by its type. */
+const TERRAIN = { move: 'electricterrain', type: 'Electric', left: 3, of: 5 }
 const STATS: StatId[] = ['atk', 'def', 'spa', 'spd', 'spe']
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 // The games' own line for a move, for this mock only: the engine's ordinary messages come with the battle screens.
@@ -72,7 +73,7 @@ interface FoeState {
 function Card({ pack, fighter, hp, onBack }: { pack: DataPack; fighter: Fighter; hp: number; onBack: () => void }) {
   const locale = useLocale()
   const text = useBattleText()
-  const words = fieldWording[locale]
+  const words = text.field
   const species = pack.species[fighter.id]
   const item = fighter.item ? pack.items[fighter.item] : undefined
   if (!species) return null
@@ -137,7 +138,7 @@ function BattleOnAPhone() {
   const pack = usePack()
   const locale = useLocale()
   const text = useBattleText()
-  const words = fieldWording[locale]
+  const words = text.field
   const attacker = useRef<BattlerHandle>(null)
   const target = useRef<BattlerHandle>(null)
   const [view, setView] = useState<'commands' | 'moves' | 'field' | 'card'>('commands')
@@ -297,7 +298,7 @@ function BattleOnAPhone() {
       <Screen kind={view === 'field' || view === 'card' ? 'menu' : 'touch'} label="Commands">
         {view === 'commands' && (
           <CommandMenu labels={text.commands} disabled={busy ? ['fight', 'bag', 'run', 'switch'] : []} onCommand={(command) => command === 'fight' && setView('moves')}>
-            <CornerButton onClick={() => setView('field')}>{words.field}</CornerButton>
+            <CornerButton onClick={() => setView('field')}>{words.battlefield}</CornerButton>
           </CommandMenu>
         )}
         {view === 'moves' && (
@@ -332,6 +333,7 @@ function BattleOnAPhone() {
             shown={[`foe-${foe.index}`, `ally-${ally.index}`]}
             onSelect={open}
             labels={{ foes: words.foes, allies: words.party }}
+            ground={<TypeLabel type={TERRAIN.type} text={`${pack.moves[TERRAIN.move]?.name[locale] ?? ''} ${words.roundsLeft(TERRAIN.left, TERRAIN.of)}`} />}
           >
             <OptionButton onClick={() => setView('commands')}>{text.back}</OptionButton>
           </FieldPlan>
@@ -342,8 +344,9 @@ function BattleOnAPhone() {
       </Screen>
       <Note>
         A mock for the look and the motion only: the numbers are made up and the battle engine is not involved. Four players face three
-        foes. The <strong>arrows</strong> walk along each line; <strong>{words.field}</strong> shows both lines from above, and a tap on a
-        Pokémon shows its sheet. On the plan, a darker foe is out of your Pokémon’s reach (yours is B, underlined in gold). Press{' '}
+        foes. The <strong>arrows</strong> walk along each line; <strong>{words.battlefield}</strong> shows both lines from above, and a tap on a
+        Pokémon shows its sheet. On the plan, a darker foe is out of your Pokémon’s reach (yours is B, underlined in gold), and the
+        terrain in effect is named between the lines. Press{' '}
         <strong>{text.commands.fight}</strong> and pick a move, three times, to see a hit, a downed foe and its Agony.
       </Note>
     </Phone>

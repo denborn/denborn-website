@@ -1,8 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { type CSSProperties, useState } from 'react'
-import { FieldPlan, type FieldState, type FieldTile, HudBox, LineBrowser, type LineSlot, OptionButton, Screen } from '..'
+import { FieldPlan, type FieldState, type FieldTile, HudBox, LineBrowser, type LineSlot, OptionButton, Screen, TypeLabel } from '..'
 import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
-import { fieldWording } from './proposals'
 
 const LETTERS = 'ABCDEF'
 // The longest lines there can be, in every state a slot can take.
@@ -26,7 +25,7 @@ function FieldPieces() {
   const pack = usePack()
   const locale = useLocale()
   const text = useBattleText()
-  const words = fieldWording[locale]
+  const words = text.field
   const [shown, setOnScene] = useState(['foe-2', 'ally-1'])
   const [index, setIndex] = useState(2)
   const tile = (entry: (typeof FOES)[number], index: number, side: 'foe' | 'ally'): FieldTile => {
@@ -54,7 +53,8 @@ function FieldPieces() {
         <Note>
           Both lines from above, at their longest: six foes, five in the party. Each line is centred on the other, as the rules place
           them, so who faces whom can be read off. The two on the scene are lit. A downed Pokémon is red and shows its Agony stacks; a dead one leaves its slot empty;
-          a foe out of your Pokémon’s reach is darker; yours is underlined in gold.
+          a foe out of your Pokémon’s reach is darker; yours is underlined in gold. The terrain in effect is named between the lines, with
+          the rounds it has left.
         </Note>
         <Screen kind="menu" label="Battlefield plan">
           <FieldPlan
@@ -63,6 +63,7 @@ function FieldPieces() {
             shown={shown}
             onSelect={(id) => setOnScene(id.startsWith('foe') ? [id, shown[1] ?? ''] : [shown[0] ?? '', id])}
             labels={{ foes: words.foes, allies: words.party }}
+            ground={<TypeLabel type="Grass" text={`${pack.moves.grassyterrain?.name[locale] ?? ''} ${words.roundsLeft(5, 5)}`} />}
           >
             <OptionButton>{text.back}</OptionButton>
           </FieldPlan>
