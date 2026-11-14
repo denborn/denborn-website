@@ -72,6 +72,7 @@ export const fr: Messages = {
       noEffects: 'Aucun effet en cours.',
       turnsLeft: (turns) => (turns === 1 ? '1 tour restant' : `${turns} tours restants`),
       scope: { field: 'Tout le terrain', foes: 'Côté ennemi', party: 'Votre côté' },
+      changed: 'sous effets',
       weather: { rain: 'Pluie', sun: 'Soleil', sand: 'Tempête de sable', snow: 'Neige' },
     },
     agony: 'AGONIE',

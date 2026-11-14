@@ -643,6 +643,41 @@
   outline-offset: calc(-1 * var(--dn-u));
 }
 
+/* The mark of a Pokémon that carries stat changes or effects of its own: an arrow up over an arrow down. */
+.dn-changes {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: calc(7 * var(--dn-u));
+  height: calc(9 * var(--dn-u));
+}
+
+.dn-changes::before,
+.dn-changes::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: calc(4 * var(--dn-u));
+  background: var(--dn-label-gold);
+}
+
+.dn-changes::before {
+  top: 0;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.dn-changes::after {
+  bottom: 0;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.dn-tile__changes {
+  position: absolute;
+  top: calc(2 * var(--dn-u));
+  right: calc(4 * var(--dn-u));
+}
+
 /* --- HUD box: name, level and HP of one Pokémon ------------------------------ */
 .dn-hud {
   display: grid;
@@ -758,6 +793,7 @@
 .dn-hud__states {
   grid-column: 1;
   display: flex;
+  align-items: center;
   gap: calc(2 * var(--dn-u));
   min-width: 0;
 }
@@ -970,6 +1006,14 @@
   background-size: round(up, calc(2 * var(--dn-u)), 2px) round(up, calc(2 * var(--dn-u)), 2px);
 }
 
+.dn-effect__who {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+  color: var(--dn-select);
+}
+
 /* The foes are at the top of the plan and the party at the bottom: the arrow points there. The whole field is a diamond. */
 .dn-effect__mark {
   width: calc(9 * var(--dn-u));
@@ -999,6 +1043,7 @@
 
 .dn-effect__scope,
 .dn-effect__text {
+  /* Under the name, clear of the mark. */
   grid-column: 2 / -1;
   margin: 0;
   font-size: calc(8 * var(--dn-t));

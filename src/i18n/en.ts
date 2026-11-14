@@ -79,6 +79,8 @@ export const en = {
       turnsLeft: (turns: number) => (turns === 1 ? '1 turn left' : `${turns} turns left`),
       /** Whom an effect touches. */
       scope: { field: 'Whole field', foes: "Foes' side", party: 'Your side' },
+      /** Said of a Pokémon that carries stat changes or effects of its own. */
+      changed: 'under effects',
       /** The games' names for the weather. */
       weather: { rain: 'Rain', sun: 'Harsh sunlight', sand: 'Sandstorm', snow: 'Snow' },
     },

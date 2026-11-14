@@ -84,6 +84,8 @@ export interface FieldTile {
   mine?: boolean
   /** True when the viewer's own Pokémon cannot reach this one. */
   outOfReach?: boolean
+  /** True when it carries stat changes or effects of its own; its spoken label should say so. */
+  changed?: boolean
   /** Spoken description: letter, name, HP and whatever else is worth saying. */
   label: string
 }
@@ -128,6 +130,7 @@ export function FieldPlan({ foes, allies, shown = [], onSelect, labels, ground, 
               onClick={() => onSelect(tile.id)}
             >
               <span className={`dn-tile__letter${tile.mine ? ' dn-tile__letter--mine' : ''}`}>{tile.letter}</span>
+              {tile.changed && <span className="dn-changes dn-tile__changes" />}
               <PokemonIcon num={tile.num} />
               {tile.state === 'downed' ? (
                 <span className="dn-tile__pips">
@@ -159,12 +162,14 @@ export interface FieldEffect {
   name: string
   /** Whom it touches: the whole field, the foes' side or the party's side. */
   scope: 'field' | 'foes' | 'party'
-  /** The same in words, such as "Foes' side". */
+  /** For an effect that sits on one Pokémon of that side: its letter on the line. */
+  letter?: string
+  /** The same in words, such as "Foes' side" or "Foes' side, B: Arcanine". */
   scopeText: string
   /** How long it still lasts, in words. Absent for what stays until removed. */
   lasting?: string
   /** What it does. */
-  description: string
+  description?: string
 }
 
 export interface FieldEffectsProps {
@@ -179,8 +184,10 @@ export interface FieldEffectsProps {
 
 /**
  * Everything in effect on the battlefield: terrain, weather, rooms, screens,
- * hazards. Each entry says whom it touches, with an arrow toward that side of
- * the plan, how long it lasts and what it does. The list scrolls when long.
+ * hazards, and what sits on a single Pokémon (stat changes, Leech Seed…).
+ * Each entry says whom it touches, with an arrow toward that side of the plan
+ * and the Pokémon's letter when it is one Pokémon's, how long it lasts and
+ * what it does. The list scrolls when long.
  */
 export function FieldEffects({ effects, label, empty, children }: FieldEffectsProps) {
   return (
@@ -192,11 +199,14 @@ export function FieldEffects({ effects, label, empty, children }: FieldEffectsPr
         <ul className="dn-effects__list" aria-label={label} tabIndex={0}>
           {effects.map((effect) => (
             <li key={effect.id} className={`dn-effect dn-effect--${effect.scope}`}>
-              <span className="dn-effect__mark" aria-hidden="true" />
+              <span className="dn-effect__who" aria-hidden="true">
+                <span className="dn-effect__mark" />
+                {effect.letter}
+              </span>
               <span className="dn-effect__name">{effect.name}</span>
               {effect.lasting && <span className="dn-effect__lasting">{effect.lasting}</span>}
               <span className="dn-effect__scope">{effect.scopeText}</span>
-              <p className="dn-effect__text">{effect.description}</p>
+              {effect.description && <p className="dn-effect__text">{effect.description}</p>}
             </li>
           ))}
         </ul>

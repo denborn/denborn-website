@@ -38,19 +38,22 @@ interface Fighter {
   item?: string
   status?: StatusId
   moves: string[]
+  /** Stat stages it carries, and the moves whose effect sits on it. */
+  boosts?: Partial<Record<StatId, number>>
+  conditions?: string[]
 }
 
 // Made-up numbers: this board shows the look and the motion, the battle engine is not involved.
 const FOES: Fighter[] = [
-  { id: 'gengar', level: 42, gender: 'M', maxHp: 120, hp: 120, stats: [70, 66, 121, 78, 108], ability: 'cursedbody', moves: ['shadowball', 'sludgebomb', 'thunderbolt', 'hypnosis', 'dreameater', 'confuseray'] },
+  { id: 'gengar', level: 42, gender: 'M', maxHp: 120, hp: 120, stats: [70, 66, 121, 78, 108], ability: 'cursedbody', moves: ['shadowball', 'sludgebomb', 'thunderbolt', 'hypnosis', 'dreameater', 'confuseray'], conditions: ['leechseed'] },
   { id: 'arcanine', level: 40, gender: 'F', maxHp: 150, hp: 96, stats: [104, 76, 94, 76, 92], ability: 'intimidate', item: 'sitrusberry', moves: ['flamethrower', 'extremespeed', 'crunch', 'wildcharge', 'morningsun', 'willowisp'] },
-  { id: 'dragonite', level: 45, gender: 'M', maxHp: 166, hp: 166, stats: [133, 97, 102, 102, 84], ability: 'innerfocus', item: 'leftovers', moves: ['dragonclaw', 'hurricane', 'thunderpunch', 'roost', 'dragondance', 'extremespeed'] },
+  { id: 'dragonite', level: 45, gender: 'M', maxHp: 166, hp: 166, stats: [133, 97, 102, 102, 84], ability: 'innerfocus', item: 'leftovers', moves: ['dragonclaw', 'hurricane', 'thunderpunch', 'roost', 'dragondance', 'extremespeed'], boosts: { atk: 1, spe: 1 } },
 ]
 const PARTY: Fighter[] = [
   { id: 'pikachu', level: 38, gender: 'F', maxHp: 98, hp: 41, stats: [57, 42, 53, 49, 85], ability: 'static', moves: ['thunderbolt', 'quickattack', 'irontail', 'thunderwave', 'surf', 'voltswitch'] },
-  { id: 'charizard', level: 41, gender: 'M', maxHp: 133, hp: 133, stats: [84, 78, 109, 85, 100], ability: 'blaze', item: 'lifeorb', moves: ['flamethrower', 'airslash', 'dragonclaw', 'earthquake', 'roost', 'swordsdance'] },
+  { id: 'charizard', level: 41, gender: 'M', maxHp: 133, hp: 133, stats: [84, 78, 109, 85, 100], ability: 'blaze', item: 'lifeorb', moves: ['flamethrower', 'airslash', 'dragonclaw', 'earthquake', 'roost', 'swordsdance'], boosts: { atk: 2 } },
   { id: 'snorlax', level: 40, gender: 'M', maxHp: 210, hp: 18, stats: [103, 67, 67, 103, 39], ability: 'immunity', status: 'psn', moves: ['bodyslam', 'earthquake', 'crunch', 'rest', 'sleeptalk', 'curse'] },
-  { id: 'vaporeon', level: 39, gender: 'F', maxHp: 190, hp: 152, stats: [66, 62, 101, 89, 65], ability: 'waterabsorb', moves: ['surf', 'icebeam', 'scald', 'wish', 'protect', 'aquaring'] },
+  { id: 'vaporeon', level: 39, gender: 'F', maxHp: 190, hp: 152, stats: [66, 62, 101, 89, 65], ability: 'waterabsorb', moves: ['surf', 'icebeam', 'scald', 'wish', 'protect', 'aquaring'], conditions: ['aquaring'] },
 ]
 /** The viewer's own Pokémon: B on the party's line. */
 const MINE = 1
@@ -68,6 +71,8 @@ const EFFECTS: { id: string; scope: FieldEffect['scope']; move: string; turns?: 
   { id: 'stealthrock', scope: 'party', move: 'stealthrock' },
 ]
 const STATS: StatId[] = ['atk', 'def', 'spa', 'spd', 'spe']
+const signed = (stage: number): string => (stage > 0 ? `+${stage}` : `${stage}`)
+const isChanged = (fighter: Fighter): boolean => Boolean(fighter.boosts) || Boolean(fighter.conditions?.length)
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 // The games' own line for a move, for this mock only: the engine's ordinary messages come with the battle screens.
 const USED = { en: (user: string, move: string) => `${user} used ${move}!`, fr: (user: string, move: string) => `${user} utilise ${move}\u00a0!` }
@@ -103,7 +108,10 @@ function Card({ pack, fighter, hp, onBack }: { pack: DataPack; fighter: Fighter;
         {STATS.map((stat, index) => (
           <div key={stat}>
             <dt>{pack.statNames[stat][locale]}</dt>
-            <dd>{fighter.stats[index]}</dd>
+            <dd>
+              {fighter.stats[index]}
+              {fighter.boosts?.[stat] !== undefined && <span className="sb-card__stage"> {signed(fighter.boosts[stat])}</span>}
+            </dd>
           </div>
         ))}
         <div className="sb-card__wide">
@@ -123,6 +131,11 @@ function Card({ pack, fighter, hp, onBack }: { pack: DataPack; fighter: Fighter;
           </dd>
         </div>
       </dl>
+      {fighter.conditions && (
+        <p className="sb-card__conditions">
+          <span>{words.effects}</span> {fighter.conditions.map((id) => pack.moves[id]?.name[locale]).join(', ')}
+        </p>
+      )}
       <ul className="sb-card__moves">
         {fighter.moves.map((id) => {
           const move = pack.moves[id]
@@ -226,6 +239,7 @@ function BattleOnAPhone() {
     const said = [words.slot(letter, nameOf(fighter.id)), text.hpLabel(state.hp, fighter.maxHp)]
     if (mine) said.push(words.yours)
     if (far) said.push(words.outOfReach)
+    if (isChanged(fighter)) said.push(words.changed)
     return {
       id: `${side}-${index}`,
       letter,
@@ -236,6 +250,7 @@ function BattleOnAPhone() {
       stacks: state.stacks,
       mine,
       outOfReach: far,
+      changed: isChanged(fighter),
       label: said.join(', '),
     }
   }
@@ -249,14 +264,33 @@ function BattleOnAPhone() {
     setView('card')
   }
 
-  const effects: FieldEffect[] = EFFECTS.map((effect) => ({
-    id: effect.id,
-    name: effect.weather ? words.weather[effect.weather] : (pack.moves[effect.move]?.name[locale] ?? ''),
-    scope: effect.scope,
-    scopeText: words.scope[effect.scope],
-    ...(effect.turns === undefined ? {} : { lasting: words.turnsLeft(effect.turns) }),
-    description: pack.moves[effect.move]?.description[locale] ?? '',
-  }))
+  // What sits on one Pokémon: its stat changes as one entry, then each effect on it.
+  const carried = (fighter: Fighter, index: number, scope: 'foes' | 'party'): FieldEffect[] => {
+    const letter = LETTERS[index] ?? ''
+    const who = { scope, letter, scopeText: `${words.scope[scope]}, ${words.slot(letter, nameOf(fighter.id))}` }
+    const stages = Object.entries(fighter.boosts ?? {}).map(([stat, stage]) => `${pack.statNames[stat as StatId][locale]} ${signed(stage)}`)
+    return [
+      ...(stages.length > 0 ? [{ id: `${scope}-${index}-stats`, name: stages.join(' · '), ...who }] : []),
+      ...(fighter.conditions ?? []).map((move) => ({
+        id: `${scope}-${index}-${move}`,
+        name: pack.moves[move]?.name[locale] ?? '',
+        description: pack.moves[move]?.description[locale] ?? '',
+        ...who,
+      })),
+    ]
+  }
+  const effects: FieldEffect[] = [
+    ...EFFECTS.map((effect) => ({
+      id: effect.id,
+      name: effect.weather ? words.weather[effect.weather] : (pack.moves[effect.move]?.name[locale] ?? ''),
+      scope: effect.scope,
+      scopeText: words.scope[effect.scope],
+      ...(effect.turns === undefined ? {} : { lasting: words.turnsLeft(effect.turns) }),
+      description: pack.moves[effect.move]?.description[locale] ?? '',
+    })),
+    ...FOES.flatMap((fighter, index) => carried(fighter, index, 'foes')),
+    ...PARTY.flatMap((fighter, index) => carried(fighter, index, 'party')),
+  ]
   const cardFighter = card.side === 'foe' ? FOES[card.index] : PARTY[card.index]
   const hudWidth = { '--dn-hud-width': 'calc(104 * var(--dn-u))' } as CSSProperties
 
@@ -300,13 +334,23 @@ function BattleOnAPhone() {
               hp={foeNow.hp}
               maxHp={foeFighter.maxHp}
               text={text}
+              {...(isChanged(foeFighter) ? { changed: words.changed } : {})}
               {...(foeNow.state === 'downed' ? { agony: { stacks: foeNow.stacks, text: text.agony, label: text.agonyLabel(foeNow.stacks, 3) } } : {})}
             />
           </LineBrowser>
         </div>
         <div className="sb-browser" style={{ right: 0, bottom: 'calc(48 * var(--dn-u))', ...hudWidth }}>
           <LineBrowser slots={allySlots} current={ally.index} onChange={showAlly} labels={words} currentLabel={words.slot(LETTERS[ally.index] ?? '', allySpecies.name[locale])}>
-            <HudBox side="player" name={allySpecies.name[locale]} level={allyFighter.level} gender={allyFighter.gender} hp={allyFighter.hp} maxHp={allyFighter.maxHp} text={text}>
+            <HudBox
+              side="player"
+              name={allySpecies.name[locale]}
+              level={allyFighter.level}
+              gender={allyFighter.gender}
+              hp={allyFighter.hp}
+              maxHp={allyFighter.maxHp}
+              text={text}
+              {...(isChanged(allyFighter) ? { changed: words.changed } : {})}
+            >
               {allyFighter.status && <StatusBadge status={allyFighter.status} text={text.status[allyFighter.status].badge} label={text.status[allyFighter.status].name} />}
             </HudBox>
           </LineBrowser>
@@ -375,7 +419,9 @@ function BattleOnAPhone() {
         foes. The <strong>arrows</strong> walk along each line; <strong>{words.battlefield}</strong> shows both lines from above, and a tap on a
         Pokémon shows its sheet. On the plan, a darker foe is out of your Pokémon’s reach (yours is B, underlined in gold); the terrain
         and the weather are named between the lines, and <strong>{words.more}</strong> lists everything in effect: whom it touches (the
-        arrow points to that side of the plan), the turns it has left, and what it does (the move’s own description, for now). Press{' '}
+        arrow points to that side of the plan, with a Pokémon’s letter when it sits on one), the turns it has left, and what it does (the
+        move’s own description, for now). A Pokémon that carries stat changes or effects of its own has a small gold double arrow on
+        its box and its tile, and they are on its sheet. Press{' '}
         <strong>{text.commands.fight}</strong> and pick a move, three times, to see a hit, a downed foe and its Agony.
       </Note>
     </Phone>

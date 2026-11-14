@@ -27,7 +27,9 @@ Touch screen, commands: ball 156 across, 4 from the top; tiles 82 × 46 (RUN 82 
 
 Touch screen, battlefield plan: the foes' line above the party's; between them the terrain and the weather, by name only, each a `TypeLabel` (the terrain in its own type: Electric, Grass, Fairy for Misty, Psychic; the weather in Water for rain, Fire for sun, Rock for a sandstorm, Ice for snow); at the foot MORE with the number of effects, and BACK; tiles 40 × 54 at a pitch of 42, so six fill the 256 of the width; each line centred. With lines of different lengths the tiles are offset by half a pitch, which is exactly the rules' geometry: a foe is in reach when its tile overlaps or touches the column of yours.
 
-Touch screen, effects (behind MORE): a scrolling list, one dithered panel per effect: mark, name, turns left in gold, scope, description. The mark is a diamond for the whole field, an arrow up for the foes' side, an arrow down for the party's: the sides as they lie on the plan.
+Touch screen, effects (behind MORE): a scrolling list, one dithered panel per effect: mark, name, turns left in gold, scope, description. The mark is a diamond for the whole field, an arrow up for the foes' side, an arrow down for the party's: the sides as they lie on the plan. An effect on a single Pokémon adds that Pokémon's letter after the arrow. Order: the field, the two sides, then each Pokémon, foes first.
+
+A Pokémon that carries stat changes or effects of its own has a gold mark (an arrow up over an arrow down, 7 × 9) at the top right of its tile and beside the badges of its HUD box.
 
 An arrow or a tile is never under 44 px: on a 393 px phone an arrow takes 29 DS pixels of width, so arrow + box + arrow is 162 wide.
 

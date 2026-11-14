@@ -156,8 +156,8 @@ body {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: calc(3 * var(--dn-u));
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: calc(2 * var(--dn-u));
   padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u));
   font-size: calc(9 * var(--dn-t));
 }
@@ -226,4 +226,17 @@ body {
 
 .sb-card__back {
   justify-self: end;
+}
+
+.sb-card__stage {
+  color: var(--dn-label-gold);
+}
+
+.sb-card__conditions {
+  margin: 0;
+  line-height: calc(11 * var(--dn-u));
+}
+
+.sb-card__conditions span {
+  color: var(--dn-text-muted);
 }

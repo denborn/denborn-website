@@ -53,6 +53,7 @@ function FieldPieces() {
       stacks: 2,
       mine: side === 'ally' && index === 1,
       outOfReach: entry.far === true,
+      changed: (side === 'ally' && index === 1) || (side === 'foe' && index === 2),
       label: `${words.slot(letter, species?.name[locale] ?? '')}, ${text.hpLabel(entry.hp, 120)}`,
     }
   }
@@ -64,13 +65,15 @@ function FieldPieces() {
     ...(turns === undefined ? {} : { lasting: words.turnsLeft(turns) }),
     description: pack.moves[move]?.description[locale] ?? '',
   })
-  const effects = [
+  const effects: FieldEffect[] = [
     effect('terrain', 'field', 'grassyterrain', 5),
     effect('weather', 'field', 'sunnyday', 1, words.weather.sun),
     effect('room', 'field', 'trickroom', 2),
     effect('screen', 'foes', 'lightscreen', 3),
     effect('veil', 'party', 'auroraveil', 4),
     effect('spikes', 'foes', 'toxicspikes'),
+    { id: 'boost', name: `${pack.statNames.atk[locale]} +2 · ${pack.statNames.spe[locale]} -1`, scope: 'party', letter: 'B', scopeText: `${words.scope.party}, ${words.slot('B', pack.species.charizard?.name[locale] ?? '')}` },
+    { ...effect('seed', 'foes', 'leechseed'), letter: 'C', scopeText: `${words.scope.foes}, ${words.slot('C', pack.species.dragonite?.name[locale] ?? '')}` },
   ]
   const slots: LineSlot[] = FOES.map((entry, index) => ({ letter: LETTERS[index] ?? '', state: entry.state }))
   const current = FOES[index]
@@ -108,7 +111,9 @@ function FieldPieces() {
       <Section title="Everything in effect">
         <Note>
           The list behind {words.more}. The mark says whom an effect touches: a diamond for the whole field, an arrow up for the foes’
-          side, an arrow down for yours, as they lie on the plan. In gold, the turns it has left. The list scrolls.
+          side, an arrow down for yours, as they lie on the plan, followed by a Pokémon’s letter when the effect sits on that one
+          Pokémon. In gold, the turns it has left. The list scrolls. On the plan, a gold double arrow marks a Pokémon that carries
+          effects of its own.
         </Note>
         <Screen kind="menu" label="Effects">
           <FieldEffects effects={effects} label={words.effects} empty={words.noEffects}>

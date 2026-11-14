@@ -135,6 +135,8 @@ export interface HudBoxProps {
   showNumbers?: boolean
   /** For a downed Pokémon: its Agony stacks, shown in the HP bar's place (decision 83). */
   agony?: AgonyBadgeProps
+  /** Set when the Pokémon carries stat changes or effects of its own: the words that say so. A small mark shows. */
+  changed?: string
   /** Status badges. */
   children?: ReactNode
 }
@@ -144,7 +146,7 @@ export interface HudBoxProps {
  * on the scene, the badges and the HP bar on the dark plate. A downed Pokémon
  * has no HP to show: its Agony badge takes the bar's place.
  */
-export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers = false, agony, children }: HudBoxProps) {
+export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers = false, agony, changed, children }: HudBoxProps) {
   return (
     <div className={`dn-hud dn-hud--${side}`}>
       <span className="dn-hud__title dn-text-outline">
@@ -157,7 +159,10 @@ export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers
       </span>
       <span className="dn-hud__plate">
         <span className="dn-hud__back" aria-hidden="true" />
-        <span className="dn-hud__states">{children}</span>
+        <span className="dn-hud__states">
+          {children}
+          {changed && <span className="dn-changes" role="img" aria-label={changed} />}
+        </span>
         {agony ? (
           <span className="dn-hud__instead">
             <AgonyBadge {...agony} />
