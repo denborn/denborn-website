@@ -1,6 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { type CSSProperties, useState } from 'react'
-import { FieldPlan, type FieldState, type FieldTile, HudBox, LineBrowser, type LineSlot, OptionButton, Screen, TypeLabel } from '..'
+import {
+  type FieldEffect,
+  FieldEffects,
+  FieldPlan,
+  type FieldState,
+  type FieldTile,
+  HudBox,
+  LineBrowser,
+  type LineSlot,
+  OptionButton,
+  Screen,
+  TypeLabel,
+} from '..'
 import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
 const LETTERS = 'ABCDEF'
@@ -44,6 +56,22 @@ function FieldPieces() {
       label: `${words.slot(letter, species?.name[locale] ?? '')}, ${text.hpLabel(entry.hp, 120)}`,
     }
   }
+  const effect = (id: string, scope: FieldEffect['scope'], move: string, turns?: number, name?: string): FieldEffect => ({
+    id,
+    name: name ?? pack.moves[move]?.name[locale] ?? '',
+    scope,
+    scopeText: words.scope[scope],
+    ...(turns === undefined ? {} : { lasting: words.turnsLeft(turns) }),
+    description: pack.moves[move]?.description[locale] ?? '',
+  })
+  const effects = [
+    effect('terrain', 'field', 'grassyterrain', 5),
+    effect('weather', 'field', 'sunnyday', 1, words.weather.sun),
+    effect('room', 'field', 'trickroom', 2),
+    effect('screen', 'foes', 'lightscreen', 3),
+    effect('veil', 'party', 'auroraveil', 4),
+    effect('spikes', 'foes', 'toxicspikes'),
+  ]
   const slots: LineSlot[] = FOES.map((entry, index) => ({ letter: LETTERS[index] ?? '', state: entry.state }))
   const current = FOES[index]
   const species = current && pack.species[current.id]
@@ -53,8 +81,8 @@ function FieldPieces() {
         <Note>
           Both lines from above, at their longest: six foes, five in the party. Each line is centred on the other, as the rules place
           them, so who faces whom can be read off. The two on the scene are lit. A downed Pokémon is red and shows its Agony stacks; a dead one leaves its slot empty;
-          a foe out of your Pokémon’s reach is darker; yours is underlined in gold. The terrain in effect is named between the lines, with
-          the rounds it has left.
+          a foe out of your Pokémon’s reach is darker; yours is underlined in gold. The terrain and the weather are named between the
+          lines; {words.more} opens the list of everything in effect.
         </Note>
         <Screen kind="menu" label="Battlefield plan">
           <FieldPlan
@@ -63,10 +91,29 @@ function FieldPieces() {
             shown={shown}
             onSelect={(id) => setOnScene(id.startsWith('foe') ? [id, shown[1] ?? ''] : [shown[0] ?? '', id])}
             labels={{ foes: words.foes, allies: words.party }}
-            ground={<TypeLabel type="Grass" text={`${pack.moves.grassyterrain?.name[locale] ?? ''} ${words.roundsLeft(5, 5)}`} />}
+            ground={
+              <>
+                <TypeLabel type="Grass" text={pack.moves.grassyterrain?.name[locale] ?? ''} />
+                <TypeLabel type="Fire" text={words.weather.sun} />
+              </>
+            }
           >
+            <OptionButton primary>
+              {words.more} · {effects.length}
+            </OptionButton>
             <OptionButton>{text.back}</OptionButton>
           </FieldPlan>
+        </Screen>
+      </Section>
+      <Section title="Everything in effect">
+        <Note>
+          The list behind {words.more}. The mark says whom an effect touches: a diamond for the whole field, an arrow up for the foes’
+          side, an arrow down for yours, as they lie on the plan. In gold, the turns it has left. The list scrolls.
+        </Note>
+        <Screen kind="menu" label="Effects">
+          <FieldEffects effects={effects} label={words.effects} empty={words.noEffects}>
+            <OptionButton>{text.back}</OptionButton>
+          </FieldEffects>
         </Screen>
       </Section>
       <Section title="Line browser">

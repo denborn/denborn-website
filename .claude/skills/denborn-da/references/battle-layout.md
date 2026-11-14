@@ -25,7 +25,9 @@ Measures of the board (`src/ui/stories/Scene.stories.tsx`), in DS pixels:
 
 Touch screen, commands: ball 156 across, 4 from the top; tiles 82 × 46 (RUN 82 × 38) along the bottom; the BATTLEFIELD corner tile 62 × 34 top right, clear of the ball, its label at size 8 (one line in English, two in French). Moves: six, two by three, with a last row for BACK.
 
-Touch screen, battlefield plan: the foes' line above the party's, the terrain in effect between them as a `TypeLabel` in its type's colours (Electric, Grass, Fairy for Misty, Psychic) with the rounds it has left, tiles 40 × 54 at a pitch of 42, so six fill the 256 of the width; each line centred. With lines of different lengths the tiles are offset by half a pitch, which is exactly the rules' geometry: a foe is in reach when its tile overlaps or touches the column of yours.
+Touch screen, battlefield plan: the foes' line above the party's; between them the terrain and the weather, by name only, each a `TypeLabel` (the terrain in its own type: Electric, Grass, Fairy for Misty, Psychic; the weather in Water for rain, Fire for sun, Rock for a sandstorm, Ice for snow); at the foot MORE with the number of effects, and BACK; tiles 40 × 54 at a pitch of 42, so six fill the 256 of the width; each line centred. With lines of different lengths the tiles are offset by half a pitch, which is exactly the rules' geometry: a foe is in reach when its tile overlaps or touches the column of yours.
+
+Touch screen, effects (behind MORE): a scrolling list, one dithered panel per effect: mark, name, turns left in gold, scope, description. The mark is a diamond for the whole field, an arrow up for the foes' side, an arrow down for the party's: the sides as they lie on the plan.
 
 An arrow or a tile is never under 44 px: on a 393 px phone an arrow takes 29 DS pixels of width, so arrow + box + arrow is 162 wide.
 

@@ -5,6 +5,8 @@ import {
   type BattlerHandle,
   CommandMenu,
   CornerButton,
+  type FieldEffect,
+  FieldEffects,
   FieldPlan,
   type FieldState,
   type FieldTile,
@@ -53,8 +55,18 @@ const PARTY: Fighter[] = [
 /** The viewer's own Pokémon: B on the party's line. */
 const MINE = 1
 const LETTERS = 'ABCDEF'
-/** The terrain in effect in this mock, named after the move that sets it and coloured by its type. */
-const TERRAIN = { move: 'electricterrain', type: 'Electric', left: 3, of: 5 }
+/**
+ * What is in effect in this mock. Each takes its name and its description from
+ * the move that sets it (the weather has a name of its own); the two with a
+ * colour are the ground and the sky, named on the plan itself.
+ */
+const EFFECTS: { id: string; scope: FieldEffect['scope']; move: string; turns?: number; weather?: 'rain'; color?: string }[] = [
+  { id: 'terrain', scope: 'field', move: 'electricterrain', turns: 3, color: 'Electric' },
+  { id: 'weather', scope: 'field', move: 'raindance', turns: 2, weather: 'rain', color: 'Water' },
+  { id: 'reflect', scope: 'foes', move: 'reflect', turns: 4 },
+  { id: 'tailwind', scope: 'party', move: 'tailwind', turns: 1 },
+  { id: 'stealthrock', scope: 'party', move: 'stealthrock' },
+]
 const STATS: StatId[] = ['atk', 'def', 'spa', 'spd', 'spe']
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
 // The games' own line for a move, for this mock only: the engine's ordinary messages come with the battle screens.
@@ -141,7 +153,7 @@ function BattleOnAPhone() {
   const words = text.field
   const attacker = useRef<BattlerHandle>(null)
   const target = useRef<BattlerHandle>(null)
-  const [view, setView] = useState<'commands' | 'moves' | 'field' | 'card'>('commands')
+  const [view, setView] = useState<'commands' | 'moves' | 'field' | 'card' | 'effects'>('commands')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   // Which Pokémon of each line is on screen, and the side the last arrow pressed points to.
@@ -237,6 +249,14 @@ function BattleOnAPhone() {
     setView('card')
   }
 
+  const effects: FieldEffect[] = EFFECTS.map((effect) => ({
+    id: effect.id,
+    name: effect.weather ? words.weather[effect.weather] : (pack.moves[effect.move]?.name[locale] ?? ''),
+    scope: effect.scope,
+    scopeText: words.scope[effect.scope],
+    ...(effect.turns === undefined ? {} : { lasting: words.turnsLeft(effect.turns) }),
+    description: pack.moves[effect.move]?.description[locale] ?? '',
+  }))
   const cardFighter = card.side === 'foe' ? FOES[card.index] : PARTY[card.index]
   const hudWidth = { '--dn-hud-width': 'calc(104 * var(--dn-u))' } as CSSProperties
 
@@ -295,7 +315,7 @@ function BattleOnAPhone() {
           <MessageBox text={shown} />
         </div>
       </Screen>
-      <Screen kind={view === 'field' || view === 'card' ? 'menu' : 'touch'} label="Commands">
+      <Screen kind={view === 'commands' || view === 'moves' ? 'touch' : 'menu'} label="Commands">
         {view === 'commands' && (
           <CommandMenu labels={text.commands} disabled={busy ? ['fight', 'bag', 'run', 'switch'] : []} onCommand={(command) => command === 'fight' && setView('moves')}>
             <CornerButton onClick={() => setView('field')}>{words.battlefield}</CornerButton>
@@ -333,10 +353,18 @@ function BattleOnAPhone() {
             shown={[`foe-${foe.index}`, `ally-${ally.index}`]}
             onSelect={open}
             labels={{ foes: words.foes, allies: words.party }}
-            ground={<TypeLabel type={TERRAIN.type} text={`${pack.moves[TERRAIN.move]?.name[locale] ?? ''} ${words.roundsLeft(TERRAIN.left, TERRAIN.of)}`} />}
+            ground={EFFECTS.map((effect, index) => effect.color && <TypeLabel key={effect.id} type={effect.color} text={effects[index]?.name ?? ''} />)}
           >
+            <OptionButton primary onClick={() => setView('effects')}>
+              {words.more} · {effects.length}
+            </OptionButton>
             <OptionButton onClick={() => setView('commands')}>{text.back}</OptionButton>
           </FieldPlan>
+        )}
+        {view === 'effects' && (
+          <FieldEffects effects={effects} label={words.effects} empty={words.noEffects}>
+            <OptionButton onClick={() => setView('field')}>{text.back}</OptionButton>
+          </FieldEffects>
         )}
         {view === 'card' && cardFighter && (
           <Card pack={pack} fighter={cardFighter} hp={card.side === 'foe' ? (foes[card.index]?.hp ?? 0) : cardFighter.hp} onBack={() => setView('field')} />
@@ -345,8 +373,9 @@ function BattleOnAPhone() {
       <Note>
         A mock for the look and the motion only: the numbers are made up and the battle engine is not involved. Four players face three
         foes. The <strong>arrows</strong> walk along each line; <strong>{words.battlefield}</strong> shows both lines from above, and a tap on a
-        Pokémon shows its sheet. On the plan, a darker foe is out of your Pokémon’s reach (yours is B, underlined in gold), and the
-        terrain in effect is named between the lines. Press{' '}
+        Pokémon shows its sheet. On the plan, a darker foe is out of your Pokémon’s reach (yours is B, underlined in gold); the terrain
+        and the weather are named between the lines, and <strong>{words.more}</strong> lists everything in effect: whom it touches (the
+        arrow points to that side of the plan), the turns it has left, and what it does (the move’s own description, for now). Press{' '}
         <strong>{text.commands.fight}</strong> and pick a move, three times, to see a hit, a downed foe and its Agony.
       </Note>
     </Phone>

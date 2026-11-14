@@ -96,16 +96,17 @@ export interface FieldPlanProps {
   onSelect: (id: string) => void
   /** Captions of the two lines. */
   labels: { foes: string; allies: string }
-  /** What lies between the lines: the terrain in effect. */
+  /** What lies between the lines: the terrain and the weather, by name. */
   ground?: ReactNode
-  /** The way back, shown bottom right. */
+  /** The foot of the plan: the way to the list of effects, the way back. */
   children?: ReactNode
 }
 
 /**
  * The battlefield seen from above: the two lines facing each other, each
  * centred on the other as the rules place them, so who faces whom can be read
- * off, with the terrain in effect between them. Every Pokémon is a tile to tap.
+ * off, with the terrain and the weather named between them. Every Pokémon is
+ * a tile to tap.
  */
 export function FieldPlan({ foes, allies, shown = [], onSelect, labels, ground, children }: FieldPlanProps) {
   const line = (tiles: readonly FieldTile[], caption: string) => (
@@ -148,7 +149,59 @@ export function FieldPlan({ foes, allies, shown = [], onSelect, labels, ground, 
       {line(foes, labels.foes)}
       <div className="dn-field__ground">{ground}</div>
       {line(allies, labels.allies)}
-      {children && <div className="dn-field__back">{children}</div>}
+      {children && <div className="dn-field__foot">{children}</div>}
+    </div>
+  )
+}
+
+export interface FieldEffect {
+  id: string
+  name: string
+  /** Whom it touches: the whole field, the foes' side or the party's side. */
+  scope: 'field' | 'foes' | 'party'
+  /** The same in words, such as "Foes' side". */
+  scopeText: string
+  /** How long it still lasts, in words. Absent for what stays until removed. */
+  lasting?: string
+  /** What it does. */
+  description: string
+}
+
+export interface FieldEffectsProps {
+  effects: readonly FieldEffect[]
+  /** Name of the list, for assistive technology. */
+  label: string
+  /** Shown when nothing is in effect. */
+  empty: string
+  /** The way back, shown bottom right. */
+  children?: ReactNode
+}
+
+/**
+ * Everything in effect on the battlefield: terrain, weather, rooms, screens,
+ * hazards. Each entry says whom it touches, with an arrow toward that side of
+ * the plan, how long it lasts and what it does. The list scrolls when long.
+ */
+export function FieldEffects({ effects, label, empty, children }: FieldEffectsProps) {
+  return (
+    <div className="dn-effects">
+      {effects.length === 0 ? (
+        <p className="dn-effects__empty">{empty}</p>
+      ) : (
+        // Focusable, so that a keyboard can scroll it.
+        <ul className="dn-effects__list" aria-label={label} tabIndex={0}>
+          {effects.map((effect) => (
+            <li key={effect.id} className={`dn-effect dn-effect--${effect.scope}`}>
+              <span className="dn-effect__mark" aria-hidden="true" />
+              <span className="dn-effect__name">{effect.name}</span>
+              {effect.lasting && <span className="dn-effect__lasting">{effect.lasting}</span>}
+              <span className="dn-effect__scope">{effect.scopeText}</span>
+              <p className="dn-effect__text">{effect.description}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+      {children && <div className="dn-effects__back">{children}</div>}
     </div>
   )
 }

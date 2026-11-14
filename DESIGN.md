@@ -90,7 +90,8 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `PokemonSprite` | A battle sprite | Showdown | Front, back, female. Can be frozen on a frame. Shows the name when there is no sprite. |
 | `Battler` | A Pokémon on the field | — | Enters from its side, or from the side of the arrow that brought it; `hit()` and `attack()` play once and resolve when done; poses `standing`, `downed`, `gone`. |
 | `LineBrowser` | One Pokémon of a line at a time | Denborn's own, in the games' manner | An arrow on each side of the HUD box walks along the line; the line's letters sit underneath: the one shown is lit, a downed one struck through in red, an empty slot faded, the viewer's own underlined in gold. Arrows step over empty slots and stop at the ends. The new Pokémon's name is read out. |
-| `FieldPlan` | The battlefield from above | Denborn's own, after the party slots | Both lines as tiles (icon, letter, HP bar or Agony stacks), each line centred on the other at one pitch, so a tile's place is its x of the rules. Six tiles fill the width. The two Pokémon on the scene are lit; a downed one is red; a dead one's slot stays, empty; one out of the viewer's reach is darker (decision 90). Between the lines, the terrain in effect, as a label in its type's colours (decision 89). |
+| `FieldPlan` | The battlefield from above | Denborn's own, after the party slots | Both lines as tiles (icon, letter, HP bar or Agony stacks), each line centred on the other at one pitch, so a tile's place is its x of the rules. Six tiles fill the width. The two Pokémon on the scene are lit; a downed one is red; a dead one's slot stays, empty; one out of the viewer's reach is darker (decision 90). Between the lines, the terrain and the weather, each a label in a type's colours (decision 89). At its foot, MORE (with the number of effects) and BACK. |
+| `FieldEffects` | Everything in effect on the battlefield | Denborn's own | The list behind MORE (decisions 92 and 93): terrain, weather, rooms, each side's screens and hazards. Each entry: a mark for whom it touches (a diamond for the whole field, an arrow up for the foes' side, an arrow down for the party's, as they lie on the plan), its name, the turns it has left in gold, the scope in words, what it does. It scrolls, by touch or keyboard. |
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 
@@ -99,11 +100,11 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 A session has four players or more, so the scene does not try to show every Pokémon at once (decisions 87 and 88). It is the games' own one-against-one view:
 
 - **The scene** (top screen) shows one foe, upper right, and one ally, lower left, each with its HUD box in a `LineBrowser`. It opens on the viewer's own Pokémon and the first foe.
-- **The battlefield** (touch screen, from the BATTLEFIELD corner button) is the `FieldPlan`, with the terrain in effect named between the lines. A tap on a tile brings that Pokémon onto the scene and opens its sheet on the touch screen: HP, types, stats, Ability, held item, moves. BACK returns to the plan, then to the commands.
+- **The battlefield** (touch screen, from the BATTLEFIELD corner button) is the `FieldPlan`, with the terrain and the weather named between the lines. It does not list everything: **MORE** opens `FieldEffects`, the list of all that is in effect, with whom each touches and the turns it has left ("3 turns left"). A tap on a tile brings that Pokémon onto the scene and opens its sheet on the touch screen: HP, types, stats, Ability, held item, moves. BACK returns to the plan, then to the commands.
 
 - **While a round plays**, the scene follows the action: each action brings its user and its target onto the scene (decision 91).
 
-The sheet on the board is a mock: the real one is designed with the character screens (milestone 4). What the battlefield shows besides the terrain (weather, Trick Room and the like, each side's screens and hazards) is asked of the owner, not assumed.
+The sheet on the board is a mock: the real one is designed with the character screens (milestone 4). What each effect says it does is, for now, the description of the move that sets it; its proper wording comes with the battle screens.
 
 Not designed yet, and not to be improvised: target selection, the Bag, the party's order, the timer and the GM's console. They come with their milestones, on this system.
 
@@ -181,5 +182,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 89 | The button says BATTLEFIELD / CHAMP DE BATAILLE; the battlefield also shows the terrain in effect. |
 | 90 | On the plan, foes out of the viewer's reach are darker. |
 | 91 | While a round plays, the scene follows the action. |
+| 92 | The battlefield also knows the weather, the whole-field effects and each side's conditions. |
+| 93 | A duration reads "3 turns left" / "3 tours restants". The plan does not show everything: MORE lists all that is in effect and whom it touches. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

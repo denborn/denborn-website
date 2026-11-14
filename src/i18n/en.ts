@@ -72,8 +72,15 @@ export const en = {
       slot: (letter: string, name: string) => `${letter}: ${name}`,
       yours: 'your Pokémon',
       outOfReach: 'out of reach',
-      /** Rounds a terrain has left, out of how many it lasts. */
-      roundsLeft: (left: number, of: number) => `${left}/${of}`,
+      /** The button on the plan that lists everything in effect, and that list. */
+      more: 'MORE',
+      effects: 'In effect',
+      noEffects: 'Nothing is in effect.',
+      turnsLeft: (turns: number) => (turns === 1 ? '1 turn left' : `${turns} turns left`),
+      /** Whom an effect touches. */
+      scope: { field: 'Whole field', foes: "Foes' side", party: 'Your side' },
+      /** The games' names for the weather. */
+      weather: { rain: 'Rain', sun: 'Harsh sunlight', sand: 'Sandstorm', snow: 'Snow' },
     },
     agony: 'AGONY',
     agonyLabel: (stacks: number, of: number) => `Agonizing, ${stacks} of ${of} left`,

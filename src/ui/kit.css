@@ -911,10 +911,106 @@
   justify-content: center;
 }
 
-.dn-field__back {
-  align-self: end;
-  justify-self: end;
+.dn-field__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
   padding: 0 calc(4 * var(--dn-u)) calc(2 * var(--dn-u));
+}
+
+/* --- Everything in effect on the battlefield: the list behind MORE --------------- */
+.dn-effects {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: calc(3 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(4 * var(--dn-u)) calc(2 * var(--dn-u));
+}
+
+.dn-effects__list {
+  display: grid;
+  align-content: start;
+  gap: calc(3 * var(--dn-u));
+  margin: 0;
+  padding: 0 calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dn-effects__list:focus-visible {
+  outline-offset: calc(-2 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-effects__empty {
+  margin: 0;
+  align-self: center;
+  text-align: center;
+  color: var(--dn-text-muted);
+}
+
+.dn-effects__back {
+  justify-self: end;
+  padding: 0 calc(4 * var(--dn-u)) 0 0;
+}
+
+/* One effect: an arrow toward the side it touches, its name, how long it lasts, whom it touches, what it does. */
+.dn-effect {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 calc(4 * var(--dn-u));
+  padding: calc(3 * var(--dn-u)) calc(6 * var(--dn-u));
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  box-shadow: calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-panel-edge);
+  background-image: conic-gradient(var(--dn-panel-2) 25%, var(--dn-panel) 0 50%, var(--dn-panel-2) 0 75%, var(--dn-panel) 0);
+  background-size: calc(2 * var(--dn-u)) calc(2 * var(--dn-u));
+  background-size: round(up, calc(2 * var(--dn-u)), 2px) round(up, calc(2 * var(--dn-u)), 2px);
+}
+
+/* The foes are at the top of the plan and the party at the bottom: the arrow points there. The whole field is a diamond. */
+.dn-effect__mark {
+  width: calc(9 * var(--dn-u));
+  height: calc(8 * var(--dn-u));
+  background: var(--dn-select);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.dn-effect--foes .dn-effect__mark {
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.dn-effect--party .dn-effect__mark {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.dn-effect__name {
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+}
+
+.dn-effect__lasting {
+  font-size: calc(9 * var(--dn-t));
+  color: var(--dn-label-gold);
+  white-space: nowrap;
+}
+
+.dn-effect__scope,
+.dn-effect__text {
+  grid-column: 2 / -1;
+  margin: 0;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+}
+
+.dn-effect__scope {
+  color: var(--dn-select);
+}
+
+.dn-effect__text {
+  color: var(--dn-text-muted);
 }
 
 .dn-tile {
