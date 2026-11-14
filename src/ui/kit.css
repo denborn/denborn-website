@@ -1215,6 +1215,75 @@
   padding: calc(6 * var(--dn-u));
 }
 
+/* A row of tabs under a page's title: equal widths, the current one lit and underlined. */
+.dn-tabs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: calc(1 * var(--dn-u));
+  padding: calc(3 * var(--dn-u)) calc(4 * var(--dn-u)) 0;
+  border-bottom: calc(1 * var(--dn-u)) solid var(--dn-select-line);
+  background: var(--dn-backdrop);
+}
+
+.dn-tab {
+  min-height: var(--dn-target);
+  padding: 0 calc(1 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: 1;
+  color: var(--dn-text-muted);
+  background: var(--dn-option);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  border-bottom: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dn-tab[aria-selected='true'] {
+  color: var(--dn-text);
+  background: linear-gradient(var(--dn-option-selected-band) 0 45%, var(--dn-option-selected) 45% 100%);
+  box-shadow: inset 0 calc(-2 * var(--dn-u)) 0 var(--dn-select);
+}
+
+/* A small table of numbers: names on the left, columns of figures on the right. */
+.dn-figures {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+}
+
+.dn-figures th {
+  font-weight: normal;
+  text-align: left;
+  color: var(--dn-text-muted);
+}
+
+.dn-figures td,
+.dn-figures thead th:not(:first-child) {
+  text-align: right;
+  padding-left: calc(6 * var(--dn-u));
+}
+
+.dn-figures tbody th {
+  color: var(--dn-text);
+}
+
+/* The figures a value is made from stand back; the value itself, in the last column, stands out. */
+.dn-figures td:not(:last-child) {
+  color: var(--dn-text-muted);
+}
+
+/* A stat its nature raises or lowers, in the games' red and blue; its mark says so without the colour. */
+.dn-figures tr[data-trend='up'] th {
+  color: var(--dn-hp-low);
+}
+
+.dn-figures tr[data-trend='down'] th {
+  color: var(--dn-exp);
+}
+
 /* A list of rows, such as the characters kept on a device. */
 .dn-list {
   display: grid;
@@ -1476,6 +1545,14 @@
   gap: calc(4 * var(--dn-u));
 }
 
+/* An item's icon at the head of a row: one width for every size of icon, so the texts line up. */
+.dn-slot__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: calc(30 * var(--dn-u));
+}
+
 .dn-slot__pp {
   font-size: calc(9 * var(--dn-t));
   white-space: nowrap;
@@ -1647,6 +1724,36 @@
   margin-top: calc(2 * var(--dn-u));
   font-size: calc(9 * var(--dn-t));
   color: var(--dn-label-gold);
+}
+
+/* The top screen of a character's sheet: the Pokémon on the left, its box and types on the right. */
+.dn-sheet-top {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: calc(104 * var(--dn-u)) minmax(0, 1fr);
+  align-items: end;
+  justify-items: center;
+  padding: calc(8 * var(--dn-u)) calc(6 * var(--dn-u)) calc(26 * var(--dn-u));
+}
+
+.dn-sheet-top__box {
+  display: grid;
+  justify-items: start;
+  gap: calc(4 * var(--dn-u));
+  align-self: center;
+}
+
+/* Dead: said in words on a dark plate, beside the types. */
+.dn-sheet-top__dead {
+  margin-left: calc(7 * var(--dn-u));
+  background: var(--dn-ink);
+}
+
+.dn-sheet-top__types {
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+  padding-left: calc(7 * var(--dn-u));
 }
 
 /* The app's first screen. */

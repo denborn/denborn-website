@@ -6,7 +6,7 @@
 | `src/ui/tokens.css` | Every colour, duration, easing and base size. The only place a value is written. |
 | `src/ui/kit.css` | The classes (`.dn-*`). Sizes in DS pixels, colours from tokens. |
 | `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`. |
-| `src/ui/controls.tsx` | `Panel`, `Slot`, `OptionButton`, `CommandMenu`, `CornerButton`. |
+| `src/ui/controls.tsx` | `Panel`, `Slot`, `OptionButton`, `CommandMenu`, `CornerButton`, `Tabs` (it draws the part it shows too, so the two are always tied together for screen readers). |
 | `src/ui/battle.tsx` | `HpBar`, `ExpBar`, `StatusBadge`, `AgonyBadge`, `HudBox`, `MoveButton`, `MessageBox`. |
 | `src/ui/sprites.tsx` | `PokemonSprite`, the icons, `TypeLabel`. |
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { type ButtonHTMLAttributes, type ReactNode, useId } from 'react'
 
 type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'type'>
 
@@ -93,5 +93,65 @@ export function CornerButton({ children, ...rest }: ButtonProps) {
     <button type="button" className="dn-command dn-command--corner" {...rest}>
       <span className="dn-command__label">{children}</span>
     </button>
+  )
+}
+
+export interface TabsProps<Id extends string> {
+  /** What the tabs are, for assistive technology. */
+  label: string
+  tabs: readonly { id: Id; label: string }[]
+  current: Id
+  onChange: (id: Id) => void
+  /** The part the current tab shows. */
+  children: ReactNode
+}
+
+/**
+ * A row of tabs and the part the current one shows. The arrow keys, Home and
+ * End move between the tabs, as in any row of tabs; only the current tab is a
+ * stop for the Tab key, and the part is the next one.
+ */
+export function Tabs<Id extends string>({ label, tabs, current, onChange, children }: TabsProps<Id>) {
+  const set = useId()
+  const tabId = (id: Id): string => `${set}-tab-${id}`
+  const go = (index: number): void => {
+    const next = tabs[(index + tabs.length) % tabs.length]
+    if (!next) return
+    onChange(next.id)
+    // Focus goes with the choice. Every tab is on the page already, so it can take it now.
+    document.getElementById(tabId(next.id))?.focus()
+  }
+  return (
+    <>
+      <div className="dn-tabs" role="tablist" aria-label={label}>
+        {tabs.map((tab, index) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            id={tabId(tab.id)}
+            className="dn-tab"
+            aria-selected={tab.id === current}
+            aria-controls={`${set}-part`}
+            tabIndex={tab.id === current ? 0 : -1}
+            onClick={() => onChange(tab.id)}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowRight') go(index + 1)
+              else if (event.key === 'ArrowLeft') go(index - 1)
+              else if (event.key === 'Home') go(0)
+              else if (event.key === 'End') go(tabs.length - 1)
+              else return
+              event.preventDefault()
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      {/* A stop for the Tab key itself: a part may hold nothing else that takes focus. */}
+      <div className="dn-stack" role="tabpanel" id={`${set}-part`} aria-labelledby={tabId(current)} tabIndex={0}>
+        {children}
+      </div>
+    </>
   )
 }

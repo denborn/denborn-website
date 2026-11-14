@@ -1,8 +1,8 @@
 /** Denborn DA — the component kit. Styles: import './styles.css' once, at the app's root. */
 export { Screen, useDsUnit, usePixelScale } from './Screen'
 export type { ScreenProps } from './Screen'
-export { CommandMenu, CornerButton, OptionButton, Panel, Slot } from './controls'
-export type { CommandId, CommandMenuProps, OptionButtonProps, PanelProps, SlotProps } from './controls'
+export { CommandMenu, CornerButton, OptionButton, Panel, Slot, Tabs } from './controls'
+export type { CommandId, CommandMenuProps, OptionButtonProps, PanelProps, SlotProps, TabsProps } from './controls'
 export { AgonyBadge, ExpBar, HpBar, HudBox, MessageBox, MoveButton, StatusBadge } from './battle'
 export type { AgonyBadgeProps, HpBarProps, HudBoxProps, MessageBoxProps, MoveButtonProps, StatusBadgeProps, StatusId } from './battle'
 export { FieldEffects, FieldPlan, LineBrowser } from './field'

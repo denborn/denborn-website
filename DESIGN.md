@@ -101,6 +101,8 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `.dn-facts`, `.dn-tags` | A summary, line after line; small things in a row that wraps | — | Used by the last look of creation and by the contents of an item pack. |
 | `StatRow` | One stat: name, bar, value | BW summary | A stat raised by the nature is red with an arrow up, a lowered one blue with an arrow down, as in the games. |
 | `StepHeader` | The title of a step of a flow | — | With "Step 2 of 7". It takes focus when the step changes, so the change is announced. |
+| `Tabs` | A row of tabs and the part the current one shows | BW summary pages | Equal widths, the current one lit and underlined. The arrow keys, Home and End move between the tabs; the Tab key goes on to the part. Used by the character sheet. |
+| `.dn-figures` | A small table of numbers | BW summary | Names on the left, figures on the right; the last column, the value, stands out from the figures it is made from. A stat its nature raises is red with an arrow up, a lowered one blue with an arrow down. |
 | `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |
 | `QrCode` | A code as a QR code | — | Always black on white with its quiet border, as wide as its container. The finest shown is 101 × 101 squares (decision 99); for a longer text it shows what it is given instead, such as the way to the file. |
 
