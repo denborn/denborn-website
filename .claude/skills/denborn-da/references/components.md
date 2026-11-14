@@ -6,10 +6,11 @@
 | `src/ui/tokens.css` | Every colour, duration, easing and base size. The only place a value is written. |
 | `src/ui/kit.css` | The classes (`.dn-*`). Sizes in DS pixels, colours from tokens. |
 | `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`. |
-| `src/ui/controls.tsx` | `Panel`, `Slot`, `OptionButton`, `CommandMenu`. |
+| `src/ui/controls.tsx` | `Panel`, `Slot`, `OptionButton`, `CommandMenu`, `CornerButton`. |
 | `src/ui/battle.tsx` | `HpBar`, `ExpBar`, `StatusBadge`, `AgonyBadge`, `HudBox`, `MoveButton`, `MessageBox`. |
 | `src/ui/sprites.tsx` | `PokemonSprite`, the icons, `TypeLabel`. |
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |
+| `src/ui/field.tsx`, `line.ts` | `LineBrowser` and `FieldPlan`; how the arrows walk a line (pure, tested). |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |
 | `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories, never in `src/i18n/`, until the owner rules. |
 | `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language switch. |

@@ -145,3 +145,85 @@ body {
   right: calc(4 * var(--dn-u));
   bottom: calc(4 * var(--dn-u));
 }
+
+/* The classic battle view: each line's browser in its corner of the scene. */
+.sb-browser {
+  position: absolute;
+}
+
+/* A Pokémon's sheet on the touch screen. A mock: the real sheet is designed with the character screens. */
+.sb-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: calc(3 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+}
+
+.sb-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.sb-card__types {
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+  padding-top: calc(2 * var(--dn-u));
+}
+
+.sb-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(1 * var(--dn-u)) calc(8 * var(--dn-u));
+  margin: 0;
+}
+
+.sb-card__stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(4 * var(--dn-u));
+  line-height: calc(11 * var(--dn-u));
+  white-space: nowrap;
+}
+
+.sb-card__stats dt {
+  color: var(--dn-text-muted);
+}
+
+.sb-card__stats dd {
+  margin: 0;
+}
+
+.sb-card__wide {
+  grid-column: 1 / -1;
+}
+
+.sb-card__moves {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-auto-rows: min-content;
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sb-card__moves li {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(3 * var(--dn-u));
+  padding: 0 calc(4 * var(--dn-u));
+  line-height: calc(12 * var(--dn-u));
+  white-space: nowrap;
+  overflow: hidden;
+  background: var(--dn-type-fill);
+  border: calc(1 * var(--dn-u)) solid var(--dn-type-shade);
+  text-shadow: calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-type-shade);
+}
+
+.sb-card__back {
+  justify-self: end;
+}

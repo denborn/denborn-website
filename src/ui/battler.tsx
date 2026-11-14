@@ -25,6 +25,8 @@ export interface BattlerProps {
   pose?: BattlerPose
   /** Size in DS pixels per sprite pixel. */
   scale?: number
+  /** Where it slides in from: its own side of the field, or the side an arrow of its line was pressed on. */
+  enterFrom?: 'side' | 'left' | 'right'
   ref?: Ref<BattlerHandle>
 }
 
@@ -33,11 +35,12 @@ export interface BattlerProps {
  * when downed, and drops out of sight when gone. Motion here only shows what
  * the battle already decided; it never decides anything.
  */
-export function Battler({ species, name, side, female = false, pose = 'standing', scale = 1, ref }: BattlerProps) {
+export function Battler({ species, name, side, female = false, pose = 'standing', scale = 1, enterFrom = 'side', ref }: BattlerProps) {
   const unit = useDsUnit()
   const reduced = useReducedMotion() === true
   const [body, animate] = useAnimate<HTMLDivElement>()
   const toward = side === 'player' ? 1 : -1
+  const entry = enterFrom === 'side' ? -toward : enterFrom === 'left' ? -1 : 1
 
   useImperativeHandle(
     ref,
@@ -68,7 +71,7 @@ export function Battler({ species, name, side, female = false, pose = 'standing'
   return (
     <motion.div
       className="dn-battler"
-      initial={{ x: -48 * unit * toward, opacity: 0 }}
+      initial={{ x: 48 * unit * entry, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: DURATION.move, ease: EASE.out }}
     >

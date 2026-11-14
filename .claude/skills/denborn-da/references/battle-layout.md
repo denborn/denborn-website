@@ -10,20 +10,25 @@ In triple battles the HP boxes stack: three upper left for the foes, three lower
 
 ## Denborn on a phone (portrait)
 
-Two `Screen`s stacked, each the full width: `scene` above, `touch` below. The same diagonal as the games: foes upper right, the party lower left, foe boxes stacked upper left, party boxes stacked lower right above the message band.
+Two `Screen`s stacked, each the full width: `scene` above, `touch` below. A session has four players or more, so the scene shows **one foe and one ally at a time**, as the games' one-against-one battles do, and the player walks along each line with arrows (decision 87). An earlier board that drew three Pokémon a side at once was dropped for that reason.
 
-Measures used by the three-against-three board (`src/ui/stories/Scene.stories.tsx`), in DS pixels:
+Measures of the board (`src/ui/stories/Scene.stories.tsx`), in DS pixels:
 
 | Piece | Place |
 |---|---|
-| Foe sprites | scale 0.55; feet at y = 71; centres at x = 140, 186, 232 |
-| Party sprites | scale 0.66; feet at y = 152 (under the band's top edge); centres at x = 26, 74, 122 |
-| HP boxes | 104 wide (`--dn-hud-width`), about 20 tall, 3 apart; foes from (2, 3); party ending 49 above the bottom, 2 from the right |
+| Foe sprite | scale 0.9; feet at y = 88; centre at x = 208 |
+| Ally sprite, seen from behind | scale 1.1; feet at y = 152 (under the band's top edge); centre at x = 52 |
+| Foe line browser | top left, 2 from the top: arrow, HUD box 104 wide, arrow, the line's letters under the box |
+| Ally line browser | bottom right, 48 above the bottom |
 | Message band | bottom 46 |
 | Horizon of the backdrop | y = 58 (30%) |
 
-Touch screen: ball 156 across, 4 from the top; tiles 82 × 46 (RUN 82 × 38) along the bottom; six moves two by three with a last row for BACK.
+Touch screen, commands: ball 156 across, 4 from the top; tiles 82 × 46 (RUN 82 × 38) along the bottom; the corner tile 54 × 30 top right, clear of the ball. Moves: six, two by three, with a last row for BACK.
+
+Touch screen, battlefield plan: the foes' line above the party's, tiles 40 × 54 at a pitch of 42, so six fill the 256 of the width; each line centred. With lines of different lengths the tiles are offset by half a pitch, which is exactly the rules' geometry: a foe is in reach when its tile overlaps or touches the column of yours.
+
+An arrow or a tile is never under 44 px: on a 393 px phone an arrow takes 29 DS pixels of width, so arrow + box + arrow is 162 wide.
 
 ## Not designed yet
 
-Four to six Pokémon a side (boxes this size do not fit: the design comes with the battle screens), target selection, the Bag in battle, the party's hypothetical order, the timer, the GM's console. Ask the owner; do not improvise them from this file.
+Target selection, the Bag in battle, the party's hypothetical order, the timer, the GM's console. Ask the owner; do not improvise them from this file.

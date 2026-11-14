@@ -57,10 +57,15 @@ export interface CommandMenuProps {
   /** Commands that cannot be used right now. */
   disabled?: readonly CommandId[]
   onCommand: (command: CommandId) => void
+  /** Something for the free corner, top right: the way to the battlefield plan. */
+  children?: ReactNode
 }
 
-/** The battle's four commands on the touch screen: FIGHT as the great ball in the middle, BAG, RUN and SWITCH along the bottom. */
-export function CommandMenu({ labels, disabled = [], onCommand }: CommandMenuProps) {
+/**
+ * The battle's four commands on the touch screen: FIGHT as the great ball in
+ * the middle, BAG, RUN and SWITCH along the bottom.
+ */
+export function CommandMenu({ labels, disabled = [], onCommand, children }: CommandMenuProps) {
   const order: CommandId[] = ['fight', 'bag', 'run', 'switch']
   return (
     <div className="dn-commands">
@@ -75,6 +80,16 @@ export function CommandMenu({ labels, disabled = [], onCommand }: CommandMenuPro
           <span className="dn-command__label">{labels[command]}</span>
         </button>
       ))}
+      {children}
     </div>
+  )
+}
+
+/** A small tile hanging from the top right corner of the touch screen, beside the ball. */
+export function CornerButton({ children, ...rest }: ButtonProps) {
+  return (
+    <button type="button" className="dn-command dn-command--corner" {...rest}>
+      <span className="dn-command__label">{children}</span>
+    </button>
   )
 }

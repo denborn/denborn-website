@@ -80,7 +80,7 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `Panel` | Box for text and values | B2W2 HP box bodies | `dark` (dithered), `light`. Hard shadow down-right. |
 | `Slot` | A row that can be chosen | BW party slots | resting, selected, `ok` (confirmed), `down` (downed), disabled. Cut corners, three bands split by two arrowheads; the outline changes with the state. |
 | `OptionButton` | A small choice or action | B2W2 options buttons | resting, selected / primary, disabled. Pointed at both ends. |
-| `CommandMenu` | FIGHT, BAG, RUN, SWITCH | BW touch screen | FIGHT is the great ball; the other three are dotted dark tiles with a thick white rim along the bottom. Each can be disabled. |
+| `CommandMenu` | FIGHT, BAG, RUN, SWITCH | BW touch screen | FIGHT is the great ball; the other three are dotted dark tiles with a thick white rim along the bottom. Each can be disabled. A `CornerButton`, a smaller tile hanging from the top right corner, opens the battlefield plan. |
 | `MoveButton` | One of six moves | BW move buttons | Type-coloured face, white rim; name, type label, category symbol, PP. Selected (rim in the selection colour), disabled. `.dn-moves` lays six of them two by three over a row for BACK. |
 | `HpBar`, `ExpBar` | Meters | B2W2 bars | Two-tone fill. HP drains at a steady pace (a full bar in 0.9 s) and changes colour on the way. `role="meter"` with its values. |
 | `StatusBadge` | PSN, BRN, PAR, SLP, FRZ, bad PSN | B2W2 status icons | Letters come from the app's language; the full name is its accessible label. |
@@ -88,11 +88,22 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `HudBox` | Name, gender, level, HP of one Pokémon | B2W2 HP boxes | Name and level stand on the scene; badges, "HP" and the bar sit on a dark plate with a point at the outer end, a slant at the inner one and a hard shadow. `foe` mirrors it. Optional HP numbers. For a downed Pokémon the Agony badge takes the place of "HP" and the bar (decision 83). A name too long for the box is cut with an ellipsis. Width can be narrowed with `--dn-hud-width`. |
 | `MessageBox` | The message band | BW message band | Types the text out (45 letters a second, Denborn's choice); a tap, Enter or Space completes it, then asks for the next. A screen reader gets each line whole, once. |
 | `PokemonSprite` | A battle sprite | Showdown | Front, back, female. Can be frozen on a frame. Shows the name when there is no sprite. |
-| `Battler` | A Pokémon on the field | — | Enters from its side; `hit()` and `attack()` play once and resolve when done; poses `standing`, `downed`, `gone`. |
+| `Battler` | A Pokémon on the field | — | Enters from its side, or from the side of the arrow that brought it; `hit()` and `attack()` play once and resolve when done; poses `standing`, `downed`, `gone`. |
+| `LineBrowser` | One Pokémon of a line at a time | Denborn's own, in the games' manner | An arrow on each side of the HUD box walks along the line; the line's letters sit underneath: the one shown is lit, a downed one struck through in red, an empty slot faded, the viewer's own underlined in gold. Arrows step over empty slots and stop at the ends. The new Pokémon's name is read out. |
+| `FieldPlan` | The battlefield from above | Denborn's own, after the party slots | Both lines as tiles (icon, letter, HP bar or Agony stacks), each line centred on the other at one pitch, so a tile's place is its x of the rules. Six tiles fill the width. The two Pokémon on the scene are lit; a downed one is red; a dead one's slot stays, empty; one out of the viewer's reach is darker. |
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 
-Not designed yet, and not to be improvised: the layout for four to six Pokémon a side, target selection, the Bag, the party and summary screens, and the GM's console. They come with their milestones, on this system.
+### The battle view
+
+A session has four players or more, so the scene does not try to show every Pokémon at once (decision 87). It is the games' own one-against-one view:
+
+- **The scene** (top screen) shows one foe, upper right, and one ally, lower left, each with its HUD box in a `LineBrowser`. It opens on the viewer's own Pokémon and the first foe.
+- **The battlefield** (touch screen, from the corner button) is the `FieldPlan`. A tap on a tile brings that Pokémon onto the scene and opens its sheet on the touch screen: HP, types, stats, Ability, held item, moves. BACK returns to the plan, then to the commands.
+
+The sheet on the board is a mock: the real one is designed with the character screens (milestone 4).
+
+Not designed yet, and not to be improvised: target selection, the Bag, the party's order, the timer and the GM's console. They come with their milestones, on this system.
 
 ## 6. Motion
 
@@ -164,5 +175,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 84 | French buttons and badges: ATTAQUE, SAC, FUITE, ÉCHANGE; PSN, BRÛ, PAR, SOM, GEL; N. and PV. |
 | 85 | Type labels are drawn by the app, in both languages. |
 | 86 | Denborn's own battle messages, in English and French, as written in `src/i18n/` (`battle.messages`). |
+| 87 | The battle shows one foe and one ally at a time, with arrows to walk along each line, and a Battlefield button that shows the plan; a tap on a Pokémon there shows its stats. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

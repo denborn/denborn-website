@@ -398,6 +398,33 @@
     calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-text);
 }
 
+/* A tile hanging from the top right corner, beside the ball: the way to the battlefield plan. */
+.dn-command--corner {
+  top: 0;
+  right: calc(2 * var(--dn-u));
+  bottom: auto;
+  width: calc(54 * var(--dn-u));
+  height: max(calc(30 * var(--dn-u)), var(--dn-target));
+  padding: 0 0 calc(6 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+}
+
+.dn-command--corner::before,
+.dn-command--corner::after {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--dn-cut-y)), calc(100% - var(--dn-cut-x)) 100%, var(--dn-cut-x) 100%, 0 calc(100% - var(--dn-cut-y)));
+}
+
+.dn-command--corner::before {
+  --dn-cut-x: calc(10 * var(--dn-u));
+  --dn-cut-y: calc(10 * var(--dn-u));
+}
+
+.dn-command--corner::after {
+  --dn-cut-x: calc(9 * var(--dn-u));
+  --dn-cut-y: calc(9 * var(--dn-u));
+  inset: 0 calc(3 * var(--dn-u)) calc(3 * var(--dn-u));
+}
+
 .dn-command:active:not(:disabled),
 .dn-command[aria-pressed='true'] {
   transform: translateY(calc(2 * var(--dn-u)));
@@ -736,6 +763,249 @@
 .dn-hud__instead {
   grid-column: 2 / -1;
   justify-self: end;
+}
+
+/* --- Line browser: one Pokémon of a line at a time, with arrows to walk along it --- */
+.dn-line {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  width: fit-content;
+}
+
+.dn-line__body {
+  display: grid;
+  justify-items: center;
+  gap: calc(1 * var(--dn-u));
+}
+
+.dn-line__arrow {
+  position: relative;
+  isolation: isolate;
+  width: max(calc(20 * var(--dn-u)), var(--dn-target));
+  height: max(calc(28 * var(--dn-u)), var(--dn-target));
+  transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
+}
+
+/* The games' small arrow: the selection colour inside a dark line. */
+.dn-line__arrow::before,
+.dn-line__arrow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+}
+
+.dn-line__arrow::before {
+  width: calc(12 * var(--dn-u));
+  height: calc(18 * var(--dn-u));
+  margin: calc(-9 * var(--dn-u)) 0 0 calc(-6 * var(--dn-u));
+  background: var(--dn-ink);
+}
+
+.dn-line__arrow::after {
+  width: calc(7 * var(--dn-u));
+  height: calc(10.5 * var(--dn-u));
+  margin: calc(-5.25 * var(--dn-u)) 0 0 calc(-2.6 * var(--dn-u));
+  background: var(--dn-select);
+}
+
+.dn-line__arrow--next::before,
+.dn-line__arrow--next::after {
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.dn-line__arrow--next::after {
+  margin-left: calc(-4.4 * var(--dn-u));
+}
+
+.dn-line__arrow--previous:active {
+  transform: translateX(calc(-2 * var(--dn-u)));
+}
+
+.dn-line__arrow--next:active {
+  transform: translateX(calc(2 * var(--dn-u)));
+}
+
+/* At an end of the line there is no arrow, but its place is kept. */
+.dn-line__arrow:disabled {
+  visibility: hidden;
+}
+
+@media (hover: hover) {
+  .dn-line__arrow:hover,
+  .dn-tile:hover {
+    filter: brightness(1.2);
+  }
+}
+
+/* The line's letters: the one shown, the downed, the empty, the viewer's own. */
+.dn-line__strip {
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+}
+
+.dn-line__slot {
+  min-width: calc(9 * var(--dn-u));
+  text-align: center;
+}
+
+.dn-line__slot--downed {
+  color: var(--dn-slot-down-outline);
+  text-decoration: line-through;
+}
+
+.dn-line__slot--gone {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+/* After the states, so that the letter shown stays dark on light whatever its state. */
+.dn-line__slot--current {
+  color: var(--dn-ink);
+  background: var(--dn-select);
+  text-shadow: none;
+}
+
+.dn-line__slot--mine {
+  box-shadow: 0 calc(2 * var(--dn-u)) 0 var(--dn-label-gold);
+}
+
+/* --- Battlefield plan: the two lines seen from above ---------------------------- */
+.dn-field {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr 1fr auto;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  padding: calc(3 * var(--dn-u)) calc(2 * var(--dn-u));
+}
+
+.dn-field__caption {
+  display: block;
+  padding-left: calc(4 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  color: var(--dn-text-muted);
+}
+
+/* Both lines are centred on the same axis, at the same pitch: a tile's place is its x of the rules. */
+.dn-field__tiles {
+  display: flex;
+  justify-content: center;
+}
+
+.dn-field__back {
+  align-self: end;
+  justify-self: end;
+  padding: 0 calc(4 * var(--dn-u)) calc(2 * var(--dn-u));
+}
+
+.dn-tile {
+  --dn-tile-fill: var(--dn-slot);
+  --dn-tile-band: var(--dn-slot-band);
+  --dn-tile-rim: var(--dn-select-soft);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: calc(2 * var(--dn-u));
+  flex: none;
+  /* Six tiles and their margins fill a screen's width: the longest line there can be. */
+  width: calc(40 * var(--dn-u));
+  height: calc(54 * var(--dn-u));
+  margin: 0 calc(1 * var(--dn-u));
+  padding: calc(3 * var(--dn-u)) calc(3 * var(--dn-u)) calc(5 * var(--dn-u));
+  transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-quick) var(--dn-ease-out);
+}
+
+.dn-tile::before,
+.dn-tile::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(
+    var(--dn-cut) 0,
+    calc(100% - var(--dn-cut)) 0,
+    100% var(--dn-cut),
+    100% calc(100% - var(--dn-cut)),
+    calc(100% - var(--dn-cut)) 100%,
+    var(--dn-cut) 100%,
+    0 calc(100% - var(--dn-cut)),
+    0 var(--dn-cut)
+  );
+}
+
+.dn-tile::before {
+  --dn-cut: calc(5 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-tile-rim);
+}
+
+.dn-tile::after {
+  --dn-cut: calc(4.41 * var(--dn-u));
+  inset: calc(1 * var(--dn-u));
+  background: linear-gradient(var(--dn-tile-band) 0 calc(12 * var(--dn-u)), var(--dn-tile-fill) calc(12 * var(--dn-u)));
+}
+
+.dn-tile[aria-pressed='true'] {
+  --dn-tile-fill: var(--dn-slot-selected);
+  --dn-tile-band: var(--dn-slot-selected-band);
+  --dn-tile-rim: var(--dn-text);
+}
+
+.dn-tile--down {
+  --dn-tile-fill: var(--dn-slot-down);
+  --dn-tile-band: var(--dn-slot-down-band);
+  --dn-tile-rim: var(--dn-slot-down-outline);
+}
+
+/* Out of the viewer's reach: darker, and said so in its spoken label. */
+.dn-tile--far {
+  filter: brightness(0.5);
+}
+
+/* The empty slot of a dead Pokémon keeps its place on the line. */
+.dn-tile--gone::before {
+  background: var(--dn-panel-edge);
+}
+
+.dn-tile--gone::after {
+  background: var(--dn-backdrop);
+}
+
+.dn-tile:active:not(:disabled) {
+  transform: translateY(calc(1 * var(--dn-u)));
+}
+
+.dn-tile__letter {
+  position: absolute;
+  top: calc(2 * var(--dn-u));
+  left: calc(5 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+.dn-tile__letter--mine {
+  box-shadow: 0 calc(2 * var(--dn-u)) 0 var(--dn-label-gold);
+}
+
+.dn-tile .dn-meter {
+  width: calc(30 * var(--dn-u));
+}
+
+.dn-tile__pips {
+  display: flex;
+  gap: calc(3 * var(--dn-u));
+  height: calc(5 * var(--dn-u));
+  align-items: center;
 }
 
 /* --- Message band ---------------------------------------------------------------- */
