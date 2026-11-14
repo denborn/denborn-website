@@ -11,7 +11,7 @@
 | `src/ui/sprites.tsx` | `PokemonSprite`, the icons, `TypeLabel`. |
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |
 | `src/ui/field.tsx`, `line.ts` | `LineBrowser`, `FieldPlan` and `FieldEffects`; how the arrows walk a line (pure, tested). |
-| `src/ui/forms.tsx` | `TextField`, `StatRow`, `StepHeader`. |
+| `src/ui/forms.tsx` | `TextField`, `NumberField`, `StatRow`, `StepHeader`. |
 | `src/features/<name>/` | The app's screens, built on the kit: a pure `draft.ts` or similar for choices and checks (tested), components that only show it, and a story under "Screens". |
 | `src/ui/qr.tsx`, `qr-size.ts` | `QrCode`; which QR code holds a text and the largest the app shows (pure, tested). |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |

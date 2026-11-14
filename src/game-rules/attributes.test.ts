@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { type AttributePoints, type AttributeSheet, attributeScores, checkAttributes, gainedPoints, unplacedPoints } from './attributes'
+import {
+  type AttributePoints,
+  type AttributeSheet,
+  attributeScores,
+  attributeTally,
+  checkAttributes,
+  gainedPoints,
+  splitAttributes,
+  unplacedPoints,
+} from './attributes'
 
 const points = (values: Partial<AttributePoints>, rest = 0): AttributePoints => ({
   strength: rest,
@@ -67,5 +76,41 @@ describe('points gained with levels', () => {
     const created = sheet(even, { strength: 29 })
     expect(checkAttributes(created, 30)).toEqual([])
     expect(unplacedPoints(created, 30)).toBe(0)
+  })
+})
+
+describe('attributes given as one number each', () => {
+  it('are all placed at 50 each, with the level’s extra points untouched', () => {
+    expect(attributeTally(even, 1)).toEqual({ toPlace: 0, extraUsed: 0, extraLeft: 0 })
+    expect(attributeTally(even, 30)).toEqual({ toPlace: 0, extraUsed: 0, extraLeft: 29 })
+  })
+
+  it('leave points of the 300 to place when one is lowered', () => {
+    expect(attributeTally(points({ strength: 40 }, 50), 30)).toEqual({ toPlace: 10, extraUsed: 0, extraLeft: 29 })
+  })
+
+  it('use extra points for what goes over 300', () => {
+    expect(attributeTally(points({ strength: 60 }, 50), 30)).toEqual({ toPlace: 0, extraUsed: 10, extraLeft: 19 })
+    expect(attributeTally(points({ strength: 60 }, 50), 5).extraLeft).toBe(-6)
+  })
+
+  it('count what an attribute has above 75 as extra, even while some of the 300 remain to place', () => {
+    // 95 in one attribute: 75 from the 300 and 20 extra. The other five hold 205, so 20 of the 300 are still to place.
+    expect(attributeTally(points({ strength: 95 }, 41), 30)).toEqual({ toPlace: 20, extraUsed: 20, extraLeft: 9 })
+  })
+
+  it.each([
+    ['all at 50', even, 1],
+    ['uneven, at the limits', points({ strength: 75, dexterity: 75, endurance: 75, perception: 65, charisma: 5, intelligence: 5 }), 1],
+    ['extra points spread around', points({ strength: 60, charisma: 55 }, 50), 30],
+    ['one attribute at the cap', points({ strength: 95 }, 45), 30],
+    ['every extra point of level 100 used', points({ strength: 95, dexterity: 95, endurance: 59 }, 50), 100],
+  ])('split into two layers that the rules accept: %s', (_, scores, level) => {
+    const tally = attributeTally(scores, level)
+    expect(tally.toPlace).toBe(0)
+    expect(tally.extraLeft).toBeGreaterThanOrEqual(0)
+    const split = splitAttributes(scores)
+    expect(checkAttributes(split, level)).toEqual([])
+    expect(attributeScores(split)).toEqual(scores)
   })
 })

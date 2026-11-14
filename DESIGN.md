@@ -97,6 +97,8 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 | `TextField` | A line of text to type | B2W2 option boxes | Label above, a line of help or of what is wrong underneath, tied to the field for screen readers. |
+| `NumberField` | A number to set | — | A slider for the large moves between a minus and a plus for one point at a time; the value in gold. The track fills in the EXP bar's colour. The owner of the value decides what is allowed: a value past the ceiling does not take. |
+| `.dn-facts`, `.dn-tags` | A summary, line after line; small things in a row that wraps | — | Used by the last look of creation and by the contents of an item pack. |
 | `StatRow` | One stat: name, bar, value | BW summary | A stat raised by the nature is red with an arrow up, a lowered one blue with an arrow down, as in the games. |
 | `StepHeader` | The title of a step of a flow | — | With "Step 2 of 7". It takes focus when the step changes, so the change is announced. |
 | `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |

@@ -76,3 +76,37 @@ export function checkAttributes(sheet: AttributeSheet, level: number): Attribute
   if (unplaced < 0) problems.push({ kind: 'too-many-gained', by: -unplaced })
   return problems
 }
+
+/**
+ * Where a set of attributes, given as one number each, stands against the
+ * two layers of points: how many of the 300 are still to place (an attribute
+ * takes at most 75 of them), and how many of the level's extra points it uses.
+ */
+export function attributeTally(scores: AttributePoints, level: number): { toPlace: number; extraUsed: number; extraLeft: number } {
+  const within = ATTRIBUTE_IDS.reduce((sum, attribute) => sum + Math.min(scores[attribute], CREATION_MAX), 0)
+  const toPlace = Math.max(0, CREATION_POINTS - within)
+  const extraUsed = total(scores) - CREATION_POINTS + toPlace
+  return { toPlace, extraUsed, extraLeft: gainedPoints(level) - extraUsed }
+}
+
+/**
+ * The two layers behind attributes given as one number each: as much as
+ * possible counts as creation points, the rest as points gained with levels.
+ * Which point is which changes nothing for the character; only the totals of
+ * each layer are ruled.
+ */
+export function splitAttributes(scores: AttributePoints): AttributeSheet {
+  const creation = { ...scores }
+  for (const attribute of ATTRIBUTE_IDS) creation[attribute] = Math.min(scores[attribute], CREATION_MAX)
+  // More than 300 within the limit: the surplus moves to the second layer, from the first attributes that can spare it.
+  let surplus = total(creation) - CREATION_POINTS
+  for (const attribute of ATTRIBUTE_IDS) {
+    if (surplus <= 0) break
+    const moved = Math.min(surplus, creation[attribute] - CREATION_MIN)
+    creation[attribute] -= moved
+    surplus -= moved
+  }
+  const gained = { ...scores }
+  for (const attribute of ATTRIBUTE_IDS) gained[attribute] = scores[attribute] - creation[attribute]
+  return { creation, gained }
+}

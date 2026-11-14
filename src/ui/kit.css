@@ -1278,6 +1278,125 @@
   border-color: var(--dn-slot-down-outline);
 }
 
+/* A number to set: its name and value, then a slider between a minus and a plus. */
+.dn-number {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 calc(4 * var(--dn-u));
+}
+
+.dn-number__name {
+  grid-column: 1 / 3;
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+}
+
+.dn-number__value {
+  justify-self: end;
+  font-size: calc(12 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  color: var(--dn-label-gold);
+}
+
+.dn-number__step {
+  display: grid;
+  place-items: center;
+  width: max(calc(20 * var(--dn-u)), var(--dn-target));
+  height: max(calc(20 * var(--dn-u)), var(--dn-target));
+  font-size: calc(14 * var(--dn-t));
+  line-height: 1;
+  color: var(--dn-text);
+  background: var(--dn-option);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-number__step:active:not(:disabled) {
+  transform: translateY(calc(1 * var(--dn-u)));
+  filter: brightness(1.2);
+}
+
+.dn-number__step:disabled {
+  color: var(--dn-text-muted);
+  opacity: 0.5;
+}
+
+/* The slider is drawn from scratch: a track that fills in the EXP bar's colour, and a block to drag. */
+.dn-number__slider {
+  width: 100%;
+  height: var(--dn-target);
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dn-number__slider::-webkit-slider-runnable-track {
+  height: calc(6 * var(--dn-u));
+  background: linear-gradient(to right, var(--dn-exp) 0 var(--dn-number-fill), var(--dn-panel-edge) var(--dn-number-fill));
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+.dn-number__slider::-moz-range-track {
+  height: calc(4 * var(--dn-u));
+  background: linear-gradient(to right, var(--dn-exp) 0 var(--dn-number-fill), var(--dn-panel-edge) var(--dn-number-fill));
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+.dn-number__slider::-webkit-slider-thumb {
+  width: calc(8 * var(--dn-u));
+  height: calc(16 * var(--dn-u));
+  margin-top: calc(-6 * var(--dn-u));
+  background: var(--dn-text);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  border-radius: 0;
+  appearance: none;
+}
+
+.dn-number__slider::-moz-range-thumb {
+  width: calc(8 * var(--dn-u));
+  height: calc(16 * var(--dn-u));
+  background: var(--dn-text);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  border-radius: 0;
+}
+
+/* A summary: a name on the left, what it is on the right, line after line. */
+.dn-facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: calc(2 * var(--dn-u)) calc(8 * var(--dn-u));
+  margin: 0;
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+.dn-facts dt {
+  color: var(--dn-text-muted);
+}
+
+.dn-facts dd {
+  margin: 0;
+  text-align: right;
+}
+
+/* Small things in a row that wraps: the items of a pack, the labels of a move. */
+.dn-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(2 * var(--dn-u)) calc(6 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+}
+
+.dn-tags > span {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+}
+
 /* Inside a slot: what it is, then what there is to know about it, pushed to the end. */
 .dn-slot__main {
   flex: 1;
@@ -1307,6 +1426,17 @@
   gap: calc(1 * var(--dn-u));
   flex: 1;
   min-width: 0;
+}
+
+.dn-slot__line {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--dn-u));
+}
+
+.dn-slot__pp {
+  font-size: calc(9 * var(--dn-t));
+  white-space: nowrap;
 }
 
 .dn-slot__tag {
