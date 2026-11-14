@@ -199,6 +199,10 @@ Each row is the owner's answer to a question asked that day.
 | 68 | Extra enemy moves and the user's conditions | As the engine does. Sleep and confusion tick once per action. A flinch cancels every action of the round. A recharge costs one action: the others still happen, and Hyper Beam followed by an extra move in the same round spends that move recharging. A rampage (Outrage, Thrash) lasts 2 to 3 rounds however many actions the enemy has. A two-turn move charges on one action and fires on the next, even in the same round. Protect covers the whole round while the other actions still attack. |
 | 69 | A move with nobody in its reach | Cannot be locked. The player picks another move, Runs first, or uses the Bag. |
 | 70 | A charged two-turn move whose target is out of reach on the second round (after a Run) | It fails, like decision 66. |
+| 71 | Moves a GM can pick for the common-move supplement | Every real main-series move: current, past, and those that exist in Gen 9 but cannot be obtained (about 850). No Let's Go partner moves, no fan-made (CAP) or unreleased moves. Z-moves, Max moves, Return and Frustration stay out. |
+| 72 | Baby stages from later generations (Pichu, Cleffa, Igglybuff, Tyrogue, Happiny, Mime Jr., Smoochum, Elekid, Magby, Munchlax) | They count as earlier stages for learnsets. Volt Tackle, which only Pichu gets through special breeding, counts as an egg move. |
+| 73 | Berries | Also usable from the Bag, in battle and outside, for those the games let a player use on a Pokémon. They are listed with their effects in the Bag table for approval. |
+| 74 | Descriptions of moves, Abilities and items | English from Showdown. French from the games' own text, through PokéAPI: fetched when the app is built, credited, never committed. |
 
 ---
 
@@ -228,9 +232,7 @@ Changed since: PP Up and PP Max are no longer left out (decision 3).
 
 Each of these is in section 4 under the milestone that first needs it. Four others raised at the same time were settled on 2026-11-14 as decisions 56 to 59.
 
-- Baby species from later generations (Pichu, Cleffa and so on) count as "earlier stages" for learnsets.
-- Dream World learnset sources do not count.
-- Berries are held items only, not Bag actions.
+- Dream World learnset sources do not count. (It changes one thing: Nidoran♀ would otherwise get Sucker Punch. To be ruled with the data pack's report.)
 - Enemy builds include a held item.
 - The party's hypothetical order is computed by the GM's engine from the priority of locked actions and current turn-order Speeds.
 - A character that starts above level 1 still gets exactly 300 roleplay points.
@@ -293,7 +295,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 ## 4. Rulings to ask, by milestone
 
 - **Milestone 1 (engine proof)**: settled on 2026-11-14 as decisions 56 to 70. The interpretations it raised are listed in 2.2.
-- **Milestone 2 (data pack)**: which nonstandard moves the supplement may include; the full Bag effect table, Dire Hit included; where the Linking Cord's name and icon come from; cross-check disagreements; and from 2.2: baby stages, Dream World sources, Berries.
+- **Milestone 2 (data pack)**: decisions 71 to 74 settle the supplement, baby stages, Berries and descriptions. Still to show for a ruling once generated: the full Bag effect table (Dire Hit and the Berries included), the disagreements between Showdown and PokéAPI, names missing in French, and from 2.2 the Dream World source. The Linking Cord's name and icon come from PokéAPI, since Showdown has no such item (decision 39).
 - **Milestone 3 (art direction)**: font; wording of custom battle messages in both languages.
 - **Milestone 4 (offline flows)**: nickname character set; QR size cap; what the printed sheet shows; and from 2.2: roleplay points above level 1.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer.
