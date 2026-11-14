@@ -331,6 +331,10 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | A Pokémon's stat changes are one entry of the MORE list ("Attack +1 · Speed +1"), and each other effect on it is an entry of its own. Entries come in this order: the whole field, the two sides, then each Pokémon, foes first. The mark of a Pokémon that carries some is a gold arrow up over an arrow down. On the sheet a stat shows its unchanged value followed by its stage ("84 +2"), as the games do. | Decision 94. One entry per stat would bury the list under a single Dragon Dance. |
 | 2026-11-14 | Tests added for the kit cover only its logic: HP ratio and colour thresholds, pixel-art scaling, sprite addresses, and the equality of the two copies of the motion numbers. No test of markup, colours or fixed values. | Decision 23. |
 
+| 2026-11-14 | A character's rules are pure modules in `src/game-rules/` (stats, IV and EV budgets, EXP, roleplay attributes, nickname). Each check returns the list of what is wrong, not a yes or no. | The same checks will serve the creation screen (which says what to fix), the reading of a file or a QR code (untrusted) and the GM's revalidation when a character joins. |
+| 2026-11-14 | Roleplay attributes are kept as two layers: the 300 points of creation, and the points gained with levels and placed since. | Decisions 95 and 96 give the two layers different limits (75, then 95), and only the second may wait unplaced. One total could not be checked against both. |
+| 2026-11-14 | A typed nickname is tidied before it is checked and stored: accents are joined to their letters, a phone's curly apostrophe is made straight, outer spaces go and runs of spaces become one. | Phones type the curly apostrophe by themselves. Tidying changes nothing in decision 97's set of characters. |
+
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
 1. Integrity checks that stop the build: every referenced move, Ability, item and evolution target exists; every species has at least one eligible move at every level under both move-access rulings; every species and item has its sprite; English and French names exist; every Bag item has an effect handler.
@@ -488,3 +492,7 @@ Checked with Playwright against Storybook at phone size (Pixel 7 emulation), not
 Not checked: real phones (smoothness, legibility of the pixel font at arm's length), screen readers, contrast measured value by value. These belong to the release milestone and the owner's device checklist.
 
 **After the rulings (decisions 82 to 86).** Showdown's 18 type images are no longer downloaded: 399 artwork files are pinned (351 from Showdown, 48 from PokéAPI) instead of 417. VT323 adds two font files when the app's screens start using the kit (milestone 4); the app's bundle is unchanged until then. Every story was loaded again in both languages without a console error, and the longest type names, a 16-letter move name and the PP count were measured to fit a move button at 412 px and at 320 px wide.
+
+### A character's stats, against the engine — 2026-11-14
+
+The app works a Pokémon's six stats out itself (`src/game-rules/stats.ts`), to show them on a sheet; the engine works out its own when a battle starts. `src/battle/stats.test.ts` builds 300 Pokémon at random (any of the 151 species, any level from 1 to 100, any IVs and EVs, any of the 25 natures) and requires the two to agree exactly. They do. The nature's tenth is applied in whole numbers, as the engine does.

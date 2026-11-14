@@ -8,13 +8,15 @@
  */
 import type { BagEffect } from '../game-rules/bag-effects.ts'
 import type { LearnsetEntry } from '../game-rules/learnset.ts'
+import type { StatId } from '../game-rules/stats.ts'
+
+export type { StatId }
 
 export interface Localized {
   en: string
   fr: string
 }
 
-export type StatId = 'hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe'
 export type Gender = 'M' | 'F' | 'N'
 
 export interface Evolution {
