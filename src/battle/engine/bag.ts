@@ -59,6 +59,10 @@ function apply(battle: Battle, user: Pokemon, use: BagUse): boolean {
     target.removeVolatile('confusion')
     applied = true
   }
+  if (effect.cureInfatuation && target.volatiles.attract) {
+    target.removeVolatile('attract')
+    applied = true
+  }
   if (effect.restorePp) {
     const { amount, scope } = effect.restorePp
     for (const slot of target.moveSlots) {

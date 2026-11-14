@@ -19,6 +19,8 @@ export interface BagEffect {
   /** Cures the listed status conditions, or any of them. */
   cure?: readonly MajorStatus[] | 'all'
   cureConfusion?: boolean
+  /** Ends infatuation (Red Flute). */
+  cureInfatuation?: boolean
   /** Brings a downed Pokémon back with half or all of its HP. Works on nothing else. */
   revive?: 'half' | 'full'
   /** Fully revives every downed Pokémon of the user's own party (Sacred Ash). */

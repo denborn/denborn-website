@@ -8,7 +8,7 @@ Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and 
 
 - Milestone 0 (foundations) is done and live on Cloudflare's Free plan: the toolchain, the offline shell and a relay skeleton.
 - Milestone 1 (battle engine) is done: `src/battle/` runs Denborn's fights on the real simulator, with every rule proven by tests (see DECISIONS.md, section 5).
-- Milestone 2 (game data) is generated: 151 species, their moves, Abilities and items in English and French, with the sprites. Some of its content waits for the owner's ruling (DECISIONS.md, section 4).
+- Milestone 2 (game data) is done: 151 species, their moves, Abilities and items in English and French, with the sprites, built from pinned sources.
 - Nothing of the game is playable in the app yet: there is no character, campaign or battle screen. The only screen is a system check.
 
 ## What is authoritative

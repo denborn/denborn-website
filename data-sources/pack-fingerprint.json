@@ -140,6 +140,7 @@
       "blackbelt": "eb3fe63645",
       "blackglasses": "6681b72bef",
       "blacksludge": "01e0e9d27c",
+      "blueflute": "d7e8dedb6b",
       "blunderpolicy": "e50687dbb0",
       "boosterenergy": "39144dfce6",
       "bottlecap": "75ba17c26b",
@@ -314,6 +315,7 @@
       "razorfang": "fdbcd2a04b",
       "reapercloth": "db6b849ae0",
       "redcard": "d3514913eb",
+      "redflute": "99e751ceab",
       "revivalherb": "72f940509b",
       "revive": "136ef0ccff",
       "ribbonsweet": "47805d4d93",
@@ -384,6 +386,7 @@
       "xspdef": "a53d5f816e",
       "xspeed": "b37b519a31",
       "yacheberry": "0d0f1294df",
+      "yellowflute": "c68dc143ab",
       "zapplate": "635bf5d19a",
       "zoomlens": "f4088f6c58"
     },
@@ -1421,5 +1424,5 @@
       "water": "2924453fa3"
     }
   },
-  "version": "0.10.12+pokeapi.f841170+b0eee860"
+  "version": "0.10.12+pokeapi.f841170+17fef79c"
 }

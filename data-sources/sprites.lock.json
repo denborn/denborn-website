@@ -7,6 +7,7 @@
       "sprites/items/awakening.png": "2d45dbca4dbfb4e54177eaeeb5d43a455dcae92b9f3aa4de03c8a698f2163f0b",
       "sprites/items/berry-juice.png": "c941d971cc6db6d44029e9ef268aef0e4361140b8209a8fc7c62b39bc9125312",
       "sprites/items/big-malasada.png": "9e0493fb22834c782cc2db4651e4d0a381d46ec5aba9b281eff411152231c12d",
+      "sprites/items/blue-flute.png": "d079bc75a63f11a6094ca858e60fca4c2ac3a7e72e949d2f4469c92331464707",
       "sprites/items/burn-heal.png": "b9ceaa0f24332b138de4ccf9b632e7f70c12bbb2e7327f8e6b1da3dfef3fd2d2",
       "sprites/items/casteliacone.png": "cbcc5cba5d9902c8f3f766be19587f4f2ea359fdb1fdaa288f2bcfdf00fd499e",
       "sprites/items/dire-hit.png": "0c560de0bd62696ccbeb50860b4e42fe15b862ef4efffe0df695c9099fa0f363",
@@ -35,6 +36,7 @@
       "sprites/items/potion.png": "db5a0fa2343c5761599d9efd4514a30125164ced094b55f760a763ed0c9c64d5",
       "sprites/items/pp-max.png": "7797c708bc905cbe756f8c61e50e84fc953b6a4691ecb8b50796a4450dbf08d0",
       "sprites/items/pp-up.png": "f2366259358d8caa575df973668cc3daf7e49c47ba687d26129b0c547a7c2b33",
+      "sprites/items/red-flute.png": "4f051d9af9ac661837c3714f79a370a35085265af648f4600f2f6e2a3279d198",
       "sprites/items/revival-herb.png": "b66c5eaae21a479e4dbb8c53314118750ab976d7eed6202017c0259f84878d1d",
       "sprites/items/revive.png": "8ed02f56fcd0a8d2525811fbc33d82aebbe7af902ec6752b4857de821505a224",
       "sprites/items/sacred-ash.png": "c79533695f4708508e466d04366d76375495e397e562e01d59302276c1072fa1",
@@ -47,7 +49,8 @@
       "sprites/items/x-defense.png": "10808ab27a4878fdbc70627fa0637417987f4fe4578d9b38064e19f67fa5b191",
       "sprites/items/x-sp-atk.png": "a1410b2fbc618ccb1a457cc20f5fc134f6b627b3bddc22d7cec49e64cadc23b5",
       "sprites/items/x-sp-def.png": "b72f4625a333b84a72cec801ae4e19fe43f23f696f59c3635b240ae9a83a116f",
-      "sprites/items/x-speed.png": "cd46a41f1476507c73398bcd2c239aae7b95e46079ce006d7906ded65ebd5914"
+      "sprites/items/x-speed.png": "cd46a41f1476507c73398bcd2c239aae7b95e46079ce006d7906ded65ebd5914",
+      "sprites/items/yellow-flute.png": "13f8482d356b4a9e0a8fcc40f2c109a5deb8b2d7bf3101df7da9cc7fccbd87f4"
     },
     "repository": "PokeAPI/sprites"
   },

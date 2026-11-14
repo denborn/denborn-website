@@ -101,6 +101,8 @@ export interface ItemData {
   berry: boolean
   /** What it does when used from the Bag, in battle or outside. */
   bag?: BagEffect
+  /** True when using it from the Bag does not use it up (the flutes). */
+  reusable?: true
   /** PP Ups it gives to one move when used outside battle: 1 for PP Up, 3 for PP Max. */
   ppUps?: number
   /** True when an evolution spends it. */

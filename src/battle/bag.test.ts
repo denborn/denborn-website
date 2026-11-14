@@ -150,6 +150,21 @@ describe('the Bag action: what an item can do', () => {
     expect(battle.combatant('patient').volatiles).not.toContain('confusion')
   })
 
+  it('ends infatuation', () => {
+    const battle = start(
+      [player('carrier', 'Chansey', ['tackle'], { gender: 'F' }), player('patient', 'Machamp', ['tackle'], { gender: 'M' })],
+      [enemy('foe', 'Jolteon', ['attract'], { gender: 'F' })],
+    )
+    round(battle, { foe: move('attract', 'patient') })
+    expect(battle.combatant('patient').volatiles).toContain('attract')
+
+    const result = round(battle, { carrier: bag('flute', 'patient', { cureInfatuation: true }) })
+    expect(battle.combatant('patient').volatiles).not.toContain('attract')
+    expect(eventsOf(result, 'bag')[0]?.outcome).toBe('used')
+    // Nothing to cure any more: the same item now fails.
+    expect(eventsOf(round(battle, { carrier: bag('flute', 'patient', { cureInfatuation: true }) }), 'bag')[0]?.outcome).toBe('failed')
+  })
+
   it('revives with half or all HP, and only a downed Pokémon', () => {
     const downed = () => {
       const battle = start(

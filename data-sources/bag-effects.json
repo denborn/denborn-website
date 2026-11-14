@@ -1,5 +1,5 @@
 {
-  "note": "What each Bag item does in Denborn. Showdown has no Bag and PokéAPI has no machine-readable effects, so this table is the project's own. Values are those of the current main-series games (decision 29). The owner approves every row before it ships.",
+  "note": "What each Bag item does in Denborn. Showdown has no Bag and PokéAPI has no machine-readable effects, so this table is the project's own. Values are those of the current main-series games (decision 29). Approved by the owner on 2026-11-14 (decisions 75 to 79); any change needs a new ruling.",
   "effects": {
     "potion": { "heal": 20 },
     "super-potion": { "heal": 60 },
@@ -57,8 +57,13 @@
     "rawst-berry": { "cure": ["brn"] },
     "aspear-berry": { "cure": ["frz"] },
     "persim-berry": { "cureConfusion": true },
-    "lum-berry": { "cure": "all", "cureConfusion": true }
+    "lum-berry": { "cure": "all", "cureConfusion": true },
+
+    "blue-flute": { "cure": ["slp"] },
+    "yellow-flute": { "cureConfusion": true },
+    "red-flute": { "cureInfatuation": true }
   },
+  "reusable": ["blue-flute", "yellow-flute", "red-flute"],
   "ppUps": {
     "pp-up": 1,
     "pp-max": 3

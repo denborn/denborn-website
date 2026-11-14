@@ -10,7 +10,8 @@
  * which the species learns the move by level-up (decision 27); a move learned
  * on evolution counts as level 0; TM, tutor and egg sources of any generation
  * count; Volt Tackle's special-breeding source counts as an egg move
- * (decision 72); event, transfer-only and Dream World sources do not count.
+ * (decision 72); event and transfer-only sources do not count, nor do Dream
+ * World sources (decision 80).
  */
 
 export interface MoveSources {

@@ -203,6 +203,13 @@ Each row is the owner's answer to a question asked that day.
 | 72 | Baby stages from later generations (Pichu, Cleffa, Igglybuff, Tyrogue, Happiny, Mime Jr., Smoochum, Elekid, Magby, Munchlax) | They count as earlier stages for learnsets. Volt Tackle, which only Pichu gets through special breeding, counts as an egg move. |
 | 73 | Berries | Also usable from the Bag, in battle and outside, for those the games let a player use on a Pokémon. They are listed with their effects in the Bag table for approval. |
 | 74 | Descriptions of moves, Abilities and items | English from Showdown. French from the games' own text, through PokéAPI: fetched when the app is built, credited, never committed. |
+| 75 | The Bag effect table | Approved as shown on 2026-11-14 (`data-sources/bag-effects.json`), with the three flutes added: Blue Flute cures sleep, Yellow Flute cures confusion, Red Flute ends infatuation. |
+| 76 | Dire Hit | Raises the critical-hit rate by two stages, like Focus Energy, and does not stack with it. |
+| 77 | Heal Powder | Cures every status condition and confusion, like Full Heal. |
+| 78 | The Linking Cord's description | EN: "A string full of a mysterious energy. It lets a Pokémon that would evolve by trade evolve." FR: "Un fil chargé d'une énergie mystérieuse. Il permet à un Pokémon qui évolue par échange d'évoluer." |
+| 79 | Flutes | Reusable, as in the games: using one takes the Pokémon's action but does not use the flute up. |
+| 80 | Dream World learnset sources | Do not count, like event sources. Nidoran♀'s line has no Sucker Punch unless a GM adds it through the supplement. |
+| 81 | The 25 French descriptions PokéAPI lacks (20 Gen 9 held items, the 5 Torque moves) | "Can't you use Poképédia or Bulbapedia? If not, Showdown's English description." Poképédia can be read, but not used the way the other sources are (see section 5), so these 25 show Showdown's English description in the French app. |
 
 ---
 
@@ -232,7 +239,6 @@ Changed since: PP Up and PP Max are no longer left out (decision 3).
 
 Each of these is in section 4 under the milestone that first needs it. Four others raised at the same time were settled on 2026-11-14 as decisions 56 to 59.
 
-- Dream World learnset sources do not count. (It changes one thing: Nidoran♀ would otherwise get Sucker Punch. To be ruled with the data pack's report.)
 - Enemy builds include a held item.
 - The party's hypothetical order is computed by the GM's engine from the priority of locked actions and current turn-order Speeds.
 - A character that starts above level 1 still gets exactly 300 roleplay points.
@@ -247,7 +253,6 @@ Raised while building the battle adapter (milestone 1). Each is what the adapter
 - A status move aimed at a downed Pokémon does nothing; Follow Me and similar effects redirect a move aimed at a downed Pokémon like any other.
 - A Bag action counts as the Pokémon's action for moves that only work on its first turn (Fake Out fails on the following round).
 - An enemy's extra move never wins a Speed tie against another Pokémon's action (a side effect of keeping the GM's order, decision 61).
-- The Bag effect "raises the critical-hit rate" uses the engine's Focus Energy effect; the Dire Hit ruling in milestone 2 decides whether that is right.
 - Extra moves are for enemies only (the spec gives them to the GM for an "enemy/boss").
 - The adapter lets two standing allies exchange Speed on either side. Whether the GM may do it for enemies is a milestone 6 question.
 - Revival Blessing always fails: only revival items bring a downed Pokémon back (Agony rule 5), and the move needs a bench to choose from.
@@ -302,7 +307,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 ## 4. Rulings to ask, by milestone
 
 - **Milestone 1 (engine proof)**: settled on 2026-11-14 as decisions 56 to 70. The interpretations it raised are listed in 2.2.
-- **Milestone 2 (data pack)**: decisions 71 to 74 settle the supplement, baby stages, Berries and descriptions. The pack is generated; waiting for the owner's ruling (see section 5, "The data pack"): the Bag effect table as a whole, Dire Hit's strength, whether Heal Powder cures confusion, the Linking Cord's description, the Dream World source, and what to do about the 25 French descriptions PokéAPI lacks.
+- **Milestone 2 (data pack)**: settled on 2026-11-14 as decisions 71 to 81.
 - **Milestone 3 (art direction)**: font; wording of custom battle messages in both languages.
 - **Milestone 4 (offline flows)**: nickname character set; QR size cap; what the printed sheet shows; and from 2.2: roleplay points above level 1.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer.
@@ -404,7 +409,7 @@ Not checked by me: the account's request and Durable Object usage, which only th
 
 ### The data pack — 2026-11-14
 
-`pnpm data` builds pack `0.10.12+pokeapi.f841170+b0eee860`: 151 species, 831 moves, 114 Abilities, 269 items, 25 natures, 18 types, in English and French. The full report is `data-sources/reports/data-pack.md`.
+`pnpm data` builds pack `0.10.12+pokeapi.f841170+17fef79c`: 151 species, 831 moves, 114 Abilities, 272 items, 25 natures, 18 types, in English and French. The full report is `data-sources/reports/data-pack.md`.
 
 **Integrity checks that stop the build** (all pass): 151 base species; every move, Ability, item and evolution a species refers to exists; every species has at least one eligible move at every level from 1 to 100 under both move-access rulings; English and French names exist for everything; every item of the Bag categories has an effect or a stated reason to be left out; every species has its battle sprites and every item its icon pinned; `@pkmn/dex` and `@pkmn/sim` agree.
 
@@ -412,14 +417,15 @@ Not checked by me: the account's request and Durable Object usage, which only th
 
 **What the sources lack**
 
-| Found | Done, pending the owner's ruling |
+| Found | Done |
 |---|---|
-| The Linking Cord has no description in PokéAPI, in either language. | A description written for Denborn is in `data-sources/rulings.json`, marked for approval. |
-| PokéAPI has no French in-game text for 20 Gen 9 items (Ability Shield, Booster Energy, Covert Cloak, Loaded Dice…) and 5 moves (the Torque moves). | Their French description falls back to Showdown's English. |
+| The Linking Cord has no description in PokéAPI, in either language. | The description the owner approved is in `data-sources/rulings.json` (decision 78). |
+| PokéAPI has no French in-game text for 20 Gen 9 items (Ability Shield, Booster Energy, Covert Cloak, Loaded Dice…) and 5 moves (the Torque moves). | Their French description is Showdown's English one (decision 81). |
+| Poképédia has those French texts and answers ordinary requests, but its robots rules forbid fetching a fixed version of a page (`oldid`). A build could therefore not pin what it downloads, and the texts are the games' own, which are never committed (decisions 40 and 74). | Not used. Bulbapedia refuses automated access altogether. |
 | Berry Juice is flagged "past" by Showdown. | It is a Bag item only; it cannot be held. |
-| PokéAPI's Bag categories also hold items the kickoff prompt does not list: three flutes, and four items without English effect text (Hopo Berry, Max Honey, Pewter Crunchies, Max Mushrooms). | Left out, each with its reason in `data-sources/bag-effects.json`. |
+| PokéAPI's Bag categories also hold four items without English effect text (Hopo Berry, Max Honey, Pewter Crunchies, Max Mushrooms). | Left out, each with its reason in `data-sources/bag-effects.json`. |
 
-**The Bag effect table** (`data-sources/bag-effects.json`, 52 items) holds current-game values. Each was checked against Serebii, PokémonDB or PokéAPI on 2026-11-14, except two that the sources leave open: how much Dire Hit raises the critical-hit rate (older texts say one stage, the current games say "sharply", which is the wording of two stages), and whether Heal Powder cures confusion. For Antidote and Pecha Berry curing a bad poisoning, and Lum Berry curing confusion, the engine's own held Berries behave that way.
+**The Bag effect table** (`data-sources/bag-effects.json`, 55 items) holds current-game values, approved by the owner (decisions 75 to 79). Each was checked against Serebii, PokémonDB or PokéAPI on 2026-11-14, except two that the sources leave open and the owner ruled on: Dire Hit (decision 76) and Heal Powder (decision 77). For Antidote and Pecha Berry curing a bad poisoning, and Lum Berry curing confusion, the engine's own held Berries behave that way.
 
 **Size.** The first visit now downloads about 13.5 MB: 12 MB of sprites, 1 MB for the engine and 0.14 MB for the data pack once compressed.
 

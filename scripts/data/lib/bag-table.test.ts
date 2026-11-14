@@ -8,6 +8,7 @@ describe('checking a Bag effect row', () => {
       { heal: 'full', cure: 'all', cureConfusion: true },
       { heal: { fraction: 0.25 } },
       { cure: ['psn', 'tox'] },
+      { cureInfatuation: true },
       { revive: 'half' },
       { reviveAll: true },
       { restorePp: { amount: 'full', scope: 'one' } },

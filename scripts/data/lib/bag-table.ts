@@ -10,13 +10,15 @@ export interface BagTable {
   ppUps: Record<string, number>
   /** PokéAPI identifiers of items spent by an evolution that Showdown does not have. */
   evolution: string[]
+  /** PokéAPI identifiers of Bag items that are not used up (decision 79: the flutes). */
+  reusable: string[]
   /** Items of the Bag categories that are left out, with the reason. */
   excluded: Record<string, string>
 }
 
 const STATUSES = new Set(['psn', 'tox', 'brn', 'par', 'slp', 'frz'])
 const STATS = new Set(['atk', 'def', 'spa', 'spd', 'spe', 'accuracy'])
-const KEYS = new Set(['heal', 'cure', 'cureConfusion', 'revive', 'reviveAll', 'restorePp', 'boost', 'crit', 'guard'])
+const KEYS = new Set(['heal', 'cure', 'cureConfusion', 'cureInfatuation', 'revive', 'reviveAll', 'restorePp', 'boost', 'crit', 'guard'])
 
 /** Why an effect is not one the Bag action knows how to apply, or null when it is. */
 export function effectProblem(effect: unknown): string | null {

@@ -34,8 +34,8 @@ import { type Localized, loadTexts, toId } from './texts.ts'
 
 const LAST_SPECIES = 151
 const STATS: readonly StatId[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe']
-/** PokéAPI's item categories that hold Bag items (kickoff prompt: healing, PP recovery, revival, status cures, X items). */
-const BAG_CATEGORIES = ['healing', 'pp-recovery', 'revival', 'status-cures', 'stat-boosts']
+/** PokéAPI's item categories that hold Bag items (kickoff prompt: healing, PP recovery, revival, status cures, X items; decision 75: flutes). */
+const BAG_CATEGORIES = ['healing', 'pp-recovery', 'revival', 'status-cures', 'stat-boosts', 'flutes']
 /** Left out by owner decisions: 59 (Return, Frustration). */
 const EXCLUDED_MOVES = new Set(['return', 'frustration'])
 /** Flags under which a move is still a real main-series move (decision 71). */
@@ -349,6 +349,11 @@ export async function buildDataPack(): Promise<BuildResult> {
   for (const [identifier, effect] of Object.entries(bagTable.effects)) {
     const item = pokeapiItem(identifier)
     if (item) item.bag = effect
+  }
+  for (const identifier of bagTable.reusable) {
+    const item = pokeapiItem(identifier)
+    if (!item?.bag) problems.push(`"${identifier}" is listed as reusable but has no Bag effect`)
+    else item.reusable = true
   }
   for (const [identifier, ppUps] of Object.entries(bagTable.ppUps)) {
     const item = pokeapiItem(identifier)
