@@ -8,7 +8,7 @@ function HomeScreen() {
   const [opened, setOpened] = useState<string>()
   return (
     <Phone>
-      <Home pack={pack} onOpen={setOpened} />
+      <Home pack={pack} entries={['characters', 'campaigns', 'options']} onOpen={setOpened} />
       <Note>
         The app’s first screen. Three ways in: <strong>Characters</strong> for a player, <strong>Campaigns</strong> for the game master,{' '}
         <strong>Options</strong> for the language and the system check. Joining a live session comes with the relay (milestone 5).

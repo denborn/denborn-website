@@ -22,6 +22,23 @@ export interface KeyValue {
   removeItem(key: string): void
 }
 
+/**
+ * A storage that lasts as long as the page: what the app falls back on when
+ * the browser refuses its own, so that a visit still works, with a warning.
+ */
+export function memoryStorage(): KeyValue {
+  const entries = new Map<string, string>()
+  return {
+    get length() {
+      return entries.size
+    },
+    key: (index) => [...entries.keys()][index] ?? null,
+    getItem: (key) => entries.get(key) ?? null,
+    setItem: (key, value) => void entries.set(key, value),
+    removeItem: (key) => void entries.delete(key),
+  }
+}
+
 /** `full`: the storage has no room left. `blocked`: the browser refuses access to it (private mode, site data disabled). */
 export type WriteResult = { ok: true } | { ok: false; reason: 'full' | 'blocked' }
 

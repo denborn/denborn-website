@@ -1,54 +1,25 @@
 /*
- * Milestone 0 baseline only: readable defaults for the system-check screen.
- * The Gen 5 art direction (tokens, panels, fonts, motion) arrives with the
- * Denborn DA skill in milestone 3 and replaces this file.
+ * The page around the app. The look itself is the design kit's
+ * (src/ui/styles.css); this only places the app on the device.
  */
 :root {
   color-scheme: dark;
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-  background: #101018;
-  color: #f4f4f8;
+  background: var(--dn-backdrop);
 }
 
 body {
   margin: 0;
 }
 
-.shell {
-  max-width: 32rem;
+/* A phone's width, centred on anything wider, clear of the notch and of rounded corners. */
+.app {
+  max-width: 30rem;
+  min-height: 100dvh;
   margin: 0 auto;
-  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
-    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
 }
 
-dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.25rem 1rem;
-}
-
-dd {
-  margin: 0;
-}
-
-fieldset {
-  display: flex;
-  gap: 1rem;
-  margin: 1.5rem 0;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-button {
-  min-height: 2.75rem;
-  padding: 0 1rem;
-}
-
-:focus-visible {
-  outline: 3px solid #ffcb05;
-  outline-offset: 2px;
+/* The screen that stays at the top stays under the notch, not behind it. */
+.app .dn-page__top {
+  top: env(safe-area-inset-top, 0px);
 }

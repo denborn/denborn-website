@@ -1,7 +1,5 @@
 /** Helpers shared by the stories. Nothing here is part of the app. */
-import { type ReactNode, createContext, use, useContext } from 'react'
-import { loadDataPack } from '../../data/pack'
-import type { DataPack } from '../../data/types'
+import { type ReactNode, createContext, useContext } from 'react'
 import { en } from '../../i18n/en'
 import { fr } from '../../i18n/fr'
 
@@ -20,9 +18,7 @@ export function useBattleText(): typeof en.battle {
 }
 
 /** The real data pack, as the app loads it. Run `pnpm data` first. */
-export function usePack(): DataPack {
-  return use(loadDataPack())
-}
+export { usePack } from '../../data/use-pack'
 
 /** A column as wide as a phone, where the kit is judged first. */
 export function Phone({ children }: { children: ReactNode }) {

@@ -68,20 +68,23 @@ export function StatRow({ name, value, max, trend, trendLabel }: StatRowProps) {
 
 export interface StepHeaderProps {
   title: string
-  /** Where the step stands, such as "Step 2 of 7". */
-  count: string
+  /** Where the step stands, such as "Step 2 of 7". Left out for a page that is not a step. */
+  count?: string
   /** Receives the heading, so that the flow can move focus to it when the step changes. */
   headingRef?: Ref<HTMLHeadingElement>
 }
 
-/** The title of a step of a flow. It can take focus, so that changing step can be announced. */
+/**
+ * The title of a page or of a step of a flow. It can take focus, so that a
+ * change of page or of step is announced and a keyboard starts from the top.
+ */
 export function StepHeader({ title, count, headingRef }: StepHeaderProps) {
   return (
     <div className="dn-step">
-      <h2 ref={headingRef} className="dn-step__title" tabIndex={-1}>
+      <h2 ref={headingRef} className="dn-step__title" tabIndex={-1} data-page-heading>
         {title}
       </h2>
-      <span className="dn-step__count">{count}</span>
+      {count && <span className="dn-step__count">{count}</span>}
     </div>
   )
 }

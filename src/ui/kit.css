@@ -103,6 +103,8 @@
  * than two DS screens, and a list of 151 Pokémon is longer than one.
  */
 .dn-screen--tall {
+  display: flex;
+  flex-direction: column;
   aspect-ratio: auto;
   overflow: visible;
 }
@@ -110,6 +112,10 @@
 .dn-screen--tall .dn-screen__stage {
   position: relative;
   inset: auto;
+  /* A column, so that the foot of a short page can sit at the bottom of the screen. */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   min-height: calc(192 * var(--dn-u));
 }
 
@@ -121,10 +127,15 @@
 
 /* A page of two screens: the first stays in sight while the second scrolls under it. */
 .dn-page {
-  display: grid;
-  align-content: start;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* The whole height of the device, less the notch: the tall screen takes what the first leaves. */
+  min-height: calc(100dvh - env(safe-area-inset-top, 0px));
   background: var(--dn-backdrop);
+}
+
+.dn-page > .dn-screen--tall {
+  flex: 1;
 }
 
 .dn-page__top {
@@ -1204,6 +1215,35 @@
   padding: calc(6 * var(--dn-u));
 }
 
+/* A list of rows, such as the characters kept on a device. */
+.dn-list {
+  display: grid;
+  gap: calc(4 * var(--dn-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* On a top screen: a few Pokémon standing side by side on the ground, or a line of text in their place. */
+.dn-lineup {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  gap: calc(6 * var(--dn-u));
+  padding: calc(10 * var(--dn-u)) calc(8 * var(--dn-u)) calc(26 * var(--dn-u));
+}
+
+.dn-lineup .dn-note {
+  align-self: center;
+  max-width: calc(200 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(13 * var(--dn-u));
+  text-align: center;
+  color: var(--dn-text);
+}
+
 /* The title of a step, with where it stands among the steps. */
 .dn-step {
   display: flex;
@@ -1379,6 +1419,8 @@
 .dn-facts dd {
   margin: 0;
   text-align: right;
+  /* A long code with no space in it breaks rather than run off the screen. */
+  overflow-wrap: anywhere;
 }
 
 /* Small things in a row that wraps: the items of a pack, the labels of a move. */
@@ -1523,6 +1565,8 @@
 .dn-foot {
   position: sticky;
   bottom: 0;
+  /* At the bottom of the screen even when the page is short. */
+  margin-top: auto;
   z-index: 1;
   display: flex;
   justify-content: space-between;

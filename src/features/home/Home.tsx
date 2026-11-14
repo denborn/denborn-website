@@ -6,6 +6,8 @@ export type HomeEntry = 'characters' | 'campaigns' | 'options'
 
 export interface HomeProps {
   pack: DataPack
+  /** The ways in to show: only those that lead somewhere. */
+  entries: readonly HomeEntry[]
   onOpen: (entry: HomeEntry) => void
 }
 
@@ -14,21 +16,24 @@ const FACES = ['bulbasaur', 'charmander', 'squirtle']
 const ICONS: Record<HomeEntry, number> = { characters: 25, campaigns: 150, options: 137 }
 
 /** The app's first screen: its name over three Pokémon, and the ways in. */
-export function Home({ pack, onOpen }: HomeProps) {
+export function Home({ pack, entries: shown, onOpen }: HomeProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.home
-  const entries: { id: HomeEntry; label: string; hint: string }[] = [
+  const all: { id: HomeEntry; label: string; hint: string }[] = [
     { id: 'characters', label: text.characters, hint: text.charactersHint },
     { id: 'campaigns', label: text.campaigns, hint: text.campaignsHint },
     { id: 'options', label: text.options, hint: text.optionsHint },
   ]
+  const entries = all.filter((entry) => shown.includes(entry.id))
   return (
     <div className="dn-page">
       <div className="dn-page__top">
         <Screen kind="scene" label={messages.app.name}>
           <div className="dn-home">
-            <h1 className="dn-title">{messages.app.name}</h1>
+            <h1 className="dn-title" tabIndex={-1} data-page-heading>
+              {messages.app.name}
+            </h1>
             <p className="dn-home__tagline dn-text-outline">{messages.app.tagline}</p>
             <div className="dn-home__faces">
               {FACES.map((id) => {

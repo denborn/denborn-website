@@ -33,13 +33,15 @@ export interface OptionButtonProps extends ButtonProps {
   /** The current choice among several, or the main action of a screen. */
   selected?: boolean
   primary?: boolean
+  /** True for the button that sends the form it is in. */
+  submit?: boolean
 }
 
 /** A small button for a choice or an action, in the manner of the options screen. */
-export function OptionButton({ selected, primary = false, children, ...rest }: OptionButtonProps) {
+export function OptionButton({ selected, primary = false, submit = false, children, ...rest }: OptionButtonProps) {
   return (
     <button
-      type="button"
+      type={submit ? 'submit' : 'button'}
       className={`dn-option${primary ? ' dn-option--primary' : ''}`}
       aria-pressed={selected}
       {...rest}
