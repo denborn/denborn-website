@@ -11,8 +11,8 @@ import { maxHpOf } from './character-check.ts'
 
 const named = (id: string) => ({ en: id, fr: id })
 
-function species(id: string, part: Pick<SpeciesData, 'genders' | 'abilities' | 'baseStats' | 'learnset'>): SpeciesData {
-  return { id, num: 1, name: named(id), types: ['Normal'], baseExp: 50, tags: [], earlierStages: [], evolutions: [], sprite: null, femaleSprite: false, ...part }
+function species(id: string, num: number, part: Pick<SpeciesData, 'genders' | 'abilities' | 'baseStats' | 'learnset'>): SpeciesData {
+  return { id, num, name: named(id), types: ['Normal'], baseExp: 50, tags: [], earlierStages: [], evolutions: [], sprite: null, femaleSprite: false, ...part }
 }
 
 function move(id: string, pp: number, part: Partial<Pick<MoveData, 'fixedPp' | 'supplement'>> = {}): MoveData {
@@ -27,7 +27,7 @@ export const testPack: DataPack = {
   version: 'test-pack',
   sources: { engine: 'test', pokeapi: 'test' },
   species: {
-    sparkmouse: species('sparkmouse', {
+    sparkmouse: species('sparkmouse', 3, {
       genders: ['M', 'F'],
       abilities: ['zap', 'hiddenzap'],
       baseStats: { hp: 35, atk: 55, def: 40, spa: 50, spd: 50, spe: 90 },
@@ -40,7 +40,7 @@ export const testPack: DataPack = {
         { move: 'eggkick', egg: true },
       ],
     }),
-    stonegolem: species('stonegolem', {
+    stonegolem: species('stonegolem', 12, {
       genders: ['N'],
       abilities: ['sturdy'],
       baseStats: { hp: 80, atk: 110, def: 130, spa: 55, spd: 65, spe: 45 },

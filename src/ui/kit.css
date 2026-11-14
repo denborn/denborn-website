@@ -1229,6 +1229,24 @@
   flex: none;
 }
 
+/* A QR code: one canvas pixel per module, enlarged without smoothing. Black on white always: cameras read that best. */
+.dn-qr {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  image-rendering: pixelated;
+  background: #ffffff;
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+.dn-qr--too-long {
+  display: grid;
+  place-items: center;
+  padding: calc(8 * var(--dn-u));
+  text-align: center;
+  color: var(--dn-text-dark);
+}
+
 /* A type label drawn by the app, the size of the games' own (32 × 14), wider for a long word. */
 .dn-type {
   --dn-type-fill: var(--dn-type-normal);

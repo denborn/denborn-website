@@ -350,6 +350,12 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 | 2026-11-14 | Maximum PP is `base × (5 + PP Ups) / 5`, with a test comparing it to the engine's for every move. | Same reason as the stats: the sheet must show what the battle uses. |
 | 2026-11-14 | Two item packs of a campaign cannot share a name, whatever the capitals. | A player picks a pack by its name. |
 
+| 2026-11-14 | A code is a tag, a format number, a dot, then its fields as a JSON list, deflated (fflate 0.8.3) and written in base64url: `dnr1.…` for a campaign's rules, `dnc1.…` for a character. The species a campaign offers travel as one bit per National Pokédex number. A character code carries the whole character and only names its campaign and rules version. | The kickoff prompt's own outline (section 2.1). A list of fields in a fixed order drops every field name; numbers of the Pokédex mean the same species under any data pack. |
+| 2026-11-14 | In a QR code the same code is written in capitals and digits (base 32, `DNC1.…`), and both forms are read alike. | A QR code stores capitals and digits far more densely than mixed case: measured, the QR code of a played character goes from 81 × 81 squares to 73 × 73. The text form stays base64url, which is shorter to paste. |
+| 2026-11-14 | A QR code holds a link to the app that ends with the code after a `#`, not the bare code. | Any camera app can then open it, and what follows a `#` is never sent to a server. It costs 4 squares a side. The app's own scanner reads either. |
+| 2026-11-14 | Reading a code never trusts it: its length is bounded, what it may inflate to is bounded (a tiny code that inflates to megabytes is refused), and the rebuilt document goes through the same schema as a file. A code from a newer app is refused as such; one naming a species this app lacks says which number. | A code comes from a link, a paste or a camera. |
+| 2026-11-14 | QR codes are drawn with lean-qr 2.7.4, black on white with their quiet border whatever the screen around them, at the lowest error correction. | Cameras read that best; the code is shown on a clean screen or a fresh print, and a smaller code is easier to scan than a more redundant one. |
+
 **Data cross-check (approved, decision 41).** It runs when the data pack is generated, not as a unit-test suite:
 
 1. Integrity checks that stop the build: every referenced move, Ability, item and evolution target exists; every species has at least one eligible move at every level under both move-access rulings; every species and item has its sprite; English and French names exist; every Bag item has an effect handler.
@@ -366,7 +372,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 - **Milestone 2 (data pack)**: settled on 2026-11-14 as decisions 71 to 81.
 - **Milestone 3 (art direction)**: settled on 2026-11-14 as decisions 82 to 86. The smaller words nobody ruled on are listed in 2.2.
 - **The battle view**: settled on 2026-11-14 as decisions 87 to 94.
-- **Milestone 4 (offline flows)**: settled on 2026-11-14 as decisions 95 to 98. Still to ask, with measured sizes once the character code exists: the largest QR code allowed before a character falls back to its file.
+- **Milestone 4 (offline flows)**: settled on 2026-11-14 as decisions 95 to 98. Asked on 2026-11-14 with measured sizes and sample QR codes to scan on the board (*To decide → QR size*): the largest QR code allowed before a character falls back to its file.
 - **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer. Also to settle then: the names of the effects no move is named after (confusion, a flinch, a trap, a stat stage's multiplier) and what each effect in the MORE list says it does (the board shows the description of the move that sets it, which speaks of the move: "Goes last. For 5 turns, turn order is reversed."); where the French of the engine's ordinary battle messages comes from (moves, damage, status, weather…); the engine's own text is English, and no French source has been looked for yet.
 - **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
 
@@ -511,3 +517,22 @@ Not checked: real phones (smoothness, legibility of the pixel font at arm's leng
 ### A character's stats, against the engine — 2026-11-14
 
 The app works a Pokémon's six stats out itself (`src/game-rules/stats.ts`), to show them on a sheet; the engine works out its own when a battle starts. `src/battle/stats.test.ts` builds 300 Pokémon at random (any of the 151 species, any level from 1 to 100, any IVs and EVs, any of the 25 natures) and requires the two to agree exactly. They do. The nature's tenth is applied in whole numbers, as the engine does.
+
+### Code sizes and QR codes — 2026-11-14
+
+Measured with `node scripts/measure/code-sizes.ts` on the real data pack. "Squares" is the side of the QR code that holds a link to the app ending with the code, at the lowest error correction, without its white border.
+
+| What | Characters of the code | QR code |
+|---|---|---|
+| A character just created (level 5, 2 moves, 4 kinds of item) | 361 | 65 × 65 |
+| A character that has played (level 50, 24-letter name, 6 moves, 12 kinds of item) | 544 | 77 × 77 |
+| A long campaign (level 100, 6 moves, 30 kinds of item) | 740 | 89 × 89 |
+| A hoarder (level 100, 6 moves, all 55 kinds of Bag item) | 993 | 101 × 101 |
+| Rules: all 151 species, no common move, one pack of 5 items | 265 | 57 × 57 |
+| Rules: all 151 species, 10 common moves, 3 packs of 8 items | 556 | 77 × 77 |
+| Rules: 60 species, 40 common moves, 6 packs of 12 items | 1,292 | 113 × 113 |
+| Rules: all 151 species, 200 common moves, 10 packs of 20 items | 3,644 | none is large enough |
+
+A creation link is the code after the app's address, 46 characters more; the largest above is a link of 3,690 characters, which no QR code holds but any message can carry.
+
+Checked: the browser's own barcode reader (Chromium on macOS) read all six sample QR codes of the board back, character for character, from the drawn image. Not checked: a real phone's camera pointed at a screen, which is what the size limit depends on; that test is the owner's, on the board.

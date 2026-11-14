@@ -28,6 +28,8 @@
     "@pkmn/data": "0.10.12",
     "@pkmn/dex": "0.10.12",
     "@pkmn/sim": "0.10.12",
+    "fflate": "0.8.3",
+    "lean-qr": "2.7.4",
     "motion": "14.9.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
