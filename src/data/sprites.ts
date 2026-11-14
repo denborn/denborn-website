@@ -56,12 +56,10 @@ export function itemIconCell(icon: ItemIcon): SheetCell {
   return { url: `${ROOT}/itemicons-sheet.png`, x: (icon.index % 16) * 24, y: Math.floor(icon.index / 16) * 24, width: 24, height: 24, sheetWidth: 384 }
 }
 
-/** Showdown's type label, 32×14. `name` is the type's English name, as in the data pack. */
-export function typeIconCell(name: string): SheetCell {
-  return { url: `${ROOT}/types/${name}.png`, x: 0, y: 0, width: 32, height: 14, sheetWidth: 32 }
-}
-
-/** Showdown's move-category label, 32×14. */
-export function categoryIconCell(category: 'Physical' | 'Special' | 'Status'): SheetCell {
-  return { url: `${ROOT}/categories/${category}.png`, x: 0, y: 0, width: 32, height: 14, sheetWidth: 32 }
+/**
+ * Showdown's move-category label, 32×14: a symbol in the middle of a coloured
+ * band. `compact` keeps the middle 16 pixels, the symbol alone, for tight rows.
+ */
+export function categoryIconCell(category: 'Physical' | 'Special' | 'Status', compact = false): SheetCell {
+  return { url: `${ROOT}/categories/${category}.png`, x: compact ? 8 : 0, y: 0, width: compact ? 16 : 32, height: 14, sheetWidth: 32 }
 }

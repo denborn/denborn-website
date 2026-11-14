@@ -1,0 +1,11 @@
+/*
+ * Denborn DA — everything the kit needs, in one import: the font, the tokens,
+ * the classes. Import it once, at the root of whatever shows the kit.
+ *
+ * The font is VT323 (decision 82), Latin and extended Latin only: French
+ * accents included, nothing else shipped.
+ */
+@import '@fontsource/vt323/latin-400.css';
+@import '@fontsource/vt323/latin-ext-400.css';
+@import './tokens.css';
+@import './kit.css';

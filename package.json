@@ -24,6 +24,7 @@
     "data:pin": "node scripts/data/fetch-sources.ts --pin && node scripts/assets/sync-sprites.ts --pin"
   },
   "dependencies": {
+    "@fontsource/vt323": "5.3.0",
     "@pkmn/data": "0.10.12",
     "@pkmn/dex": "0.10.12",
     "@pkmn/sim": "0.10.12",
@@ -35,10 +36,6 @@
     "@cloudflare/vite-plugin": "1.66.0",
     "@cloudflare/vitest-plugin": "1.4.9",
     "@eslint/js": "10.0.1",
-    "@fontsource/dotgothic16": "5.3.1",
-    "@fontsource/pixelify-sans": "5.3.0",
-    "@fontsource/tiny5": "5.3.0",
-    "@fontsource/vt323": "5.3.0",
     "@playwright/test": "1.64.1",
     "@storybook/react-vite": "10.6.5",
     "@types/node": "26.6.6",

@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 import { AgonyBadge, CommandMenu, ExpBar, HpBar, HudBox, MessageBox, MoveButton, Screen, StatusBadge, type StatusId } from '..'
-import { Note, Phone, Section, useBoardText, useLocale, usePack } from './board'
+import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
 const STATUSES: StatusId[] = ['psn', 'tox', 'brn', 'par', 'slp', 'frz']
 const MOVES = ['flamethrower', 'airslash', 'dragonclaw', 'earthquake', 'roost', 'swordsdance'] as const
 
 function HudAndMeters({ hp, maxHp }: { hp: number; maxHp: number }) {
-  const text = useBoardText()
+  const text = useBattleText()
   const locale = useLocale()
   const pack = usePack()
   const name = (id: string): string => pack.species[id]?.name[locale] ?? id
@@ -16,17 +16,28 @@ function HudAndMeters({ hp, maxHp }: { hp: number; maxHp: number }) {
       <Section title="HUD box">
         <Note>
           Name, gender and level stand on the scene; badges and the HP bar sit on the dark plate, as in Black 2. Change the HP in the
-          controls below: the bar drains at a steady pace and turns yellow under half, red at a fifth.
+          controls below: the bar drains at a steady pace and turns yellow under half, red at a fifth. A downed Pokémon has no HP to
+          show: its Agony stacks take the bar’s place.
         </Note>
         <Screen label="HUD boxes">
           <div className="sb-stack sb-pad">
             <HudBox side="foe" name={name('charizard')} level={84} gender="M" hp={hp} maxHp={maxHp} text={text} />
             <HudBox side="player" name={name('pikachu')} level={54} gender="F" hp={hp} maxHp={maxHp} text={text} showNumbers>
-              <StatusBadge status="par" text={text.status.par[0]} label={text.status.par[1]} />
+              <StatusBadge status="par" text={text.status.par.badge} label={text.status.par.name} />
             </HudBox>
             <HudBox side="player" name={name('magnemite')} level={7} gender="N" hp={Math.round(maxHp * 0.12)} maxHp={maxHp} text={text}>
-              <StatusBadge status="brn" text={text.status.brn[0]} label={text.status.brn[1]} />
+              <StatusBadge status="brn" text={text.status.brn.badge} label={text.status.brn.name} />
             </HudBox>
+            <HudBox
+              side="player"
+              name={name('snorlax')}
+              level={40}
+              gender="M"
+              hp={0}
+              maxHp={maxHp}
+              text={text}
+              agony={{ stacks: 2, text: text.agony, label: text.agonyLabel(2, 3) }}
+            />
           </div>
         </Screen>
       </Section>
@@ -37,7 +48,7 @@ function HudAndMeters({ hp, maxHp }: { hp: number; maxHp: number }) {
             <ExpBar progress={0.62} label="EXP 62%" />
             <div className="sb-row">
               {STATUSES.map((status) => (
-                <StatusBadge key={status} status={status} text={text.status[status][0]} label={text.status[status][1]} />
+                <StatusBadge key={status} status={status} text={text.status[status].badge} label={text.status[status].name} />
               ))}
             </div>
             <div className="sb-row">
@@ -53,7 +64,7 @@ function HudAndMeters({ hp, maxHp }: { hp: number; maxHp: number }) {
 }
 
 function Commands() {
-  const text = useBoardText()
+  const text = useBattleText()
   const locale = useLocale()
   const pack = usePack()
   const [view, setView] = useState<'commands' | 'moves'>('commands')
@@ -80,7 +91,7 @@ function Commands() {
                     type={data.type}
                     typeLabel={pack.types[data.type.toLowerCase()]?.name[locale] ?? data.type}
                     category={data.category}
-                    categoryLabel={data.category}
+                    categoryLabel={text.category[data.category]}
                     pp={index === 4 ? 0 : data.pp - index}
                     maxPp={data.pp}
                     ppText={text.pp}
@@ -104,14 +115,14 @@ function Commands() {
 }
 
 function Messages() {
-  const text = useBoardText()
+  const text = useBattleText()
   const locale = useLocale()
   const pack = usePack()
   const [index, setIndex] = useState(0)
   const a = pack.species.gengar?.name[locale] ?? 'A'
   const b = pack.species.snorlax?.name[locale] ?? 'B'
   const lines = [
-    text.messages.used(a, pack.moves.shadowball?.name[locale] ?? ''),
+    text.messages.prompt(a),
     text.messages.downed(b),
     text.messages.agonizing(b),
     text.messages.bagUsed(a, pack.items.revive?.name[locale] ?? '', b),

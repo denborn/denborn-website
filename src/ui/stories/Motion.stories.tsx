@@ -2,13 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { motion } from 'motion/react'
 import { useState } from 'react'
 import { DURATION, EASE, HudBox, MessageBox, Screen, StatusBadge } from '..'
-import { Note, Phone, Section, useBoardText, useLocale, usePack } from './board'
+import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
 const SPEEDS = Object.entries(DURATION)
 const CURVES = Object.entries(EASE)
 
 function MotionBoard() {
-  const text = useBoardText()
+  const text = useBattleText()
   const locale = useLocale()
   const pack = usePack()
   const [run, setRun] = useState(0)
@@ -69,7 +69,7 @@ function MotionBoard() {
             <HudBox side="foe" name={name} level={40} gender="F" hp={hp} maxHp={120} text={text} showNumbers>
               {badge && (
                 <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ duration: DURATION.quick, ease: [...EASE.snap] }}>
-                  <StatusBadge status="brn" text={text.status.brn[0]} label={text.status.brn[1]} />
+                  <StatusBadge status="brn" text={text.status.brn.badge} label={text.status.brn.name} />
                 </motion.span>
               )}
             </HudBox>

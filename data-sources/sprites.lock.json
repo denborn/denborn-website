@@ -408,25 +408,7 @@
       "gen5ani/zubat-f.gif": "f2e2e0ed78e35b8bc0d46094ba77b5e908d782d42959ff027bb6a08c9828edba",
       "gen5ani/zubat.gif": "af807eca9843ef5fadc5705d7b3dfd064746c35384052dcfcafed5d8b4306620",
       "itemicons-sheet.png": "4348432f4664b55d22cd00af6b933f4a91f71e825dad88839f62a123b0f1dbc7",
-      "pokemonicons-sheet.png": "81c713b8f4d94f7f577c546974e3d562d90b38c98b38b1b63b2a953b9acfca2a",
-      "types/Bug.png": "0113ae490a87e24bbaeba7667a9014fc6896ebee4a3dbd5a4ddc4fde5b84220f",
-      "types/Dark.png": "21383c900648dac31fa6f9ab20a9bc7d037a5688e706569e75c44a836c83aea5",
-      "types/Dragon.png": "add5bbe58e175c3bfb48dd0d89f562f541411523eb4651a8cd52ff06789a572f",
-      "types/Electric.png": "7517d3b06e08b4ab320482d01db77cd1658a6fd2fbef96a360a36b6f7bc456c5",
-      "types/Fairy.png": "3e9a30750fc546b8e3e925dbd681a0552ae4c9ecc081481e14f99ff0c2108331",
-      "types/Fighting.png": "54bc64400354338585a5d4f2570c3eee725fbfa1e395baf9cf8f7409e5149280",
-      "types/Fire.png": "7a90092f39f72b1a9f6771855af5349835dfbb9c3c9ba8d1b329e0bfcffe5fc6",
-      "types/Flying.png": "a0db70f2485e909057c5264ae5e611b9e95ca150bf47559d7decee8e97bc2708",
-      "types/Ghost.png": "bc9c27c8a42e13f98397853f04e5e75feed06829e795d300f8e526f3fbdd2174",
-      "types/Grass.png": "3d6ac36066ed47d33f6e23e679d13188204743b5303a8c3cddcdc8d8316212c5",
-      "types/Ground.png": "aed5d2a2d531a2e1b4a669bbff89e0a76c6ef9aa3cf4f6cc3bf908ef82e65c6e",
-      "types/Ice.png": "9dc2019c91dfbefc9228ce0472bad1812b9ee52d910554b86fffc5443b94b02f",
-      "types/Normal.png": "d46f7fe1bca8f19b0b57d6c5066ca0271e39ccbdd6d78da33027865c2a777016",
-      "types/Poison.png": "7a1ceeb59001b517a56971203865b5e4449af2f6c27b780085197df6411df6d1",
-      "types/Psychic.png": "2d15e75e0014aef134de20af90b2e7d164c8b7fbc727df1f2cb472bd16acc431",
-      "types/Rock.png": "f5f5f430ddb833a18c74093301008cfaca3844e61befd8c1af940c627705b2f9",
-      "types/Steel.png": "faaf9447606c6c3b3cef012064c22abd458499e99ff03c1eb209b78f3623cbff",
-      "types/Water.png": "a93a9e2aefd42fe3eeda8f724865f509f587a2439d8debb457fca7e98877869f"
+      "pokemonicons-sheet.png": "81c713b8f4d94f7f577c546974e3d562d90b38c98b38b1b63b2a953b9acfca2a"
     }
   }
 }

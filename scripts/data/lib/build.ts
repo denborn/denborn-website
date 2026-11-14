@@ -10,6 +10,7 @@
  * Anything missing or contradictory is collected as a problem; the caller
  * stops the build when there is one. Nothing is dropped or guessed silently.
  */
+import { readFile } from 'node:fs/promises'
 import { Dex, type Move } from '@pkmn/dex'
 import { Dex as SimDex } from '@pkmn/sim'
 import type {
@@ -442,8 +443,12 @@ export async function buildDataPack(): Promise<BuildResult> {
   for (const sheet of ['pokemonicons-sheet.png', 'itemicons-sheet.png']) {
     if (!(sheet in sprites.showdown.files)) problems.push(`The icon sheet ${sheet} is not pinned`)
   }
+  // Type labels are drawn by the app (decision 85): each type needs its two colours among the design tokens.
+  const tokens = await readFile(`${ROOT}src/ui/tokens.css`, 'utf8')
   for (const type of Object.values(types)) {
-    if (!(`types/${type.name.en}.png` in sprites.showdown.files)) problems.push(`No icon pinned for the type ${type.name.en}`)
+    for (const token of [`--dn-type-${type.id}:`, `--dn-type-${type.id}-shade:`]) {
+      if (!tokens.includes(token)) problems.push(`src/ui/tokens.css has no ${token.slice(0, -1)} for the type ${type.name.en}`)
+    }
   }
 
   const content = { species, moves, abilities, items, natures, types, statNames }

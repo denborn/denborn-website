@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useRef, useState } from 'react'
-import { Battler, type BattlerHandle, type BattlerPose, CategoryIcon, ItemIconImage, PokemonIcon, PokemonSprite, Screen, TypeIcon } from '..'
-import { Note, Phone, Section, useLocale, usePack } from './board'
+import { Battler, type BattlerHandle, type BattlerPose, CategoryIcon, ItemIconImage, PokemonIcon, PokemonSprite, Screen, TypeLabel } from '..'
+import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
 const ITEMS = ['potion', 'revive', 'fullrestore', 'linkingcord', 'leftovers', 'oranberry', 'ppup', 'firestone'] as const
 
 function SpritesAndIcons() {
   const pack = usePack()
   const locale = useLocale()
+  const text = useBattleText()
   const pikachu = pack.species.pikachu
   const mew = pack.species.mew
   if (!pikachu || !mew) return null
@@ -29,7 +30,10 @@ function SpritesAndIcons() {
         </Screen>
       </Section>
       <Section title="Icons">
-        <Note>Pokémon icons, item icons, and the games’ type and category labels, all from Showdown (a few item icons from PokéAPI).</Note>
+        <Note>
+          Pokémon icons, item icons and category labels from Showdown (a few item icons from PokéAPI). Type labels are drawn by the app, in
+          the language of the interface.
+        </Note>
         <Screen kind="menu" label="Icons">
           <div className="sb-stack sb-pad">
             <div className="sb-row" style={{ gap: 0 }}>
@@ -45,13 +49,16 @@ function SpritesAndIcons() {
             </div>
             <div className="sb-row" style={{ gap: 2 }}>
               {Object.values(pack.types).map((type) => (
-                <TypeIcon key={type.id} type={type.name.en} label={type.name[locale]} />
+                <TypeLabel key={type.id} type={type.name.en} text={type.name[locale]} />
               ))}
             </div>
             <div className="sb-row" style={{ gap: 2 }}>
-              <CategoryIcon category="Physical" label="Physical" />
-              <CategoryIcon category="Special" label="Special" />
-              <CategoryIcon category="Status" label="Status" />
+              {(['Physical', 'Special', 'Status'] as const).map((category) => (
+                <CategoryIcon key={category} category={category} label={text.category[category]} />
+              ))}
+              {(['Physical', 'Special', 'Status'] as const).map((category) => (
+                <CategoryIcon key={category} category={category} label={text.category[category]} compact />
+              ))}
             </div>
           </div>
         </Screen>

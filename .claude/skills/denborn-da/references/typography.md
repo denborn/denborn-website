@@ -7,21 +7,21 @@
 - "Lv." and "HP" are small gold labels; HP numbers and the "HP" on the plate are slanted.
 - Command labels are capitals with a dark outline; FIGHT is larger, red.
 
-## The candidates (none chosen yet)
+## The font: VT323
 
-All SIL Open Font License 1.1, installed from Fontsource as development dependencies for the board only. Measured in Chromium at 100 px: capital height, x-height, average letter width in a French sentence.
+Chosen by the owner on 2026-11-14 (decision 82) among four candidates shown on the board, all under the SIL Open Font License 1.1. Measured in Chromium at 100 px: capital height, x-height, average letter width in a French sentence.
 
-| Font | Capitals | x-height | Width | `--dn-font-scale` | Notes |
+| Font | Capitals | x-height | Width | Scale to match the games | Notes |
 |---|---|---|---|---|---|
-| DotGothic16 | 81.5 | 56.8 | 51.1 | 1 | Thin one-pixel strokes, closest to the games' weight; Latin letters sit in fixed cells, so spacing is uneven ("Lév iator"). |
-| VT323 | 56 | 40 | 40.9 | 1.4 | Heavier and very readable; a terminal face. |
-| Pixelify Sans | 63.1 | 45 | 49.7 | 1.25 | Stylised; "a" reads as "o" at small sizes. |
-| Tiny5 | 62.5 | 50 | 44.3 | 1.3 | Five-pixel capitals: coarse at these sizes. |
+| **VT323** (chosen) | 56 | 40 | 40.0 | 1.4 | Heavier than the games' letters and very readable; fixed width. |
+| DotGothic16 | 81.5 | 56.8 | 50.0 | 1 | Thin one-pixel strokes, closest to the games' weight; uneven spacing in Latin text. |
+| Pixelify Sans | 63.1 | 45 | 48.6 | 1.25 | Stylised; "a" reads as "o" at small sizes. |
+| Tiny5 | 62.5 | 50 | 43.3 | 1.3 | Five-pixel capitals: coarse at these sizes. |
 
-The scale gives each the same capital height as DotGothic16 at scale 1, which matches the games' sizes at the kit's 10 and 12.
+`--dn-font-scale: 1.4` gives VT323's capitals the games' heights at the kit's sizes 10 (names) and 12 (messages). It is loaded by `src/ui/styles.css` from `@fontsource/vt323`, `latin` and `latin-ext` only. Being fixed-width, a letter is 0.4 of the font size wide: at size N it takes N × 0.56 DS pixels. Use that to check that a longest name fits before building.
 
-When the owner chooses: set `--dn-font` and `--dn-font-scale` in `tokens.css`, move that font's package to `dependencies`, import only its `latin` and `latin-ext` files, remove the other three, credit it in `CREDITS.md`, and re-check every story.
+Longest strings in the data pack (2026-11-14): move names 16 letters in both languages, species names 10, type names 8 (Électrik, Ténèbres, Electric, Fighting). Nicknames go to 24.
 
 ## French
 
-Accents are where pixel fonts fail. Every text piece is checked with: é è ê ë à â ç ù û ü î ï ô œ É È À Ç Œ « » and the narrow space before ! and ?. French runs about a fifth longer than English: check buttons and the message band in French first.
+Accents are where pixel fonts fail. Every text piece is checked with: é è ê ë à â ç ù û ü î ï ô œ É È À Ç Œ « ». The space before ! and ? is written as a no-break space (`\u00a0`) in `src/i18n/fr.ts`. French runs about a fifth longer than English: check buttons and the message band in French first.

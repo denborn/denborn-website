@@ -144,10 +144,13 @@
   --dn-type-fairy-shade: #6b3952;
 
   /* --- Type ----------------------------------------------------------------- */
-  /* The display font is chosen on the style board; until then the first candidate. */
-  --dn-font: 'DotGothic16', system-ui, sans-serif;
-  /* Evens out the candidates' letter heights: text sizes are multiplied by it. */
-  --dn-font-scale: 1;
+  /* VT323, chosen by the owner (decision 82). Loaded by styles.css. */
+  --dn-font: 'VT323', ui-monospace, monospace;
+  /*
+   * Text sizes are multiplied by this: at 1.4, VT323's capitals are as tall as
+   * the games' letters (about 8 DS pixels at size 10, 10 at size 12).
+   */
+  --dn-font-scale: 1.4;
 
   /* --- Motion (Denborn's own; the games' timings are not documented) -------- */
   --dn-press: 90ms; /* a button going down */

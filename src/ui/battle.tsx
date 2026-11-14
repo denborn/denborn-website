@@ -1,7 +1,7 @@
 import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from 'motion/react'
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 import { type HpTone, fillRatio, hpTone } from './meter'
-import { CategoryIcon, TypeIcon } from './sprites'
+import { CategoryIcon, TypeLabel } from './sprites'
 
 /** Seconds a full HP bar takes to drain; shorter changes take proportionally less. */
 const FULL_BAR_SECONDS = 0.9
@@ -79,8 +79,8 @@ export interface AgonyBadgeProps {
   /** Stacks left, from 0 to `of`. */
   stacks: number
   of?: number
-  /** The badge's word, in the app's language. Without it the badge is the pips alone. */
-  text?: string
+  /** The badge's word, in the app's language. */
+  text: string
   /** Spoken description, such as "Agonizing, 2 of 3 left". */
   label: string
 }
@@ -116,9 +116,6 @@ function GenderMark({ gender, label }: { gender: 'M' | 'F'; label: string }) {
   )
 }
 
-/** Where a downed Pokémon's Agony shows. The owner picks one on the style board; the others then go. */
-export type AgonyLook = 'below' | 'plate' | 'bar'
-
 export interface HudBoxProps {
   /** `foe` mirrors the box for the enemy line. */
   side: 'player' | 'foe'
@@ -136,19 +133,18 @@ export interface HudBoxProps {
   }
   /** Whether to print the HP as numbers under the bar. */
   showNumbers?: boolean
-  /** For a downed Pokémon: its Agony stacks. */
+  /** For a downed Pokémon: its Agony stacks, shown in the HP bar's place (decision 83). */
   agony?: AgonyBadgeProps
-  agonyLook?: AgonyLook
   /** Status badges. */
   children?: ReactNode
 }
 
 /**
  * One Pokémon's name, level and HP during a battle: the name and level stand
- * on the scene, the badges and the HP bar on the dark plate.
+ * on the scene, the badges and the HP bar on the dark plate. A downed Pokémon
+ * has no HP to show: its Agony badge takes the bar's place.
  */
-export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers = false, agony, agonyLook = 'below', children }: HudBoxProps) {
-  const agonyInBar = agony && agonyLook === 'bar'
+export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers = false, agony, children }: HudBoxProps) {
   return (
     <div className={`dn-hud dn-hud--${side}`}>
       <span className="dn-hud__title dn-text-outline">
@@ -161,11 +157,8 @@ export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers
       </span>
       <span className="dn-hud__plate">
         <span className="dn-hud__back" aria-hidden="true" />
-        <span className="dn-hud__states">
-          {children}
-          {agony && agonyLook === 'plate' && <AgonyBadge stacks={agony.stacks} of={agony.of ?? 3} label={agony.label} />}
-        </span>
-        {agonyInBar ? (
+        <span className="dn-hud__states">{children}</span>
+        {agony ? (
           <span className="dn-hud__instead">
             <AgonyBadge {...agony} />
           </span>
@@ -177,26 +170,21 @@ export function HudBox({ side, name, level, gender, hp, maxHp, text, showNumbers
             <HpBar current={hp} max={maxHp} label={text.hpLabel(hp, maxHp)} />
           </>
         )}
-        {showNumbers && !agonyInBar && (
+        {showNumbers && !agony && (
           <span className="dn-hud__numbers" aria-hidden="true">
             {hp}/{maxHp}
           </span>
         )}
       </span>
-      {agony && agonyLook === 'below' && (
-        <span className="dn-hud__below">
-          <AgonyBadge {...agony} />
-        </span>
-      )}
     </div>
   )
 }
 
 export interface MoveButtonProps {
   name: string
-  /** The type's English name, as in the data pack: it picks the colour and the label. */
+  /** The type's English name, as in the data pack: it picks the colours. */
   type: string
-  /** The type's name in the app's language. */
+  /** The type's name in the app's language, shown on its label. */
   typeLabel: string
   category: 'Physical' | 'Special' | 'Status'
   categoryLabel: string
@@ -220,8 +208,8 @@ export function MoveButton(props: MoveButtonProps) {
     <button type="button" className="dn-move" style={style} aria-pressed={props.selected ?? false} disabled={props.disabled} onClick={props.onSelect}>
       <span className="dn-move__name">{props.name}</span>
       <span className="dn-move__tags">
-        <TypeIcon type={props.type} label={props.typeLabel} scale={0.8} />
-        <CategoryIcon category={props.category} label={props.categoryLabel} scale={0.8} />
+        <TypeLabel type={props.type} text={props.typeLabel} />
+        <CategoryIcon category={props.category} label={props.categoryLabel} compact scale={0.8} />
       </span>
       <span className="dn-move__pp">
         {props.ppText} {props.pp}/{props.maxPp}

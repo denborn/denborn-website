@@ -13,7 +13,7 @@ import {
   StatusBadge,
 } from '..'
 import type { Gender } from '../../data/types'
-import { Note, Phone, useBoardText, useLocale, usePack } from './board'
+import { Note, Phone, useBattleText, useLocale, usePack } from './board'
 
 interface Fighter {
   id: string
@@ -38,11 +38,13 @@ const MOVES = ['flamethrower', 'airslash', 'dragonclaw', 'earthquake', 'roost', 
 const FOE_X = [140, 186, 232]
 const PARTY_X = [26, 74, 122]
 const wait = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms))
+// The games' own line for a move, for this mock only: the engine's ordinary messages come with the battle screens.
+const USED = { en: (user: string, move: string) => `${user} used ${move}!`, fr: (user: string, move: string) => `${user} utilise ${move}\u00a0!` }
 
 function BattleOnAPhone() {
   const pack = usePack()
   const locale = useLocale()
-  const text = useBoardText()
+  const text = useBattleText()
   const attacker = useRef<BattlerHandle>(null)
   const target = useRef<BattlerHandle>(null)
   const [view, setView] = useState<'commands' | 'moves'>('commands')
@@ -57,7 +59,7 @@ function BattleOnAPhone() {
   const playMove = async (moveId: string): Promise<void> => {
     setBusy(true)
     setView('commands')
-    setMessage(text.messages.used(nameOf('charizard'), pack.moves[moveId]?.name[locale] ?? moveId))
+    setMessage(USED[locale](nameOf('charizard'), pack.moves[moveId]?.name[locale] ?? moveId))
     await wait(700)
     await attacker.current?.attack()
     if (pose === 'standing') {
@@ -141,14 +143,14 @@ function BattleOnAPhone() {
               hp={index === 0 ? targetHp : foe.hp}
               maxHp={foe.maxHp}
               text={text}
-              {...(index === 0 && pose !== 'standing' ? { agony: { stacks, text: text.agony, label: text.agonyLabel(stacks, 3) }, agonyLook: 'bar' as const } : {})}
+              {...(index === 0 && pose !== 'standing' ? { agony: { stacks, text: text.agony, label: text.agonyLabel(stacks, 3) } } : {})}
             />
           ))}
         </div>
         <div className="sb-hud-stack" style={{ right: 'calc(2 * var(--dn-u))', bottom: 'calc(49 * var(--dn-u))', '--dn-hud-width': 'calc(104 * var(--dn-u))' } as CSSProperties}>
           {PARTY.map((ally) => (
             <HudBox key={ally.id} side="player" name={nameOf(ally.id)} level={ally.level} gender={ally.gender} hp={ally.hp} maxHp={ally.maxHp} text={text}>
-              {ally.id === 'snorlax' && <StatusBadge status="psn" text={text.status.psn[0]} label={text.status.psn[1]} />}
+              {ally.id === 'snorlax' && <StatusBadge status="psn" text={text.status.psn.badge} label={text.status.psn.name} />}
             </HudBox>
           ))}
         </div>
@@ -175,7 +177,7 @@ function BattleOnAPhone() {
                   type={data.type}
                   typeLabel={pack.types[data.type.toLowerCase()]?.name[locale] ?? data.type}
                   category={data.category}
-                  categoryLabel={data.category}
+                  categoryLabel={text.category[data.category]}
                   pp={data.pp}
                   maxPp={data.pp}
                   ppText={text.pp}

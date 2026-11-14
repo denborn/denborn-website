@@ -1,12 +1,12 @@
-/** Denborn DA — the component kit. Styles: import './tokens.css' and './kit.css' once, at the app's root. */
+/** Denborn DA — the component kit. Styles: import './styles.css' once, at the app's root. */
 export { Screen, useDsUnit, usePixelScale } from './Screen'
 export type { ScreenProps } from './Screen'
 export { CommandMenu, OptionButton, Panel, Slot } from './controls'
 export type { CommandId, CommandMenuProps, OptionButtonProps, PanelProps, SlotProps } from './controls'
 export { AgonyBadge, ExpBar, HpBar, HudBox, MessageBox, MoveButton, StatusBadge } from './battle'
-export type { AgonyBadgeProps, AgonyLook, HpBarProps, HudBoxProps, MessageBoxProps, MoveButtonProps, StatusBadgeProps, StatusId } from './battle'
+export type { AgonyBadgeProps, HpBarProps, HudBoxProps, MessageBoxProps, MoveButtonProps, StatusBadgeProps, StatusId } from './battle'
 export { Battler } from './battler'
 export type { BattlerHandle, BattlerPose, BattlerProps } from './battler'
-export { CategoryIcon, ItemIconImage, PokemonIcon, PokemonSprite, TypeIcon, TypeLabel } from './sprites'
+export { CategoryIcon, ItemIconImage, PokemonIcon, PokemonSprite, TypeLabel } from './sprites'
 export type { IconProps, PokemonSpriteProps, TypeLabelProps } from './sprites'
 export { DURATION, EASE } from './motion'

@@ -22,7 +22,7 @@ Not stored in this repository. `scripts/assets/sync-sprites.ts` downloads it at 
 
 | What | Source | Rights |
 |---|---|---|
-| Pokémon battle sprites (Gen 5 animated, with the `ani` set as fallback), Pokémon icons, item icons, type and category icons | [Pokémon Showdown's sprite collection](https://play.pokemonshowdown.com/sprites/), maintained in [smogon/sprites](https://github.com/smogon/sprites) | "The sprites themselves are property of Nintendo / Game Freak / The Pokémon Company" (smogon/sprites README) |
+| Pokémon battle sprites (Gen 5 animated, with the `ani` set as fallback), Pokémon icons, item icons, move-category icons | [Pokémon Showdown's sprite collection](https://play.pokemonshowdown.com/sprites/), maintained in [smogon/sprites](https://github.com/smogon/sprites) | "The sprites themselves are property of Nintendo / Game Freak / The Pokémon Company" (smogon/sprites README) |
 | Icons of the 45 items Showdown does not have (Potion, Revive, Linking Cord…) | [PokéAPI sprites](https://github.com/PokeAPI/sprites), commit `1dd55c0` | "All image contents within are Copyright The Pokémon Company" (PokéAPI sprites licence file) |
 
 ## Design references
@@ -50,14 +50,11 @@ Other references, consulted and not redistributed: the official Pokémon White a
 
 ## Fonts
 
-None is bundled in the app yet: the owner chooses one on the design board, and it will be credited here. The four candidates are installed for the board only (development dependencies, through [Fontsource](https://fontsource.org/)), each under the SIL Open Font License 1.1:
+| Font | By | Licence |
+|---|---|---|
+| [VT323](https://fonts.google.com/specimen/VT323), the interface's font | Copyright 2011, The VT323 Project Authors (Peter Hull), packaged by [Fontsource](https://fontsource.org/) | SIL Open Font License 1.1 |
 
-| Font | Copyright |
-|---|---|
-| [DotGothic16](https://github.com/fontworks-fonts/DotGothic16/) | 2020 The DotGothic16 Project Authors |
-| [VT323](https://fonts.google.com/specimen/VT323) | 2011 The VT323 Project Authors |
-| [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) | 2021 The Pixelify Sans Project Authors |
-| [Tiny5](https://github.com/Gissio/font_tiny5) | 2022–2024 The Tiny5 Project Authors |
+DotGothic16, Pixelify Sans and Tiny5 (all SIL Open Font License) were shown beside it on the design board when the owner chose; they are not used.
 
 ## Software
 

@@ -4,7 +4,7 @@ Denborn should look and feel like Pokémon Black / White and Black 2 / White 2 (
 
 The interface is **redrawn**, in CSS and SVG, from what was measured on reference sheets. No pixel of the games' interface is copied. Pokémon sprites and icons are not redrawn: they come from Pokémon Showdown at build time, are never committed, and stay their owners' (see `CREDITS.md`).
 
-Status of this document: the system below is built and shown on the board. Four points still await the owner's ruling (section 9); until then nothing in the app's own screens depends on them.
+Status of this document: the system below is built and shown on the board, with the owner's rulings of 2026-11-14 (decisions 82 to 86, section 9). The app's own screens are built on it from milestone 4.
 
 ## 1. Principles
 
@@ -52,20 +52,23 @@ HP bars are green above half, yellow down to a fifth, red at a fifth or less (`h
 
 ## 4. Type
 
-The font is **not chosen yet** (section 9). The board shows four candidates, all under the SIL Open Font License: DotGothic16, VT323, Pixelify Sans and Tiny5. Each has a `--dn-font-scale` that gives its capitals the height of the games' letters (about 8 DS pixels for names, 10 for messages), so they are compared at the size they would be used at.
+The font is **VT323** (decision 82; SIL Open Font License), loaded by `src/ui/styles.css` in its Latin and extended Latin sets only. `--dn-font-scale` is 1.4: at that scale its capitals are as tall as the games' letters, about 8 DS pixels for names and 10 for messages. VT323 is a fixed-width face: every letter is 0.4 of the font size wide, so what fits where can be counted.
 
 | Use | Size (× `--dn-t`) | Style |
 |---|---|---|
-| Badges, "Lv." and "HP" labels | 8 | — |
+| Badges, "Lv." and "HP" labels, type labels | 8 | — |
 | PP count, small notes | 9 | — |
 | Names, levels, HP numbers, slots, options | 10 | Names and levels over the scene: `.dn-text-outline` |
-| Messages, move names | 12 | `.dn-text-shadow`, lines 16 DS pixels apart |
+| Move names | 11 | Shadow in the type's shade. The longest move name in either language (16 letters) fits a button half a screen wide. |
+| Messages | 12 | `.dn-text-shadow`, lines 16 DS pixels apart |
 | BAG, RUN, SWITCH | 13 | Label colour, dark outline |
 | FIGHT | 22 | Red, white outline |
 
 Two text treatments, both from the games: a one-pixel **shadow** down and to the right (`.dn-text-shadow`, for text on a panel or a colour) and a one-pixel dark **outline** (`.dn-text-outline`, for names and levels standing directly on the scene).
 
-A pixel font is used for game data too, as in the games; the project's general rule prefers an ordinary font for small critical numbers. To honour its intent, numbers a player acts on (HP, PP, level) are never smaller than 9 DS pixels, about 14 px on a 393 px phone. Whether that is comfortable on real phones is on the owner's device checklist.
+French puts a space before `!` and `?`; the dictionaries write it as a no-break space so the mark never starts a line. French runs about a fifth longer than English: check a new piece in French first.
+
+A pixel font is used for game data too, as in the games; the project's general rule prefers an ordinary font for small critical numbers. To honour its intent, numbers a player acts on (HP, PP, level) are never smaller than 9 DS pixels of text, about 19 px of font size on a 393 px phone. Whether that is comfortable on real phones is on the owner's device checklist.
 
 ## 5. Components
 
@@ -78,16 +81,16 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `Slot` | A row that can be chosen | BW party slots | resting, selected, `ok` (confirmed), `down` (downed), disabled. Cut corners, three bands split by two arrowheads; the outline changes with the state. |
 | `OptionButton` | A small choice or action | B2W2 options buttons | resting, selected / primary, disabled. Pointed at both ends. |
 | `CommandMenu` | FIGHT, BAG, RUN, SWITCH | BW touch screen | FIGHT is the great ball; the other three are dotted dark tiles with a thick white rim along the bottom. Each can be disabled. |
-| `MoveButton` | One of six moves | BW move buttons | Type-coloured face, white rim; name, type and category labels, PP. Selected (rim in the selection colour), disabled. `.dn-moves` lays six of them two by three over a row for BACK. |
+| `MoveButton` | One of six moves | BW move buttons | Type-coloured face, white rim; name, type label, category symbol, PP. Selected (rim in the selection colour), disabled. `.dn-moves` lays six of them two by three over a row for BACK. |
 | `HpBar`, `ExpBar` | Meters | B2W2 bars | Two-tone fill. HP drains at a steady pace (a full bar in 0.9 s) and changes colour on the way. `role="meter"` with its values. |
 | `StatusBadge` | PSN, BRN, PAR, SLP, FRZ, bad PSN | B2W2 status icons | Letters come from the app's language; the full name is its accessible label. |
-| `AgonyBadge` | Stacks left of a downed Pokémon | Denborn's own | Full diamonds remain, hollow ones are lost. Placement to be ruled (section 9). |
-| `HudBox` | Name, gender, level, HP of one Pokémon | B2W2 HP boxes | Name and level stand on the scene; badges, "HP" and the bar sit on a dark plate with a point at the outer end, a slant at the inner one and a hard shadow. `foe` mirrors it. Optional HP numbers. Width can be narrowed with `--dn-hud-width`. |
+| `AgonyBadge` | Stacks left of a downed Pokémon | Denborn's own | The word AGONY and one diamond per stack: full ones remain, hollow ones are lost. |
+| `HudBox` | Name, gender, level, HP of one Pokémon | B2W2 HP boxes | Name and level stand on the scene; badges, "HP" and the bar sit on a dark plate with a point at the outer end, a slant at the inner one and a hard shadow. `foe` mirrors it. Optional HP numbers. For a downed Pokémon the Agony badge takes the place of "HP" and the bar (decision 83). A name too long for the box is cut with an ellipsis. Width can be narrowed with `--dn-hud-width`. |
 | `MessageBox` | The message band | BW message band | Types the text out (45 letters a second, Denborn's choice); a tap, Enter or Space completes it, then asks for the next. A screen reader gets each line whole, once. |
 | `PokemonSprite` | A battle sprite | Showdown | Front, back, female. Can be frozen on a frame. Shows the name when there is no sprite. |
 | `Battler` | A Pokémon on the field | — | Enters from its side; `hit()` and `attack()` play once and resolve when done; poses `standing`, `downed`, `gone`. |
-| `PokemonIcon`, `ItemIconImage`, `TypeIcon`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. |
-| `TypeLabel` | A type label drawn by the app | BW type labels | In the app's language. Whether it replaces Showdown's English images is to be ruled (section 9). |
+| `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
+| `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 
 Not designed yet, and not to be improvised: the layout for four to six Pokémon a side, target selection, the Bag, the party and summary screens, and the GM's console. They come with their milestones, on this system.
 
@@ -135,9 +138,9 @@ Rules:
 | Female sprites (22 species) | Same folders, `-f` | — | `female` prop |
 | Pokémon icons | Showdown `pokemonicons-sheet.png`, 40 × 30 cells, 12 a row, by Pokédex number | 40 × 30 | `PokemonIcon` |
 | Item icons | Showdown `itemicons-sheet.png`, 24 × 24 cells, 16 a row; PokéAPI's own image for the items Showdown lacks | 24 × 24, 30 × 30 | `ItemIconImage` |
-| Type and category labels | Showdown `types/`, `categories/` | 32 × 14 | `TypeIcon`, `CategoryIcon` |
+| Category labels | Showdown `categories/` | 32 × 14 | `CategoryIcon` |
 
-Paths are built only by `src/data/sprites.ts`, from what the data pack and the sprite lock say exists; a name is never guessed. Order of fallback for a battle sprite: Gen 5 animated, then Showdown's `ani` set, then the Pokémon's name as text.
+Type labels are not artwork: the app draws them (`TypeLabel`), so they can be in French. Paths are built only by `src/data/sprites.ts`, from what the data pack and the sprite lock say exists; a name is never guessed. Order of fallback for a battle sprite: Gen 5 animated, then Showdown's `ani` set, then the Pokémon's name as text.
 
 ## 8. Accessibility
 
@@ -152,11 +155,14 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 - **Motion**: everything in section 6's right-hand column.
 - **Language**: components receive their words; none is written in a component.
 
-## 9. Awaiting the owner's ruling
+## 9. Ruled by the owner on the board (2026-11-14)
 
-Shown on the board under *To decide*:
+| Decision | Ruling |
+|---|---|
+| 82 | The font is VT323. |
+| 83 | A downed Pokémon's Agony shows in place of its HP bar. |
+| 84 | French buttons and badges: ATTAQUE, SAC, FUITE, ÉCHANGE; PSN, BRÛ, PAR, SOM, GEL; N. and PV. |
+| 85 | Type labels are drawn by the app, in both languages. |
+| 86 | Denborn's own battle messages, in English and French, as written in `src/i18n/` (`battle.messages`). |
 
-1. The font, among the four candidates (or none of them).
-2. The French words on buttons and badges (ATTAQUE, SAC, FUITE, ÉCHANGE; PSN, BRÛ, PAR, SOM, GEL; N. and PV), and whether the French interface shows Showdown's English type labels or labels drawn by the app in French.
-3. Where Agony shows on a downed Pokémon's box: a tag under the plate, pips on the plate, or in place of the HP bar.
-4. The wording of Denborn's own battle messages, in English and French. Only "<name> is agonizing…" is decided.
+Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

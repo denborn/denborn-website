@@ -17,7 +17,8 @@ Denborn looks and feels like Pokémon Black / White and Black 2 / White 2. The r
 
 - **Sizes in DS pixels**: `calc(N * var(--dn-u))`, text in `var(--dn-t)`. No px, rem or vw inside a `Screen`, except the 44 px touch target (`--dn-target`).
 - **Tokens only**: no colour, duration or easing written in a component. Add a token, with where it was measured.
-- **No words in components**: text comes through props, from the app's dictionaries, in English and French.
+- **No words in components**: text comes through props, from the app's dictionaries (`src/i18n/`), in English and French. Wording the owner has not approved is shown on the board first.
+- **Type labels are drawn** (`TypeLabel`), never an image: Showdown's are English only.
 - **Sprites and icons come from Showdown** through `src/data/sprites.ts`. Never guess a file name; never use an emoji or a generic icon where a game graphic exists.
 - **Pixel art on whole device pixels**: use the components' `scale`, never a CSS width on a sprite.
 - **Shaped controls are painted by ::before and ::after**, so the element is never clipped and its focus ring shows. Do not put `clip-path` on something that can take focus.
@@ -38,7 +39,7 @@ Record what you measured in `references/palette.md` or `references/battle-layout
 
 ## Checking your work
 
-- `pnpm storybook`, then look at the story at phone width (about 390 to 412 px) and at tablet width, in English and French, with each font candidate until the font is chosen.
+- `pnpm storybook`, then look at the story at phone width (about 390 to 412 px, and 320 px) and at tablet width, in English and French.
 - Tab through it: the focus ring must show on every control. Turn on "reduce motion": nothing may slide, blink or animate, and nothing may be lost.
 - `pnpm verify` before reporting.
 
@@ -46,7 +47,7 @@ Record what you measured in `references/palette.md` or `references/battle-layout
 
 - `references/sources.md` — the sheets, what each shows, who ripped them, and which sources cannot be fetched.
 - `references/palette.md` — every measured colour and where on the sheet it was read.
-- `references/typography.md` — the games' letter sizes and the font candidates.
+- `references/typography.md` — the games' letter sizes, the font and how it was chosen.
 - `references/battle-layout.md` — the geometry of the games' battle screens and how Denborn maps it to a phone.
 - `references/components.md` — how the kit is built and how to add to it.
 - `references/motion.md` — the motion vocabulary and how to script it.

@@ -475,7 +475,8 @@
 
 .dn-move__name {
   grid-column: 1 / -1;
-  font-size: calc(12 * var(--dn-t));
+  /* 11, not the messages' 12: sixteen letters then fit a button half a screen wide. */
+  font-size: calc(11 * var(--dn-t));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -731,15 +732,10 @@
   min-width: 0;
 }
 
-/* Agony shown in the bar's place, or on a line of its own under the plate. */
+/* A downed Pokémon's Agony badge, in the place of the HP label and bar. */
 .dn-hud__instead {
   grid-column: 2 / -1;
   justify-self: end;
-}
-
-.dn-hud__below {
-  display: flex;
-  padding: 0 calc(7 * var(--dn-u));
 }
 
 /* --- Message band ---------------------------------------------------------------- */

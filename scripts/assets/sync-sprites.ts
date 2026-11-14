@@ -44,16 +44,11 @@ const speciesIds = Dex.species
   .all()
   .filter((entry) => entry.num >= 1 && entry.num <= LAST_SPECIES && !entry.forme)
   .map((entry) => entry.id)
-const typeNames = Dex.types
-  .all()
-  .filter((type) => type.id !== 'stellar' && !type.isNonstandard)
-  .map((type) => type.name)
 
-/** Files that must exist. */
+/** Files that must exist. Type labels are not among them: the app draws its own, in both languages (decision 85). */
 const required = [
   'pokemonicons-sheet.png',
   'itemicons-sheet.png',
-  ...typeNames.map((name) => `types/${name}.png`),
   ...['Physical', 'Special', 'Status'].map((name) => `categories/${name}.png`),
 ]
 /** A species' front and back sprite in one of Showdown's sets. */

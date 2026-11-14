@@ -4,7 +4,7 @@
 
 **Top screen**: the scene. The foe stands upper right on its base, seen from the front; the player's Pokémon lower left, seen from behind and cut by the bottom edge. The foe's HP box is upper left, the player's lower right. A band 45 px tall across the bottom carries the message, over the darkened scene.
 
-**Touch screen**: the great ball in the middle is FIGHT. BAG, RUN and POKéMON are three tiles along the bottom edge (RUN, in the middle, is shorter). FIGHT opens the moves: rounded buttons in the move's type colour, with type, and PP.
+**Touch screen**: the great ball in the middle is FIGHT. BAG, RUN and POKéMON are three tiles along the bottom edge (RUN, in the middle, is shorter). FIGHT opens the moves: rounded buttons in the move's type colour, with the type's label and the PP.
 
 In triple battles the HP boxes stack: three upper left for the foes, three lower right for the player's side.
 

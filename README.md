@@ -9,7 +9,7 @@ Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and 
 - Milestone 0 (foundations) is done and live on Cloudflare's Free plan: the toolchain, the offline shell and a relay skeleton.
 - Milestone 1 (battle engine) is done: `src/battle/` runs Denborn's fights on the real simulator, with every rule proven by tests (see DECISIONS.md, section 5).
 - Milestone 2 (game data) is done: 151 species, their moves, Abilities and items in English and French, with the sprites, built from pinned sources.
-- Milestone 3 (art direction) is built: the design system Denborn DA, after Pokémon Black / White, with its components shown in Storybook. Four choices on it await the owner (the font among them).
+- Milestone 3 (art direction) is done: the design system Denborn DA, after Pokémon Black / White, with its components shown in Storybook.
 - Nothing of the game is playable in the app yet: there is no character, campaign or battle screen. The only screen is a system check.
 
 ## What is authoritative

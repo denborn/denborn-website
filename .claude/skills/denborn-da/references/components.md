@@ -2,6 +2,7 @@
 
 | File | Holds |
 |---|---|
+| `src/ui/styles.css` | The one import: the font, the tokens, the classes. |
 | `src/ui/tokens.css` | Every colour, duration, easing and base size. The only place a value is written. |
 | `src/ui/kit.css` | The classes (`.dn-*`). Sizes in DS pixels, colours from tokens. |
 | `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`. |
@@ -10,8 +11,8 @@
 | `src/ui/sprites.tsx` | `PokemonSprite`, the icons, `TypeLabel`. |
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |
-| `src/ui/stories/` | One story per piece, the scene, and the pages awaiting a ruling. `proposals.ts` holds wording that is not decided: it never leaves the board until the owner rules. |
-| `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language and font switches. |
+| `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories, never in `src/i18n/`, until the owner rules. |
+| `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language switch. |
 
 ## Adding a component
 

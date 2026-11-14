@@ -7,7 +7,6 @@ import {
   categoryIconCell,
   itemIconCell,
   pokemonIconCell,
-  typeIconCell,
 } from '../data/sprites'
 import type { ItemIcon, SpeciesData } from '../data/types'
 import { usePixelScale } from './Screen'
@@ -103,14 +102,9 @@ export function ItemIconImage({ icon, ...rest }: IconProps & { icon: ItemIcon })
   return <CellIcon cell={itemIconCell(icon)} {...rest} />
 }
 
-/** The games' type label. `type` is the type's English name, as in the data pack. */
-export function TypeIcon({ type, ...rest }: IconProps & { type: string }) {
-  return <CellIcon cell={typeIconCell(type)} {...rest} />
-}
-
-/** The games' move-category label. */
-export function CategoryIcon({ category, ...rest }: IconProps & { category: 'Physical' | 'Special' | 'Status' }) {
-  return <CellIcon cell={categoryIconCell(category)} {...rest} />
+/** The games' move-category label. `compact` shows its symbol alone. */
+export function CategoryIcon({ category, compact = false, ...rest }: IconProps & { category: 'Physical' | 'Special' | 'Status'; compact?: boolean }) {
+  return <CellIcon cell={categoryIconCell(category, compact)} {...rest} />
 }
 
 export interface TypeLabelProps {
@@ -121,8 +115,8 @@ export interface TypeLabelProps {
 }
 
 /**
- * A type label drawn by the app, with the type's name in the app's language.
- * Showdown's own labels (TypeIcon) are images and exist in English only.
+ * A type's label, drawn by the app in the type's colours with its name in the
+ * app's language (the games' own labels are images, in one language each).
  */
 export function TypeLabel({ type, text }: TypeLabelProps) {
   const id = type.toLowerCase()
