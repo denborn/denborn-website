@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Denborn
 
-## Getting Started
+A fan-made companion app for a Pokémon tabletop RPG. Friends roleplay at the table; when the GM launches an encounter, the app runs the fight with real Generation 9 mechanics. Players use their phones, the GM a laptop or tablet.
 
-First, run the development server:
+Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and GAME FREAK inc. See [CREDITS.md](CREDITS.md).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**Status:** V0 in progress. Milestone 0 (foundations) is done: the toolchain, the pinned battle engine, the offline shell and a relay skeleton. Nothing of the game is playable yet.
+
+## What is authoritative
+
+| File | Role |
+|---|---|
+| [DECISIONS.md](DECISIONS.md) | Every rule and product decision the owner has made, with dates; unconfirmed interpretations; engineering choices; rulings still to ask. |
+| [tasks/V0_SPEC.md](tasks/V0_SPEC.md), `V1_SPEC.md`, `V2_SPEC.md` | The specifications. Decisions in `DECISIONS.md` complete and override them. |
+| [.claude/CLAUDE.md](.claude/CLAUDE.md), [.claude/rules/](.claude/rules/) | Engineering guardrails for work in this repository. |
+| [docs/](docs/) | Research notes, sources and the integration proofs required before a dependency is trusted. |
+
+The owner alone decides game rules. A TBD in a spec is a question to ask, never a default to pick.
+
+## How it is built
+
+- One single-page app: Vite, React, TypeScript; installable and usable offline (service worker precache).
+- Battles run only on the GM's device, on Pokémon Showdown's simulator (`@pkmn/sim`, with `@pkmn/dex` and `@pkmn/data`, all pinned at 0.10.12 and upgraded together).
+- One Cloudflare Worker serves the app as static assets and relays WebSocket messages between the GM and the players through one Durable Object per room. The relay stores no game data.
+- No database. Saves are versioned JSON files plus copies in the browser's storage.
+- Everything must run on Cloudflare's Free plan.
+
+## Commands
+
+Requires Node 22.12 or later and pnpm 12.
+
+```sh
+pnpm install          # exact, locked versions; nothing newer than 14 days is ever installed
+pnpm dev              # app + Worker + Durable Object, locally
+pnpm verify           # type check, lint, all tests, production build, end-to-end tests
+pnpm test             # unit, engine and Worker tests
+pnpm test:e2e         # browser tests against the production build (run `pnpm build` first)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Deploys are not run by hand: Cloudflare builds and deploys every push to `main` (Workers Builds, project `denborn-website`). To run the browser tests against the live site: `E2E_BASE_URL=https://<the deployed URL> pnpm test:e2e`.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+The first end-to-end run needs a browser: `pnpm exec playwright install chromium`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Artwork is not in this repository
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sprites, icons and the reference sheets used for the art direction belong to their rights holders and are never committed. A script downloads the sprites at build time (from milestone 2), and `CREDITS.md` lists every source.

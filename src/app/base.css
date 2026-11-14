@@ -1,0 +1,54 @@
+/*
+ * Milestone 0 baseline only: readable defaults for the system-check screen.
+ * The Gen 5 art direction (tokens, panels, fonts, motion) arrives with the
+ * Denborn DA skill in milestone 3 and replaces this file.
+ */
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  background: #101018;
+  color: #f4f4f8;
+}
+
+body {
+  margin: 0;
+}
+
+.shell {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+}
+
+dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+}
+
+dd {
+  margin: 0;
+}
+
+fieldset {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+}
+
+:focus-visible {
+  outline: 3px solid #ffcb05;
+  outline-offset: 2px;
+}

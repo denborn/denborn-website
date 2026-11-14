@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Must match the project name in the Cloudflare dashboard (Workers Builds checks it).
+  "name": "denborn-website",
+  "main": "./worker/index.ts",
+  // Must not be later than the bundled workerd release (see pnpm-lock.yaml).
+  "compatibility_date": "2026-10-23",
+  "assets": {
+    // Client routes are refreshable; static files are served without invoking the Worker.
+    "not_found_handling": "single-page-application",
+    // The Worker runs only for the live relay.
+    "run_worker_first": ["/ws/*"]
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "ROOM", "class_name": "Room" }]
+  },
+  // Cloudflare Free only allows SQLite-backed Durable Objects. The class stores
+  // connection metadata only, never game data (see .claude/rules/platform/21 and 23).
+  // `migrations` is used instead of the newer `exports` block because moving to
+  // `exports` later is possible while the reverse is not.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }]
+}

@@ -1,23 +1,48 @@
 {
-  "name": "denborn-website",
-  "version": "0.1.0",
+  "name": "denborn",
+  "version": "0.0.0",
   "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "vite",
+    "build": "wrangler types && tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "wrangler types && tsc -b",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "verify": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build && pnpm run test:e2e",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "next": "16.0.1"
+    "@pkmn/data": "0.10.12",
+    "@pkmn/dex": "0.10.12",
+    "@pkmn/sim": "0.10.12",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "babel-plugin-react-compiler": "1.0.0",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1"
+    "@cloudflare/vite-plugin": "1.66.0",
+    "@cloudflare/vitest-plugin": "1.4.9",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint": "10.14.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.13.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "8.3.5",
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "5.0.5",
+    "workbox-window": "7.4.1",
+    "wrangler": "4.154.0"
   }
 }

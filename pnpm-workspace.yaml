@@ -1,0 +1,9 @@
+# Supply-chain rule (DECISIONS.md): never install a release less than 14 days old.
+# The value is in minutes and applies to every dependency, direct and transitive.
+minimumReleaseAge: 20160
+
+# Install scripts are blocked unless listed here. Both of these download the
+# platform binary that Vite (esbuild) and the local Workers runtime (workerd) need.
+allowBuilds:
+  esbuild: true
+  workerd: true
