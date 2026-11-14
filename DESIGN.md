@@ -193,5 +193,8 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 93 | A duration reads "3 turns left" / "3 tours restants". The plan does not show everything: MORE lists all that is in effect and whom it touches. |
 | 94 | What sits on one Pokémon (stat changes, Leech Seed…) is in MORE under its letter and on its own sheet; a small mark on its tile and HUD box says it carries some. |
 | 99 | No QR code finer than 101 × 101 squares is shown; past that, the file. |
+| 100 | The home: the app's name over three Pokémon; Characters, Campaigns, Options. |
+| 101 | Character creation in seven steps: Pokémon; name, gender, nature and Ability; roleplay attributes; IVs and EVs; moves; item pack; a last look. |
+| 102 | Menus and forms: the top DS screen stays, the lower one is as long as its content and scrolls. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.
