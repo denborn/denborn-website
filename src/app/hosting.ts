@@ -7,13 +7,17 @@
  */
 import { create } from 'zustand'
 import type { DataPack } from '../data/types'
+import type { RewardDefaults } from '../domain/rewards'
 import type { FightCommand } from '../features/battle/fight'
 import type { LaunchRefusal } from '../features/session/host'
-import { type HostRun, type HostView, runHost } from '../features/session/run-host'
+import { type HostRun, type HostView, type KeptFight, runHost } from '../features/session/run-host'
 import { sameValue } from '../shared/same-value'
 import type { CampaignDocument } from '../shared/schema/campaign'
 import type { WriteResult } from '../storage/library'
 import { useLibrary } from './library-store'
+import { browserStorage } from '../storage/browser'
+import { openFightStore } from '../storage/fight-store'
+import { memoryStorage } from '../storage/library'
 import { sessionKeys } from './session-keys'
 
 export interface Hosted {
@@ -27,6 +31,10 @@ export interface Hosted {
   launching?: string
   /** Why the last launch made no fight. */
   noLaunch?: LaunchRefusal | 'engine'
+  /** A fight kept from an earlier visit that this app's battle engine cannot play on (decision 139): its encounter. */
+  stale?: { id: string; name: string }
+  /** Set when the device could not keep the fight: it then lasts as long as the page. */
+  fightNotKept?: true
 }
 
 interface HostingState {
@@ -40,9 +48,18 @@ interface HostingState {
   launch: (encounterId: string) => void
   /** The game master's own command in the fight; gives back why it changed nothing, when it did not. */
   command: (command: FightCommand) => string | undefined
+  /** What the encounter being fought is worth to each character of the party. */
+  rewards: () => RewardDefaults | undefined
+  /** Ends the encounter and awards these amounts, by character. */
+  closeFight: (awards: Readonly<Record<string, { exp: number; money: number }>>) => void
+  /** A fight that cannot be taken up again is started again from its beginning, or ended with nothing changed (decision 139). */
+  settleStale: (how: 'restart' | 'end') => void
   /** Ends the session for everyone: its code stops working, and the next session gets another. */
   end: () => void
 }
+
+/** The fight in progress, kept on this device so that it survives the page (or in the page's memory when the browser refuses its own storage). */
+const fights = openFightStore(browserStorage() ?? memoryStorage())
 
 /** The session's logic and its line: one at a time, outside React's state because it is not data to draw. */
 let run: HostRun | undefined
@@ -85,8 +102,24 @@ export const useHosting = create<HostingState>((set, get) => ({
         set({ hosted: next })
       },
       onMembers: (members) => sessionKeys.keepMembers(campaignId, members),
+      // The fight is kept after everything that changes it, and forgotten once it is over.
+      onFight: (fight) => {
+        const hosted = get().hosted
+        if (!fight) fights.forget(campaignId)
+        else if (!fights.keep(campaignId, fight) && hosted) set({ hosted: { ...hosted, fightNotKept: true } })
+      },
     })
     run = started
+    // A fight kept from before the app closed is taken up again where it was; one this engine cannot play on is said so.
+    const saved = fights.fightOf(campaignId)
+    if (saved) {
+      const { encounter } = saved.fight
+      // The store checked that this is a kept fight; the table's own state is read back as it was written, and the engine checks its own.
+      void started.resume(saved as unknown as KeptFight).then((problem) => {
+        const hosted = get().hosted
+        if (problem === 'stale' && hosted && run === started) set({ hosted: { ...hosted, stale: encounter } })
+      })
+    }
     // Whatever another screen changes of the campaign (its rules, its encounters), the session plays with.
     stopWatching = useLibrary.subscribe(() => {
       const latest = kept(campaignId)
@@ -117,6 +150,19 @@ export const useHosting = create<HostingState>((set, get) => ({
     })
   },
   command: (command) => run?.command(command),
+  rewards: () => run?.rewards(),
+  closeFight: (awards) => run?.closeFight(awards),
+  settleStale: (how) => {
+    const hosted = get().hosted
+    if (!hosted?.stale) return
+    const { id } = hosted.stale
+    fights.forget(hosted.campaignId)
+    const next: Hosted = { ...hosted }
+    delete next.stale
+    set({ hosted: next })
+    // Everyone is as they were before the fight: nothing of it was written to them. Starting again is launching anew.
+    if (how === 'restart') get().launch(id)
+  },
   end: () => {
     const hosted = get().hosted
     run?.end()

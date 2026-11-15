@@ -43,6 +43,8 @@ export interface GuestRun {
    * fight shown is the one the game master's side tells.
    */
   intend(intent: Intent): string
+  /** The player has read what their character was awarded at the end of an encounter. */
+  rewardsRead(): void
   /** Closes the line without leaving: a member stays a member, and the game master sees it away. */
   stop(): void
 }
@@ -90,6 +92,7 @@ export function runGuest(options: GuestRunOptions): GuestRun {
       apply({ on: 'intend', id, intent })
       return id
     },
+    rewardsRead: () => apply({ on: 'rewardsRead' }),
     stop: () => link.close(),
   }
 }

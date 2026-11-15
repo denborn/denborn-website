@@ -76,6 +76,17 @@ export const party = z.object({
 
 export type Party = z.infer<typeof party>
 
+/** What a character is awarded at the end of an encounter (decisions 4, 130 and 134). */
+export const rewards = z.object({
+  encounter: z.string().min(1).max(60),
+  exp: whole(0, 1_000_000),
+  money: whole(0, 999_999_999),
+  /** The level before and after, when the EXP took the character past one (decision 161). */
+  level: z.object({ from: whole(1, 100), to: whole(1, 100) }).optional(),
+})
+
+export type Rewards = z.infer<typeof rewards>
+
 /** From the game master to a player. */
 export const hostMessage = z.discriminatedUnion('t', [
   /**
@@ -100,6 +111,8 @@ export const hostMessage = z.discriminatedUnion('t', [
   z.object({ t: z.literal('fight'), fight: playerFight.nullable() }),
   /** What became of an intent: carried out, or why not. */
   z.object({ t: z.literal('intentAnswer'), id: documentId, refused: intentRefusal.optional() }),
+  /** An encounter is over: what the member's character was awarded, and the levels it went through. Its copy follows with the party. */
+  z.object({ t: z.literal('rewards'), rewards }),
 ])
 
 export type HostMessage = z.infer<typeof hostMessage>

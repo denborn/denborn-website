@@ -150,7 +150,7 @@ The sheet on the board is a mock: the real one is designed with the character sc
 
 **What is in effect** now comes from the fight itself: the terrain and the weather are named between the lines of the plan, each a label in a type's colours (Electric, Grass, Fairy, Psychic for the terrains; Water, Fire, Rock, Ice for rain, sun, sandstorm, snow), and MORE lists everything with the games' own names and descriptions in both languages (decision 154), the turns each has left as the engine counts them, and "×2" for what is laid twice. The game master's console lists the same under the order, one line each.
 
-Not designed yet, and not to be improvised: the end of a fight. It comes with its step, on this system.
+**The end of an encounter** (on the board, awaiting approval): END THE ENCOUNTER on the console opens a page like the others, the party on its top screen; below, one field of EXP per character, filled in by the app, and one of Pokédollars for each; a line under a field says when its EXP reaches a new level, or that the amount is not a whole number; BACK returns to the fight, AWARD AND END closes it. A player then reads on the session screen what their character received, with OK. A fight kept before the app closed that this version cannot play on is said on the hosting screen, with START IT AGAIN and END IT (decision 139).
 
 ## 6. Motion
 

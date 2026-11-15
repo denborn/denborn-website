@@ -17,6 +17,7 @@ const on = (id: string, side: Combatant['side'], position: number, changes: Part
   dead: false,
   stacks: 0,
   item: '',
+  itemSpent: false,
   ability: 'zap',
   boosts: {},
   volatiles: [],

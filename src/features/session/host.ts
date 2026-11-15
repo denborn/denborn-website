@@ -9,7 +9,9 @@
  */
 import type { BattleSetup } from '../../battle/contract.ts'
 import type { DataPack } from '../../data/types.ts'
+import { afterFight, awarded } from '../../domain/after-fight.ts'
 import { openCharacter } from '../../domain/open-character.ts'
+import { type RewardDefaults, rewardDefaults } from '../../domain/rewards.ts'
 import { PARTY_MAX } from '../../game-rules/party.ts'
 import type { Intent } from '../../shared/protocol/battle.ts'
 import { type HostMessage, type Party, type Refusal, decodeGuestMessage } from '../../shared/protocol/session.ts'
@@ -80,6 +82,14 @@ export type HostEvent =
   | { on: 'fight'; command: FightCommand }
   /** Time passed: the fight's timer is looked at. */
   | { on: 'clock' }
+  /** A fight kept from before the game master's app closed is taken up again, with the engine restored to where it was. */
+  | { on: 'resumed'; fight: Fight }
+  /**
+   * The game master ends the encounter and awards what each character gets,
+   * by character (decisions 4 and 136). A character named with nothing gets
+   * nothing; the fight's outcome is written to everyone who fought.
+   */
+  | { on: 'closeFight'; awards: Readonly<Record<string, { exp: number; money: number }>> }
 
 export interface HostStep {
   session: HostSession
@@ -215,6 +225,10 @@ function stepped(session: HostSession, event: HostEvent, pack: DataPack, table: 
     case 'clock':
       // The timer is looked at after every event, this one included.
       return { session, send: [] }
+    case 'resumed':
+      return session.fight || !table ? { session, send: [] } : { session: { ...session, fight: event.fight, intents: {} }, send: [] }
+    case 'closeFight':
+      return session.fight && table ? closed(session, session.fight, event.awards, pack, table) : { session, send: [] }
     case 'approve': {
       const request = session.requests.find((entry) => entry.peer === event.peer)
       if (!request || session.party.length >= PARTY_MAX) return { session, send: [] }
@@ -241,6 +255,53 @@ function stepped(session: HostSession, event: HostEvent, pack: DataPack, table: 
       return changed({ ...session, party: session.party.filter((member) => member.peer !== event.peer) }, [{ to: [event.peer], message: { t: 'removed' } }])
     }
   }
+}
+
+/**
+ * The encounter is over: everyone who fought is left as the fight left them
+ * (decision 136), every character named is awarded its EXP and Pokédollars
+ * (decision 4), the copies go into the campaign, and each member is told what
+ * they got before the party is told again, without a fight.
+ */
+function closed(session: HostSession, fight: Fight, awards: Readonly<Record<string, { exp: number; money: number }>>, pack: DataPack, table: FightTable): HostStep {
+  const fought = new Map(table.engine.combatants().filter((combatant) => combatant.side === 'players').map((combatant) => [combatant.id, combatant]))
+  const settled = (character: CharacterDocument): CharacterDocument => {
+    const view = fought.get(character.id)
+    const left = view ? afterFight(character, view, fight.bags[character.id] ?? character.bag) : character
+    const award = awards[character.id]
+    return award ? awarded(left, award.exp, award.money, pack) : left
+  }
+  const party = session.party.map((member) => ({ ...member, character: settled(member.character) }))
+  // The campaign's own copies follow, those of the members and that of a player who left during the fight, whose Pokémon fought to the end.
+  const characters = session.campaign.characters.map(settled)
+  const told = session.party.flatMap((member, index): HostStep['send'] => {
+    const award = awards[member.character.id]
+    const after = party[index]?.character
+    if (!member.present || !award || !after) return []
+    const level = after.level > member.character.level ? { level: { from: member.character.level, to: after.level } } : {}
+    return [{ to: [member.peer], message: { t: 'rewards', rewards: { encounter: fight.encounter.name, exp: after.exp - member.character.exp, money: after.money - member.character.money, ...level } } }]
+  })
+  const next: HostSession = { ...session, party, campaign: { ...session.campaign, revision: session.campaign.revision + 1, characters }, intents: {} }
+  delete next.fight
+  return changed(next, told)
+}
+
+/**
+ * What the encounter being fought is worth to each character of the party, as
+ * the game master is shown it before awarding (decisions 130, 134, 159 and
+ * 160): every member of the party gets a line, and only the enemies defeated
+ * so far are counted.
+ */
+export function rewardsOf(session: HostSession, pack: DataPack, table: FightTable | undefined): RewardDefaults | undefined {
+  if (!session.fight || !table) return undefined
+  const defeated = new Set(
+    table.engine
+      .combatants()
+      .filter((combatant) => combatant.side === 'enemies' && combatant.dead)
+      .map((combatant) => combatant.id),
+  )
+  const enemies = session.fight.enemies.filter((enemy) => defeated.has(enemy.id))
+  return rewardDefaults({ id: session.fight.encounter.id, name: session.fight.encounter.name, enemies, bag: [] }, session.party.map((member) => member.character), pack)
 }
 
 /** A player's intent, as the command it is for the Pokémon of their own character. */

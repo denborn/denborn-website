@@ -12,7 +12,7 @@
 import type { Invitation } from '../../shared/codec/codes.ts'
 import type { Intent, PlayerFight } from '../../shared/protocol/battle.ts'
 import { CLOSED } from '../../shared/protocol/relay.ts'
-import { type GuestMessage, type Party, type Refusal, decodeHostMessage } from '../../shared/protocol/session.ts'
+import { type GuestMessage, type Party, type Refusal, type Rewards, decodeHostMessage } from '../../shared/protocol/session.ts'
 import { sameValue } from '../../shared/same-value.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
 
@@ -58,6 +58,8 @@ export type GuestState =
       fight?: PlayerFight
       /** What became of the last intent that was answered: carried out, or why not. */
       answer?: { id: string; refused?: string }
+      /** What the player's character was awarded when the last encounter ended, until the player has read it. */
+      rewards?: Rewards
     }
   | ({ at: 'out' } & Out)
 
@@ -76,6 +78,8 @@ export type GuestEvent =
   | { on: 'leave' }
   /** The player asks something for their Pokémon in the fight. `id` tells this intent from every other. */
   | { on: 'intend'; id: string; intent: Intent }
+  /** The player has read what their character was awarded. */
+  | { on: 'rewardsRead' }
 
 export interface GuestStep {
   state: GuestState
@@ -106,8 +110,8 @@ function reaching(state: GuestState, mine: Mine): GuestStep {
   if (state.at !== 'in') return { state: { at: 'asking' }, send: [ask] }
   // A member stays a member, and keeps on screen what it last knew. What the game master says from now on is news,
   // whatever its number: they may have started the session over, and count from the beginning again.
-  const { party, fight } = state
-  return { state: { at: 'in', party, linked: true, hostThere: true, ...(fight ? { fight } : {}) }, send: [ask] }
+  const { party, fight, rewards } = state
+  return { state: { at: 'in', party, linked: true, hostThere: true, ...(fight ? { fight } : {}), ...(rewards ? { rewards } : {}) }, send: [ask] }
 }
 
 const stay = (state: GuestState): GuestStep => ({ state, send: [] })
@@ -163,6 +167,7 @@ export function guestStep(state: GuestState, event: GuestEvent, mine: Mine): Gue
         if (state.at !== 'in') return stay(state)
         return stay({ ...state, answer: { id: message.id, ...(message.refused ? { refused: message.refused } : {}) } })
       }
+      if (message.t === 'rewards') return stay(state.at === 'in' ? { ...state, rewards: message.rewards } : state)
       // An older state of the party that arrives late changes nothing.
       if (state.at === 'in' && state.heard !== undefined && message.party.revision < state.heard) return stay(state)
       const counted = message.party.members.find((member) => member.character.id === message.party.you)?.character
@@ -175,6 +180,7 @@ export function guestStep(state: GuestState, event: GuestEvent, mine: Mine): Gue
         heard: message.party.revision,
         ...(message.fight ? { fight: message.fight } : {}),
         ...(state.at === 'in' && state.answer ? { answer: state.answer } : {}),
+        ...(state.at === 'in' && state.rewards ? { rewards: state.rewards } : {}),
       }
       const brought = mine.character ? bare(mine.character) : undefined
       return { state: next, send: [], ...(counted && !sameValue(counted, brought) ? { keep: counted } : {}) }
@@ -187,6 +193,12 @@ export function guestStep(state: GuestState, event: GuestEvent, mine: Mine): Gue
     }
     case 'leave':
       return { state: { at: 'out', why: 'left' }, send: state.at === 'reaching' || state.at === 'hostAway' ? [] : [{ t: 'leave' }] }
+    case 'rewardsRead': {
+      if (state.at !== 'in') return stay(state)
+      const read = { ...state }
+      delete read.rewards
+      return stay(read)
+    }
     case 'intend':
       // Asked only of a fight this device was told, by a game master who is there to hear; the round names which choices it is for.
       if (state.at !== 'in' || !state.fight || !state.linked || !state.hostThere) return stay(state)

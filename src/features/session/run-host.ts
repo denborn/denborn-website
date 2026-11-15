@@ -5,16 +5,17 @@
  * kept. The screen is told the session and the state of the line each time
  * either changes.
  */
-import { BattleRuleError, type BattleSetup, type RoundResult } from '../../battle/contract.ts'
+import { BattleRuleError, type BattleSetup, type BattleSnapshot, type RoundResult } from '../../battle/contract.ts'
 import type { DataPack } from '../../data/types.ts'
+import type { RewardDefaults } from '../../domain/rewards.ts'
 import { type RelayLink, type RelayLinkOptions, openRelayLink, roomUrl } from '../../network/relay-link.ts'
 import { CLOSED } from '../../shared/protocol/relay.ts'
 import { encodeMessage } from '../../shared/protocol/session.ts'
 import type { CampaignDocument } from '../../shared/schema/campaign.ts'
 import type { Hosting } from '../../storage/session-keys.ts'
 import { seedFrom } from '../battle/fight-setup.ts'
-import type { FightCommand, FightEngine, TableView } from '../battle/fight.ts'
-import { type FightTable, type HostEvent, type HostSession, type HostStep, type LaunchRefusal, hostStep, launchFor, openSession, tableOf } from './host.ts'
+import type { Fight, FightCommand, FightEngine, TableView } from '../battle/fight.ts'
+import { type FightTable, type HostEvent, type HostSession, type HostStep, type LaunchRefusal, hostStep, launchFor, openSession, rewardsOf, tableOf } from './host.ts'
 
 /** How the game master's line to the relay stands: on its way, there, dropped and coming back, or over and why. */
 export type HostLine = 'connecting' | 'up' | 'down' | 'replaced' | 'notHost' | 'update' | 'ended'
@@ -26,8 +27,14 @@ export interface HostView {
   table?: TableView
 }
 
-/** A battle the engine has started: what the fight drives, and what happened as the Pokémon entered. */
-export type StartedBattle = FightEngine & { opening: RoundResult }
+/** A battle the engine has started: what the fight drives, what happened as the Pokémon entered, and the way to keep it. */
+export type StartedBattle = FightEngine & { opening: RoundResult; snapshot(): BattleSnapshot }
+
+/** A fight as it is kept between two visits: the table around it, and the engine's own state. */
+export interface KeptFight {
+  fight: Fight
+  battle: BattleSnapshot
+}
 
 export interface LaunchOptions {
   /** How long players get each round; nothing for no timer. */
@@ -52,6 +59,10 @@ export interface HostRunOptions {
   open?: (options: RelayLinkOptions) => RelayLink
   /** Starts a battle. By default the real engine, which is downloaded then: only a game master who launches a fight needs it. */
   startBattle?: (setup: BattleSetup) => Promise<StartedBattle>
+  /** Brings a kept battle back. By default the real engine; it refuses a battle kept by another version of itself (decision 139). */
+  restoreBattle?: (snapshot: BattleSnapshot) => Promise<StartedBattle>
+  /** The fight changed: what to keep so that it survives the page, or nothing once it is over. */
+  onFight?: (kept: KeptFight | undefined) => void
   /** Random bytes, for the seed of a fight. The browser's own by default. */
   random?: (length: number) => Uint8Array
   /** The clock, in milliseconds. */
@@ -73,6 +84,16 @@ export interface HostRun {
   launch(encounterId: string, options?: LaunchOptions): Promise<LaunchRefusal | 'engine' | undefined>
   /** The game master's own command in the fight. Gives back why it changed nothing, when it did not. */
   command(command: FightCommand): string | undefined
+  /**
+   * Takes up a fight kept from an earlier visit. Settles with 'stale' when it
+   * was kept by another version of the battle engine and cannot be played on
+   * (decision 139), with nothing once the fight is on again.
+   */
+  resume(kept: KeptFight): Promise<'stale' | undefined>
+  /** What the encounter being fought is worth to each character of the party, with only the enemies defeated so far counted. */
+  rewards(): RewardDefaults | undefined
+  /** Ends the encounter: everyone who fought is left as the fight left them, and each character named is awarded its amounts. */
+  closeFight(awards: Readonly<Record<string, { exp: number; money: number }>>): void
   /** Ends the session for everyone: the code stops working. */
   end(): void
   /** Leaves the hosting without ending it: players wait, and the session can be taken up again. */
@@ -92,6 +113,11 @@ function lineAfter(code: number, comingBack: boolean): HostLine {
 async function startRealBattle(setup: BattleSetup): Promise<StartedBattle> {
   const { DenbornBattle } = await import('../../battle/denborn-battle.ts')
   return DenbornBattle.start(setup)
+}
+
+async function restoreRealBattle(snapshot: BattleSnapshot): Promise<StartedBattle> {
+  const { DenbornBattle } = await import('../../battle/denborn-battle.ts')
+  return DenbornBattle.restore(snapshot)
 }
 
 export function runHost(options: HostRunOptions): HostRun {
@@ -118,6 +144,14 @@ export function runHost(options: HostRunOptions): HostRun {
     // The copies of the characters are this session's to write; the rest of the campaign belongs to other screens.
     if (event.on !== 'campaign' && session.campaign.characters !== before.campaign.characters) options.onCharacters(session.campaign.characters)
     if (JSON.stringify(membersOf(session)) !== JSON.stringify(membersOf(before))) options.onMembers(membersOf(session))
+    // Kept after everything that changes it, so that a page that closes loses nothing of the fight. Over, it is kept no more.
+    if (session.fight !== before.fight) {
+      if (session.fight && engine) options.onFight?.({ fight: session.fight, battle: engine.snapshot() })
+      else {
+        engine = undefined
+        options.onFight?.(undefined)
+      }
+    }
     watchTimer()
     options.onChange(view())
     return step
@@ -175,6 +209,21 @@ export function runHost(options: HostRunOptions): HostRun {
       return undefined
     },
     command: (command) => apply({ on: 'fight', command }).refused,
+    resume: async (kept) => {
+      let restored: StartedBattle
+      try {
+        restored = await (options.restoreBattle ?? restoreRealBattle)(kept.battle)
+      } catch (error) {
+        if (error instanceof BattleRuleError) return 'stale'
+        throw error
+      }
+      if (session.fight) return undefined
+      engine = restored
+      apply({ on: 'resumed', fight: kept.fight })
+      return undefined
+    },
+    rewards: () => rewardsOf(session, options.pack, table()),
+    closeFight: (awards) => void apply({ on: 'closeFight', awards }),
     end: () => {
       // Said to the relay when it can be heard; either way this device hosts that room no more.
       link.send({ t: 'end' })

@@ -177,6 +177,21 @@ describe('the engine\'s own restrictions are kept', () => {
   })
 })
 
+describe('the item a Pokémon came in with (decision 136)', () => {
+  it('is gone once eaten or used up, and not when it was knocked off', () => {
+    // An Oran Berry is eaten once its holder is at half its HP or under; Knock Off takes the Leftovers away.
+    const battle = start(
+      [player('eater', 'Snorlax', ['tackle'], { item: 'oranberry', hp: 125 }), player('holder', 'Chansey', ['tackle'], { item: 'leftovers' }), player('bare', 'Machamp', ['tackle'])],
+      [enemy('foe', 'Machamp', ['knockoff', 'tackle'])],
+    )
+    expect(battle.combatants().map((combatant) => combatant.itemSpent)).toEqual([false, false, false, false])
+    round(battle, { foe: move('knockoff', 'holder') }, { foe: [extra('tackle', 'eater'), extra('tackle', 'eater')] })
+    expect(battle.combatant('eater')).toMatchObject({ item: '', itemSpent: true })
+    expect(battle.combatant('holder')).toMatchObject({ item: '', itemSpent: false })
+    expect(battle.combatant('bare')).toMatchObject({ item: '', itemSpent: false })
+  })
+})
+
 describe('an action checked before it is locked', () => {
   it('is refused for the reason the round itself would be refused, and nothing is played', () => {
     const battle = start(

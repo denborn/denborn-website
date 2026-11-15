@@ -335,7 +335,8 @@ function exchanged(fight: Fight, first: string, second: string, context: FightCo
   const refused = engineRefusal(() => {
     context.engine.exchangeSpeed(first, second)
   })
-  return refused ? refusal(fight, refused) : done(fight)
+  // The order of the round changed inside the engine: the fight is a new one to tell and to keep, though nothing of its own moved.
+  return refused ? refusal(fight, refused) : done({ ...fight })
 }
 
 /**

@@ -22,6 +22,8 @@ export interface GmConsoleProps {
   away: readonly string[]
   /** Carries a command out, and gives back why it changed nothing when it did not. */
   onCommand: (command: FightCommand) => string | undefined
+  /** Opens the end of the encounter: its rewards, then its end (decision 136). */
+  onEnd: () => void
   /** Under the fight: the way to the rest of the session. */
   children?: ReactNode
 }
@@ -48,7 +50,7 @@ const TIMER_MAX = 300
  * Speed; the Pokémon of a player who is away can be chosen for. Whatever
  * takes a target is aimed on the battlefield above.
  */
-export function GmConsole({ pack, table, party, away, onCommand, children }: GmConsoleProps) {
+export function GmConsole({ pack, table, party, away, onCommand, onEnd, children }: GmConsoleProps) {
   const language = useLanguage()
   const messages = useMessages()
   const battle = messages.battle
@@ -418,6 +420,11 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
                   </div>
                 </>
               )}
+              <div className="dn-row">
+                <OptionButton primary={table.outcome !== undefined} onClick={onEnd}>
+                  {text.end}
+                </OptionButton>
+              </div>
               {children}
             </>
           )}

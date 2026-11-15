@@ -11,6 +11,7 @@
 import { createHash } from 'node:crypto'
 import { Battle, Dex, Pokemon, Side, toID } from '@pkmn/sim'
 import { expect, it } from 'vitest'
+import { engineClassNames } from './engine/names'
 
 function fingerprint(value: unknown): string {
   if (typeof value !== 'function') throw new Error('Not a function: the engine no longer has it')
@@ -115,4 +116,11 @@ const EXPECTED: Record<string, string> = {
 it('the engine code the adapter depends on is the code it was written against', () => {
   const actual = Object.fromEntries(Object.entries(WATCHED).map(([name, value]) => [name, fingerprint(value)]))
   expect(actual).toEqual(EXPECTED)
+})
+
+it('names its classes as the adapter gives them back, for a kept battle to be read (engine/names.ts)', () => {
+  // Read before any Denborn battle is made in this file: these are the names in the engine's own source.
+  expect(engineClassNames(probe).map(([constructor, name]) => [(constructor as { name: string }).name, name])).toEqual(
+    ['Battle', 'Field', 'Side', 'Pokemon', 'Condition', 'Ability', 'Item', 'DataMove', 'Species'].map((name) => [name, name]),
+  )
 })

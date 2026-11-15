@@ -9,7 +9,9 @@ import { OptionButton } from '../../ui'
 import { Note, Phone, usePack } from '../../ui/stories/board'
 import { sampleQuarry } from '../encounters/samples'
 import { BattleScreen } from './BattleScreen'
+import { rewardDefaults } from '../../domain/rewards'
 import { GmConsole } from './GmConsole'
+import { RewardsScreen } from './RewardsScreen'
 import { fightSetup } from './fight-setup'
 import { type Author, type Choice, type Fight, type FightCommand, type FightContext, fightStep, isReady, openFight, partyView, tableView } from './fight'
 import { sampleHero } from './samples'
@@ -161,7 +163,7 @@ function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
       <>
         <div className="sb-row sb-row--top">
           <Phone>
-            <GmConsole pack={pack} table={tableView(table.fight, context(table.now))} party={table.party} away={[...absent]} onCommand={(command) => carryOut([{ author: 'gm', command }])} />
+            <GmConsole pack={pack} table={tableView(table.fight, context(table.now))} party={table.party} away={[...absent]} onCommand={(command) => carryOut([{ author: 'gm', command }])} onEnd={() => undefined} />
           </Phone>
           {phone(first)}
         </div>
@@ -243,5 +245,32 @@ export default meta
 /** Two players' phones in one fight. */
 export const PlayersPhones: StoryObj<typeof meta> = { render: (args) => <Table key={args.timer} {...args} /> }
 
+function Ending() {
+  const pack = usePack()
+  const [table] = useState(() => openTable(pack, 0))
+  const encounter = sampleQuarry(pack, sampleRules(pack, 2, 2, 4))
+  // As if the two minions had been defeated and the boss had not.
+  const defeated = { ...encounter, enemies: encounter.enemies.filter((enemy) => enemy.class === 'minion') }
+  return (
+    <>
+      <Phone>
+        <RewardsScreen pack={pack} encounter={encounter.name} party={table.party} defaults={rewardDefaults(defeated, table.party, pack)} onAward={() => undefined} onBack={() => undefined} />
+      </Phone>
+      <Note>
+        <strong>New and to be approved.</strong> The end of an encounter, for the game master: END THE ENCOUNTER on the console opens
+        this. Every character of the party has a line (decision 159) with the EXP the app worked out for it from the enemies defeated
+        (decisions 130 and 160; here two minions out of three), and one amount of Pokédollars goes to each (decision 134). Every amount
+        can be changed; a line says when its EXP takes the character to a new level (decision 161). AWARD AND END writes how the fight
+        left everyone (decision 136), gives the amounts and closes the fight; BACK returns to the fight, which goes on. On the
+        player’s side, the session screen then says what their character received: see Screens / Session / Join with{' '}
+        <code>step</code> set to <code>inRewarded</code>.
+      </Note>
+    </>
+  )
+}
+
 /** The game master's console, beside one player's phone. */
 export const GameMastersConsole: StoryObj<typeof meta> = { args: { seat: 'gm' }, render: (args) => <Table key={args.timer} {...args} /> }
+
+/** Ending an encounter: the rewards the game master awards. */
+export const EndOfAnEncounter: StoryObj<typeof meta> = { render: () => <Ending /> }

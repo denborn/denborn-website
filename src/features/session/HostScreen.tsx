@@ -29,6 +29,8 @@ export interface HostScreenProps {
   noLaunch?: keyof ReturnType<typeof useMessages>['session']['host']['noLaunch'] | undefined
   /** The fight being played, by its encounter's name, with the way back to it. */
   fight?: { name: string; onBack: () => void } | undefined
+  /** A fight kept from an earlier visit that this app's battle engine cannot play on (decision 139): its encounter's name, and the two ways out. */
+  stale?: { name: string; onRestart: () => void; onEnd: () => void } | undefined
   onApprove: (peer: string, keep: 'theirs' | 'mine') => void
   onDecline: (peer: string) => void
   onRemove: (peer: string) => void
@@ -43,7 +45,7 @@ export interface HostScreenProps {
  * letters with its QR code on the top screen, the link to copy, then who is
  * asking to come in, who is in, and the campaign's encounters (decision 143).
  */
-export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onLaunch, launching, noLaunch, fight, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
+export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onLaunch, launching, noLaunch, fight, stale, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.host
@@ -128,6 +130,23 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
           ))}
           <span className="dn-label">{text.encounters}</span>
           {session.campaign.encounters.length === 0 && <p className="dn-note">{messages.encounters.empty}</p>}
+          {stale && (
+            <>
+              <p className="dn-note dn-note--error" role="alert">
+                {text.stale(stale.name)}
+              </p>
+              <p className="dn-note">{text.staleRestartHint}</p>
+              <div className="dn-row">
+                <OptionButton primary onClick={stale.onRestart}>
+                  {text.staleRestart}
+                </OptionButton>
+              </div>
+              <p className="dn-note">{text.staleEndHint}</p>
+              <div className="dn-row">
+                <OptionButton onClick={stale.onEnd}>{text.staleEnd}</OptionButton>
+              </div>
+            </>
+          )}
           {fight && (
             <>
               <p className="dn-note">{text.fightOn(fight.name)}</p>
@@ -150,7 +169,7 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
                 {chosen === encounter.id && (
                   <div className="dn-row">
                     {/* One fight at a time: the next encounter waits for this one's end. */}
-                    <OptionButton primary disabled={fight !== undefined || launching !== undefined} onClick={() => onLaunch(encounter.id)}>
+                    <OptionButton primary disabled={fight !== undefined || stale !== undefined || launching !== undefined} onClick={() => onLaunch(encounter.id)}>
                       {text.launch}
                     </OptionButton>
                     <OptionButton onClick={() => onEncounter(encounter.id)}>{text.prepare}</OptionButton>

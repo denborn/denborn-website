@@ -39,9 +39,11 @@ interface HostArgs {
   line: HostLine
   /** How many characters are in. */
   party: number
+  /** A fight kept from an earlier visit that cannot be taken up again (decision 139). */
+  stale: boolean
 }
 
-function Hosting({ line, party }: HostArgs) {
+function Hosting({ line, party, stale }: HostArgs) {
   const pack = usePack()
   const [braise, volt, mousse, ombre, galet] = heroes(pack)
   const all = [braise, volt, mousse].filter((character) => character !== undefined)
@@ -76,6 +78,7 @@ function Hosting({ line, party }: HostArgs) {
         onEnd={() => undefined}
         onEncounter={() => undefined}
         onLaunch={() => undefined}
+        stale={stale ? { name: 'La carrière', onRestart: () => undefined, onEnd: () => undefined } : undefined}
         onCopy={() => Promise.resolve(true)}
         onBack={() => undefined}
       />
@@ -100,7 +103,7 @@ const OUTS: Record<string, Out> = {
 }
 
 interface JoinArgs {
-  step: 'code' | 'reaching' | 'hostAway' | 'choosing' | 'choosingNone' | 'asking' | 'waiting' | 'in' | 'inHostAway' | 'inLineDown' | 'out'
+  step: 'code' | 'reaching' | 'hostAway' | 'choosing' | 'choosingNone' | 'asking' | 'waiting' | 'in' | 'inRewarded' | 'inHostAway' | 'inLineDown' | 'out'
   out: keyof typeof OUTS
 }
 
@@ -118,13 +121,14 @@ function Joining({ step, out }: JoinArgs) {
     asking: { at: 'asking' },
     waiting: { at: 'waiting' },
     in: { at: 'in', party, linked: true, hostThere: true },
+    inRewarded: { at: 'in', party, linked: true, hostThere: true, rewards: { encounter: 'La carrière', exp: 412, money: 2880, level: { from: 11, to: 12 } } },
     inHostAway: { at: 'in', party, linked: true, hostThere: false },
     inLineDown: { at: 'in', party, linked: false, hostThere: true },
     out: { at: 'out', ...(OUTS[out] ?? { why: 'ended' }) },
   }
   return (
     <Phone>
-      <JoinScreen key={`${step}-${out}`} pack={pack} state={states[step]} characters={characters.slice(0, 2)} onCode={() => undefined} onChoose={() => undefined} onCreate={() => undefined} onLeave={() => undefined} onAgain={() => undefined} onBack={() => undefined} />
+      <JoinScreen key={`${step}-${out}`} pack={pack} state={states[step]} characters={characters.slice(0, 2)} onCode={() => undefined} onChoose={() => undefined} onCreate={() => undefined} onRewardsRead={() => undefined} onLeave={() => undefined} onAgain={() => undefined} onBack={() => undefined} />
     </Phone>
   )
 }
@@ -134,7 +138,7 @@ export default meta
 
 /** The game master hosting: the join code, who asks to come in, who is in. */
 export const Host: StoryObj<HostArgs> = {
-  args: { line: 'up', party: 3 },
+  args: { line: 'up', party: 3, stale: false },
   argTypes: {
     line: { control: 'select', options: ['connecting', 'up', 'down', 'replaced', 'notHost', 'update', 'ended'] },
     party: { control: { type: 'range', min: 0, max: 3, step: 1 } },
@@ -148,7 +152,9 @@ export const Host: StoryObj<HostArgs> = {
         already has a copy of, which differs (decision 13): both copies, which is more recent, and the pick. A tap on a member opens REMOVE
         FROM THE SESSION (decision 123). Under the party, the campaign’s encounters (decision 143): a tap on one shows LAUNCH, which starts
         the fight for the party, and PREPARE, which opens it to change it; NEW ENCOUNTER makes another. END THE SESSION asks first. Set{' '}
-        <code>line</code> to see what is said when the connection is not there.
+        <code>line</code> to see what is said when the connection is not there. <strong>New and to be approved</strong>: set{' '}
+        <code>stale</code> to see a fight that was kept before the app closed and cannot be taken up again (decision 139), with its two
+        ways out.
       </Note>
     </>
   ),
@@ -158,7 +164,7 @@ export const Host: StoryObj<HostArgs> = {
 export const Join: StoryObj<JoinArgs> = {
   args: { step: 'code', out: 'refusedFull' },
   argTypes: {
-    step: { control: 'select', options: ['code', 'reaching', 'hostAway', 'choosing', 'choosingNone', 'asking', 'waiting', 'in', 'inHostAway', 'inLineDown', 'out'] },
+    step: { control: 'select', options: ['code', 'reaching', 'hostAway', 'choosing', 'choosingNone', 'asking', 'waiting', 'in', 'inRewarded', 'inHostAway', 'inLineDown', 'out'] },
     out: { control: 'select', options: Object.keys(OUTS) },
   },
   render: (args) => (

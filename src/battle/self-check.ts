@@ -30,21 +30,22 @@ export interface SelfCheckResult {
   rounds: number
 }
 
-/** Plays a fixed one-on-one fight to its end and throws if the engine does not get there. */
+/** Plays a fixed one-on-one fight to its end, keeping it and bringing it back on the way, and throws if the engine does not get there. */
 export function runEngineSelfCheck(): SelfCheckResult {
-  const battle = DenbornBattle.start({
+  const actions = {
+    player: { type: 'move', move: 'tackle', target: 'enemy' },
+    enemy: { type: 'move', move: 'tackle', target: 'player' },
+  } as const
+  const started = DenbornBattle.start({
     seed: '1,2,3,4',
     players: [fighter('player', 'Pikachu', 'Static', true)],
     enemies: [fighter('enemy', 'Rattata', 'Guts', false)],
   })
-  for (let round = 0; round < 100 && !battle.ended; round++) {
-    battle.resolveRound({
-      actions: {
-        player: { type: 'move', move: 'tackle', target: 'enemy' },
-        enemy: { type: 'move', move: 'tackle', target: 'player' },
-      },
-    })
-  }
+  started.resolveRound({ actions })
+  // Kept and brought back as a fight is when the game master's page closes: the kept form goes through text, as storage does.
+  const battle = DenbornBattle.restore(JSON.parse(JSON.stringify(started.snapshot())) as ReturnType<DenbornBattle['snapshot']>)
+  if (JSON.stringify(battle.combatants()) !== JSON.stringify(started.combatants())) throw new Error('The check battle did not come back as it was kept')
+  for (let round = 0; round < 100 && !battle.ended; round++) battle.resolveRound({ actions })
   if (!battle.ended) throw new Error('The check battle did not finish')
   return { engineVersion: ENGINE_VERSION, rounds: battle.round }
 }

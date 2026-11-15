@@ -67,6 +67,7 @@ const combatant = z.object({
   dead: z.boolean(),
   stacks: whole(0, 3),
   item: engineWord,
+  itemSpent: z.boolean(),
   ability: engineWord,
   boosts: z.record(engineWord, z.number().int().min(-6).max(6)),
   volatiles: z.array(engineWord).max(100),

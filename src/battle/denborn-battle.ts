@@ -34,6 +34,7 @@ import {
 } from './contract'
 import { type SetExtras, assertDenbornBattle, registerDenborn } from './engine/format'
 import { lockedAction } from './engine/locks'
+import { keepEngineClassNames } from './engine/names'
 import { swapSlots } from './engine/positions'
 import { type CombatantState, findCombatant, sideOf, stateOf } from './engine/state'
 import { clearSpeedExchanges, exchangeTurnOrderSpeed } from './engine/turn-order'
@@ -172,6 +173,8 @@ export class DenbornBattle {
   private cursor: number
 
   private constructor(battle: Battle, cursor: number) {
+    // Before anything of this battle is kept: see engine/names.ts.
+    keepEngineClassNames(battle)
     this.battle = battle
     this.cursor = cursor
     this.opening = this.drain()
@@ -418,6 +421,7 @@ export class DenbornBattle {
 
   private view(pokemon: Pokemon): CombatantView {
     const state: CombatantState = stateOf(pokemon)
+    const own = toID(pokemon.set.item)
     const boosts: Record<string, number> = {}
     for (const [stat, stages] of Object.entries(pokemon.boosts)) {
       if (stages !== 0) boosts[stat] = stages
@@ -434,6 +438,8 @@ export class DenbornBattle {
       dead: state.dead,
       stacks: state.stacks,
       item: pokemon.item,
+      // The engine remembers the last item a Pokémon ate or used; one that was taken from it leaves no such trace.
+      itemSpent: own !== '' && pokemon.lastItem === own && pokemon.item !== own,
       ability: pokemon.ability,
       boosts,
       volatiles: Object.keys(pokemon.volatiles),

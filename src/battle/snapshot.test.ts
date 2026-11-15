@@ -1,6 +1,8 @@
+import { Battle, toID } from '@pkmn/sim'
 import { describe, expect, it } from 'vitest'
 import type { BagEffect } from '../game-rules/bag-effects'
 import { type BattleSnapshot, BattleRuleError, DenbornBattle, type MoveChoice, type RoundAction } from './denborn-battle'
+import { engineClassNames } from './engine/names'
 import { bag, enemy, move, player, round, seedNumber, start, timeline } from './test-kit'
 import { ADAPTER_VERSION } from './versions'
 
@@ -163,5 +165,22 @@ describe('saving and resuming a battle', () => {
     const snapshot = newBattle('1,2,3,4').snapshot()
     const state = { ...(snapshot.state as Record<string, unknown>), formatid: 'gen9doublescustomgame' }
     expect(() => DenbornBattle.restore({ ...snapshot, state })).toThrow(/instead of/)
+  })
+})
+
+describe('a battle kept by a production build', () => {
+  it('is read back as it was, though the build shortened the names of the engine\'s classes', () => {
+    // What a build does to class names, done here by hand; the adapter gives them back when a battle is made.
+    const probe = new Battle({ formatid: toID('gen9customgame') })
+    for (const [constructor] of engineClassNames(probe)) Object.defineProperty(constructor, 'name', { value: 'e', configurable: true })
+
+    const battle = start([player('one', 'Machamp', ['tackle'], { item: 'leftovers' })], [enemy('foe', 'Chansey', ['thunderwave'])])
+    round(battle, { one: move('tackle', 'foe'), foe: move('thunderwave', 'one') })
+    const kept = JSON.parse(JSON.stringify(battle.snapshot())) as BattleSnapshot
+    const restored = DenbornBattle.restore(kept)
+    expect(restored.combatants()).toEqual(battle.combatants())
+    // And it plays on exactly like the one that was never kept.
+    const actions = { one: move('tackle', 'foe'), foe: move('thunderwave', 'one') }
+    expect(timeline(restored, round(restored, actions))).toEqual(timeline(battle, round(battle, actions)))
   })
 })

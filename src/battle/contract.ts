@@ -104,6 +104,8 @@ export interface CombatantView {
   dead: boolean
   stacks: number
   item: string
+  /** True when the item it came into the fight with was eaten or used up: that item is gone for good (decision 136). One knocked off, stolen or swapped is not. */
+  itemSpent: boolean
   ability: string
   /** Stat stages that are not zero. */
   boosts: Record<string, number>

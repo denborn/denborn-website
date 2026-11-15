@@ -7,6 +7,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { usePack } from '../data/use-pack'
 import { BattleScreen } from '../features/battle/BattleScreen'
 import { GmConsole } from '../features/battle/GmConsole'
+import { RewardsScreen } from '../features/battle/RewardsScreen'
 import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
 import { CampaignList } from '../features/campaigns/CampaignList'
 import { ImportCampaign } from '../features/campaigns/ImportCampaign'
@@ -220,6 +221,8 @@ export function HostSessionPage() {
   const hosting = useHosting()
   /** During a fight: whether the session's own screen is shown in the console's place. */
   const [sessionShown, setSessionShown] = useState(false)
+  /** During a fight: whether its end, with its rewards, is being set. */
+  const [ending, setEnding] = useState(false)
   const entry = library.campaigns().find((stored) => stored.id === id)
   const campaign = entry?.read.ok ? entry.read.value : undefined
   usePageTitle(campaign?.name ?? messages.campaigns.title)
@@ -236,6 +239,24 @@ export function HostSessionPage() {
   const { session, table } = hosted.view
 
   // While a fight is on, this is its console; the session's own screen (the code, who asks to come in) is one tap away.
+  const defaults = table && ending ? hosting.rewards() : undefined
+  if (table && defaults) {
+    return (
+      <RewardsScreen
+        pack={pack}
+        encounter={table.encounter.name}
+        outcome={table.outcome ? messages.battle.choosing.over[table.outcome] : undefined}
+        party={session.party.map((member) => member.character)}
+        defaults={defaults}
+        onAward={(awards) => {
+          hosting.closeFight(awards)
+          setEnding(false)
+          setSessionShown(false)
+        }}
+        onBack={() => setEnding(false)}
+      />
+    )
+  }
   if (table && !sessionShown) {
     const there = new Set(session.party.filter((member) => member.present).map((member) => member.character.id))
     return (
@@ -246,6 +267,7 @@ export function HostSessionPage() {
         party={[...session.party.map((member) => member.character), ...session.campaign.characters]}
         away={table.combatants.filter((combatant) => combatant.side === 'players' && !there.has(combatant.id)).map((combatant) => combatant.id)}
         onCommand={hosting.command}
+        onEnd={() => setEnding(true)}
       >
         <div className="dn-row">
           <OptionButton onClick={() => setSessionShown(true)}>{messages.session.host.toSession}</OptionButton>
@@ -260,7 +282,8 @@ export function HostSessionPage() {
       code={hosted.code}
       origin={window.location.origin}
       line={hosted.view.line}
-      notice={hosted.notKept ? messages.saving[hosted.notKept] : undefined}
+      notice={hosted.notKept ? messages.saving[hosted.notKept] : hosted.fightNotKept ? messages.session.host.fightNotKept : undefined}
+      stale={hosted.stale ? { name: hosted.stale.name, onRestart: () => hosting.settleStale('restart'), onEnd: () => hosting.settleStale('end') } : undefined}
       // Preparing an encounter from the session comes back to the session.
       onEncounter={(encounter) => void navigate(`/campaigns/${id}/encounters/${encounter ?? 'new'}`, { state: { back: here } })}
       onLaunch={hosting.launch}
@@ -444,6 +467,7 @@ export function JoinSessionPage() {
         void navigate(`/characters/new/${invitation.campaign.id}`, { state: { session: code } })
       }}
       onLeave={() => run.current?.leave()}
+      onRewardsRead={() => run.current?.rewardsRead()}
       onAgain={() => setAttempt(attempt + 1)}
       onBack={() => void navigate('/')}
     />

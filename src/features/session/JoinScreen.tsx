@@ -23,6 +23,8 @@ export interface JoinScreenProps {
   /** Makes a new character for the campaign being played, under the rules the game master's side gave (decision 128). */
   onCreate: (invitation: Invitation) => void
   onLeave: () => void
+  /** The player has read what their character was awarded. */
+  onRewardsRead: () => void
   /** Starts over from the code, after being out. */
   onAgain: () => void
   onBack: () => void
@@ -33,13 +35,15 @@ export interface JoinScreenProps {
  * bring among those made for the campaign, the wait for the game master,
  * then the party; and each way of being out, said in words.
  */
-export function JoinScreen({ pack, code: given, state, characters, onCode, onChoose, onCreate, onLeave, onAgain, onBack }: JoinScreenProps) {
+export function JoinScreen({ pack, code: given, state, characters, onCode, onChoose, onCreate, onLeave, onRewardsRead, onAgain, onBack }: JoinScreenProps) {
   const messages = useMessages()
   const text = messages.session.join
   const [typed, setTyped] = useState(given ?? '')
   const [mistyped, setMistyped] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const party = state?.at === 'in' ? state.party : undefined
+  /** The player's own character, as the party has it. */
+  const mine = party?.members.find((member) => member.character.id === party.you)?.character
   const title = party ? text.inSession(party.campaign.name) : text.title
 
   const join = (event: SyntheticEvent): void => {
@@ -99,6 +103,19 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
           {state?.at === 'choosing' && <Choosing pack={pack} invitation={state.invitation} characters={characters} onChoose={onChoose} onCreate={onCreate} />}
           {state?.at === 'in' && (
             <>
+              {state.rewards && (
+                <>
+                  <p className="dn-note" role="status">
+                    {text.rewards(state.rewards.encounter, mine?.nickname ?? '', state.rewards.exp, state.rewards.money)}
+                    {state.rewards.level ? ` ${text.levelUp(mine?.nickname ?? '', state.rewards.level.to)}` : ''}
+                  </p>
+                  <div className="dn-row">
+                    <OptionButton primary onClick={onRewardsRead}>
+                      {text.rewardsRead}
+                    </OptionButton>
+                  </div>
+                </>
+              )}
               {!state.linked && <Status text={text.lineDown} />}
               {state.linked && !state.hostThere && <Status text={text.hostGone} />}
               <Members pack={pack} party={state.party} />

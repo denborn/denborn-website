@@ -1,4 +1,4 @@
-import { type Page, devices, expect, test } from '@playwright/test'
+import { type Locator, type Page, devices, expect, test } from '@playwright/test'
 import { createPikachu, draftEncounter, setCampaign } from './creating.ts'
 
 /**
@@ -18,6 +18,13 @@ async function table(gm: Page): Promise<{ player: Page; code: string }> {
   await player.goto(creationLink)
   await createPikachu(player, 'Volt', 'Field kit')
   return { player, code }
+}
+
+/** The HP a Pokémon's row on the console gives, such as "HP 15/18". */
+async function hpOf(row: Locator): Promise<string> {
+  const hp = /HP \d+\/\d+/.exec(await row.innerText())?.[0]
+  if (!hp) throw new Error('The row gives no HP')
+  return hp
 }
 
 /** The battle's message band says this, once it has typed it out whole. */
@@ -166,7 +173,7 @@ test('an encounter is launched from the session, and a round is played between t
   await said(player, 'What will Volt do?')
   const enemy = gm.getByRole('button', { name: /^A · Pikachu/ })
   await expect(enemy).toContainText('TO CHOOSE')
-  const whole = await enemy.innerText()
+  const whole = await hpOf(enemy)
 
   // The player aims a move on the battlefield; the game master sees what was locked.
   await player.getByRole('button', { name: 'FIGHT' }).click()
@@ -181,7 +188,7 @@ test('an encounter is launched from the session, and a round is played between t
   await gm.getByRole('group', { name: 'PARTY' }).getByRole('button').first().click()
   await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
   // The enemy was hit: its line no longer reads as it did, and the console lists what the round said, in the games' own words.
-  await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).not.toHaveText(whole)
+  await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).not.toContainText(whole)
   await expect(gm.getByText('Round 1, as it went')).toBeVisible()
   await expect(gm.getByText('Volt used Thunder Shock!')).toBeVisible()
   // The player is told the round step by step, and may pass it to choose again.
@@ -194,6 +201,35 @@ test('an encounter is launched from the session, and a round is played between t
   await expect(gm.locator('.dn-join__code')).toHaveText(code)
   await gm.getByRole('button', { name: 'BACK TO THE FIGHT' }).click()
   await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
+
+  // The game master's page reloads: the fight was kept, and is taken up again at the same round with the same HP.
+  const hurt = await hpOf(gm.getByRole('button', { name: /^A · Pikachu/ }))
+  await gm.reload()
+  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible({ timeout: 30_000 })
+  await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).toContainText(hurt)
+  await said(player, 'What will Volt do?')
+
+  // The game master ends the encounter before the enemy is defeated: nothing is pre-filled (decision 160), and what they type is awarded.
+  await gm.getByRole('button', { name: 'END THE ENCOUNTER' }).click()
+  const exp = gm.getByRole('textbox', { name: /^EXP for Volt/ })
+  await expect(exp).toHaveValue('0')
+  await expect(gm.getByRole('textbox', { name: 'Pokédollars for each character' })).toHaveValue('0')
+  await exp.fill('a lot')
+  await expect(gm.getByRole('button', { name: 'AWARD AND END' })).toBeDisabled()
+  await exp.fill('50')
+  await gm.getByRole('textbox', { name: 'Pokédollars for each character' }).fill('100')
+  await gm.getByRole('button', { name: 'AWARD AND END' }).click()
+
+  // The fight is closed for everyone; the player is told what Volt received, and Volt's sheet has it.
+  await expect(gm.locator('.dn-join__code')).toHaveText(code)
+  await expect(player.getByText('The quarry is over. Volt received 50 EXP and 100 Pokédollars.')).toBeVisible()
+  await player.getByRole('button', { name: 'OK' }).click()
+  await expect(player.getByText('The quarry is over.')).toBeHidden()
+  await expect(player.getByText('Volt (you)')).toBeVisible()
+  // The fight is gone from the game master's device too: a reload shows the session, not a console.
+  await gm.reload()
+  await expect(gm.locator('.dn-join__code')).toHaveText(code)
+  await expect(gm.getByRole('button', { name: 'END THE ENCOUNTER' })).toBeHidden()
 })
 
 test('a join link opens the join screen with its code, and a code that is none says so', async ({ page }) => {
