@@ -258,6 +258,16 @@ Each row is the owner's answer to a question asked that day.
 | 127 | Where hosting starts | A HOST A SESSION button on a saved campaign's page, above its creation link. |
 | 128 | Making a character when joining | "It should offer the possibility to create a character when joining a session" (2026-11-15): on the join screen, under the player's characters of the campaign, a CREATE A CHARACTER button; it is the button put forward when the player has none. |
 | 129 | How the species filters act | The owner found that Pokémon hidden by the filters stayed playable, which meant unticking everything, filtering, then ticking the shown (2026-11-15). Ruled: one button, KEEP ONLY THE SHOWN, makes the Pokémon shown the playable ones and unticks all the others; ADD THE SHOWN and REMOVE THE SHOWN stay for a list built in several passes. Nothing changes until a button is tapped, so looking a Pokémon up by name never unticks another. This replaces TICK ALL SHOWN and UNTICK ALL SHOWN of decision 115. |
+| 130 | The EXP pre-filled for an encounter | One amount per character, as in the games: each gets its own, worked out from its level and every enemy of the encounter. The game master sees the list and may change any line before awarding (2026-11-15). |
+| 131 | EXP bonuses counted in that amount | Both: a held Lucky Egg (half as much again), and not yet evolved (a fifth more for a Pokémon that could already evolve at its level). |
+| 132 | Enemies' held items | Yes: each enemy of an encounter may hold one item, from the same list as characters. |
+| 133 | Mob classes | Each enemy is a MINION, an ELITE or a BOSS. "Money and label only for gm": the class sets the enemy's Pokédollar reward and is a label the game master sees; players do not see it, and it changes nothing else in V0. The owner's reason: "it's a ttrpg so we might have boss fights that cannot be finished in 1 turn like some Pokémon fights do"; what makes a boss last remains the extra actions and the Agony switch already ruled, and further tuning is V2. |
+| 134 | The Pokédollars pre-filled for an encounter | The games' trainer formula with the class as the trainer's class: each enemy's level × its class's base, added up over the encounter, full to each participant (decision 4). Bases: Minion 16, Elite 60, Boss 120. A level 20 boss with two level 15 minions gives 2880 each. |
+| 135 | The party's order shown to players | "Speed only, it is always shown and based on speed, but can be moved temporarily by priority or speed buff etc.": always on screen, in order of Speed, and it moves for as long as something moves it: a locked move's priority, a Speed change, a Speed exchange. |
+| 136 | Held items when an encounter ends | As in the games: an item eaten or used up is gone; an item knocked off, stolen or swapped goes back to who held it before the fight. HP, PP and status stay as the fight left them. |
+| 137 | Doing nothing | WAIT is always available: any Pokémon may lock it on any round and does nothing that round. |
+| 138 | Speed exchange between enemies | Yes: the game master may exchange the Speed of two enemies for the round, as players do among themselves. |
+| 139 | A fight saved under an older battle engine | The app says the fight cannot be resumed and why, then offers to start the encounter again from its beginning with everyone as they were before it, or to end it with nothing changed. |
 
 ---
 
@@ -287,8 +297,8 @@ Changed since: PP Up and PP Max are no longer left out (decision 3).
 
 Each of these is in section 4 under the milestone that first needs it. Four others raised at the same time were settled on 2026-11-14 as decisions 56 to 59.
 
-- Enemy builds include a held item.
-- The party's hypothetical order is computed by the GM's engine from the priority of locked actions and current turn-order Speeds.
+- ~~Enemy builds include a held item.~~ Settled on 2026-11-15: decision 132.
+- ~~The party's hypothetical order is computed by the GM's engine from the priority of locked actions and current turn-order Speeds.~~ Settled on 2026-11-15: decision 135.
 - ~~A character that starts above level 1 still gets exactly 300 roleplay points.~~ Settled otherwise on 2026-11-14: decisions 95 and 96.
 - A Speed exchange (Switch) changes the order of actions only. End-of-round effects and Ability triggers keep the engine's order by real Speed, since the rule says "for turn order only".
 
@@ -458,7 +468,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 - **The battle view**: settled on 2026-11-14 as decisions 87 to 94.
 - **Milestone 4 (offline flows)**: settled on 2026-11-14 and 15 as decisions 95 to 118, each screen approved on the board. What was not ruled one by one is listed in 2.2.
 - **Milestone 5 (relay and session)**: settled on 2026-11-15 as decisions 119 to 129, on top of decisions 13, 25 and 100, each screen approved on the board. What was not ruled one by one is listed in 2.2.
-- **Milestone 6 (battle)**: the reward default (which enemies and recipients count; Lucky Egg and the formula's other optional terms); and from 2.2: the party order computation, enemy held items; what "end encounter" keeps, including a held item that was eaten or knocked off during the fight; what happens to a battle saved under an older engine or adapter version (the adapter refuses to resume it); whether the GM may exchange Speed between enemies; what a player does when nothing can be locked (decision 69) and there is no timer. Also to settle then: the names of the effects no move is named after (confusion, a flinch, a trap, a stat stage's multiplier) and what each effect in the MORE list says it does (the board shows the description of the move that sets it, which speaks of the move: "Goes last. For 5 turns, turn order is reversed."); where the French of the engine's ordinary battle messages comes from (moves, damage, status, weather…); the engine's own text is English, and no French source has been looked for yet.
+- **Milestone 6 (battle)**: settled on 2026-11-15 as decisions 130 to 139 (rewards, enemies' items and classes, the party's order, items after a fight, WAIT, Speed exchange between enemies, a fight saved under an older engine). Still to ask, on the board: the names of the effects no move is named after (confusion, a flinch, a trap, a stat stage's multiplier) and what each effect in the MORE list says it does; and where the French of the engine's ordinary battle messages comes from (moves, damage, status, weather…): the engine's own text is English, and a French source has yet to be looked for.
 - **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
 
 ---
