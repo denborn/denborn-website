@@ -240,3 +240,8 @@ body {
 .sb-card__conditions span {
   color: var(--dn-text-muted);
 }
+
+/* Columns of different heights start from the top. */
+.sb-row--top {
+  align-items: start;
+}

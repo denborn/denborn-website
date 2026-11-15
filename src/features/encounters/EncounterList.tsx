@@ -11,12 +11,12 @@ export interface EncounterListProps {
   onOpen: (id: string) => void
 }
 
-/** One encounter in a list: its name, how many enemies it has and their levels. A tap opens it. */
-export function EncounterRow({ encounter, onOpen }: { encounter: Encounter; onOpen: () => void }) {
+/** One encounter in a list: its name, how many enemies it has and their levels. A tap opens it, or what can be done with it when `expanded` is given. */
+export function EncounterRow({ encounter, onOpen, expanded }: { encounter: Encounter; onOpen: () => void; expanded?: boolean }) {
   const text = useMessages().encounters
   const levels = encounter.enemies.map((enemy) => enemy.level)
   return (
-    <Slot onClick={onOpen}>
+    <Slot onClick={onOpen} {...(expanded === undefined ? {} : { selected: expanded, 'aria-expanded': expanded })}>
       <span className="dn-slot__text">
         <span className="dn-text-shadow">{encounter.name}</span>
         <span className="dn-note">{text.listEntry(encounter.enemies.length, Math.min(...levels), Math.max(...levels))}</span>

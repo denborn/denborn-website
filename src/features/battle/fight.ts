@@ -563,6 +563,8 @@ export interface TableView extends FightView {
   enemyBag: ItemStack[]
   /** Everyone who has a choice has locked. */
   ready: boolean
+  /** The game master stopped the timer. */
+  paused: boolean
 }
 
 /** The whole table, for the game master. */
@@ -594,6 +596,7 @@ export function tableView(fight: Fight, context: FightContext): TableView {
     classes: Object.fromEntries(fight.enemies.map((enemy) => [enemy.id, enemy.class])),
     enemyBag: [...fight.enemyBag],
     ready: isReady(fight, context),
+    paused: timer.paused,
   }
 }
 

@@ -5,6 +5,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { usePack } from '../data/use-pack'
+import { BattleScreen } from '../features/battle/BattleScreen'
+import { GmConsole } from '../features/battle/GmConsole'
 import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
 import { CampaignList } from '../features/campaigns/CampaignList'
 import { ImportCampaign } from '../features/campaigns/ImportCampaign'
@@ -216,6 +218,8 @@ export function HostSessionPage() {
   const messages = useMessages()
   const { id } = useParams()
   const hosting = useHosting()
+  /** During a fight: whether the session's own screen is shown in the console's place. */
+  const [sessionShown, setSessionShown] = useState(false)
   const entry = library.campaigns().find((stored) => stored.id === id)
   const campaign = entry?.read.ok ? entry.read.value : undefined
   usePageTitle(campaign?.name ?? messages.campaigns.title)
@@ -229,6 +233,26 @@ export function HostSessionPage() {
   // Hosting starts just after the page is first drawn.
   if (!hosted) return null
   const here = `/campaigns/${id}/session`
+  const { session, table } = hosted.view
+
+  // While a fight is on, this is its console; the session's own screen (the code, who asks to come in) is one tap away.
+  if (table && !sessionShown) {
+    const there = new Set(session.party.filter((member) => member.present).map((member) => member.character.id))
+    return (
+      <GmConsole
+        pack={pack}
+        table={table}
+        // A player who left mid-fight still has a Pokémon on the line: the campaign's own copy names it.
+        party={[...session.party.map((member) => member.character), ...session.campaign.characters]}
+        away={table.combatants.filter((combatant) => combatant.side === 'players' && !there.has(combatant.id)).map((combatant) => combatant.id)}
+        onCommand={hosting.command}
+      >
+        <div className="dn-row">
+          <OptionButton onClick={() => setSessionShown(true)}>{messages.session.host.toSession}</OptionButton>
+        </div>
+      </GmConsole>
+    )
+  }
   return (
     <HostScreen
       pack={pack}
@@ -239,6 +263,10 @@ export function HostSessionPage() {
       notice={hosted.notKept ? messages.saving[hosted.notKept] : undefined}
       // Preparing an encounter from the session comes back to the session.
       onEncounter={(encounter) => void navigate(`/campaigns/${id}/encounters/${encounter ?? 'new'}`, { state: { back: here } })}
+      onLaunch={hosting.launch}
+      launching={hosted.launching}
+      noLaunch={hosted.noLaunch}
+      fight={table ? { name: table.encounter.name, onBack: () => setSessionShown(false) } : undefined}
       onApprove={hosting.approve}
       onDecline={hosting.decline}
       onRemove={hosting.remove}
@@ -349,7 +377,8 @@ export function JoinSessionPage() {
   const visit = `${code ?? ''}#${attempt}`
   /** Where the player stands, with the visit it is true of: what a former visit left is not shown for the next. */
   const [stand, setStand] = useState<{ visit: string; state: GuestState }>()
-  usePageTitle(useMessages().session.join.title)
+  const messages = useMessages()
+  usePageTitle(messages.session.join.title)
 
   useEffect(() => {
     if (!code) return
@@ -378,13 +407,31 @@ export function JoinSessionPage() {
     }
   }, [code, pack, visit])
 
+  const state = code ? (stand?.visit === visit ? stand.state : GUEST_START) : undefined
+  // A fight takes the whole phone: the scene above, the choices below (decision 147).
+  if (state?.at === 'in' && state.fight) {
+    return (
+      <div className="dn-page">
+        <BattleScreen
+          pack={pack}
+          fight={state.fight}
+          party={state.party.members.map((member) => member.character)}
+          me={state.party.you}
+          answer={state.answer}
+          notice={!state.linked ? messages.session.join.lineDown : !state.hostThere ? messages.session.join.hostGone : undefined}
+          onIntent={(intent) => run.current?.intend(intent)}
+        />
+      </div>
+    )
+  }
+
   return (
     <JoinScreen
       // A code in the address that is no join code is shown as typed, for the player to correct.
       key={given ?? 'code'}
       pack={pack}
       code={given}
-      state={code ? (stand?.visit === visit ? stand.state : GUEST_START) : undefined}
+      state={state}
       characters={library.characters().flatMap((stored) => (stored.read.ok ? [stored.read.value] : []))}
       onCode={(typed) => void navigate(`/session/${typed}`)}
       onChoose={(character) => {

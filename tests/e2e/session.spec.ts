@@ -138,6 +138,54 @@ test('an encounter is prepared from the session being hosted, and the players st
   await expect(gm.getByRole('button', { name: /^The quarry/ })).toBeVisible()
 })
 
+test('an encounter is launched from the session, and a round is played between the game master and a player', async ({ page: gm }) => {
+  const { player, code } = await table(gm)
+  await gm.getByRole('button', { name: 'NEW ENCOUNTER' }).click()
+  await draftEncounter(gm, 'The quarry')
+  await gm.getByRole('button', { name: 'DONE' }).click()
+  await gm.getByRole('button', { name: 'SAVE THE ENCOUNTER' }).click()
+  await gm.getByRole('button', { name: 'BACK' }).click()
+
+  // Nobody is in the party yet: there is no fight to launch.
+  await gm.getByRole('button', { name: /^The quarry/ }).click()
+  await gm.getByRole('button', { name: 'LAUNCH' }).click()
+  await expect(gm.getByRole('alert')).toContainText('Nobody in the party can fight')
+
+  await ask(player, code)
+  await gm.getByRole('group', { name: 'Volt' }).getByRole('button', { name: 'LET IN' }).click()
+  await expect(player.getByText('Volt (you)')).toBeVisible()
+
+  // The launch fetches the battle engine, then the game master's screen is the fight's console and the player's is the fight.
+  await gm.getByRole('button', { name: 'LAUNCH' }).click()
+  await expect(gm.getByRole('heading', { name: 'The quarry · Round 1' })).toBeVisible({ timeout: 30_000 })
+  await expect(player.getByText('What will Volt do?')).toBeVisible()
+  const enemy = gm.getByRole('button', { name: /^A · Pikachu/ })
+  await expect(enemy).toContainText('TO CHOOSE')
+  const whole = await enemy.innerText()
+
+  // The player aims a move on the battlefield; the game master sees what was locked.
+  await player.getByRole('button', { name: 'FIGHT' }).click()
+  await player.getByRole('button', { name: /Thunder Shock/ }).click()
+  await player.getByRole('group', { name: 'FOES' }).getByRole('button').first().click()
+  await expect(player.getByText('Volt is ready. Waiting for the others…')).toBeVisible()
+  await expect(gm.getByText('Thunder Shock on Pikachu')).toBeVisible()
+
+  // The game master gives the enemy its move, aimed on the battlefield above: the last lock plays the round.
+  await enemy.click()
+  await gm.getByRole('button', { name: /^Thunder Shock/ }).click()
+  await gm.getByRole('group', { name: 'PARTY' }).getByRole('button').first().click()
+  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
+  await expect(player.getByText('What will Volt do?')).toBeVisible()
+  // The enemy was hit: its line no longer reads as it did.
+  await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).not.toHaveText(whole)
+
+  // The session's own screen is one tap away, and leads back to the fight.
+  await gm.getByRole('button', { name: 'THE SESSION' }).click()
+  await expect(gm.locator('.dn-join__code')).toHaveText(code)
+  await gm.getByRole('button', { name: 'BACK TO THE FIGHT' }).click()
+  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
+})
+
 test('a join link opens the join screen with its code, and a code that is none says so', async ({ page }) => {
   await page.goto('/#DNJ1.NOTACODE')
   await expect(page.getByRole('heading', { name: 'Join a session' })).toBeVisible()

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import type { Intent, PlayerFight } from '../../shared/protocol/battle'
@@ -21,6 +21,8 @@ import {
 } from '../../ui'
 import { FighterSheet, statusOf } from './FighterSheet'
 import { type Fighter, clockText, fightersOf, reaches } from './fighters'
+import { useCountdown } from './use-countdown'
+import { type Wording, choiceWords, moveName as moveNameIn } from './words'
 
 export interface BattleScreenProps {
   pack: DataPack
@@ -32,6 +34,8 @@ export interface BattleScreenProps {
   me: string
   /** What became of the last intent that was answered. */
   answer?: { id: string; refused?: string } | undefined
+  /** Said in the place of everything else while nothing can be asked: the connection dropped, the game master is away. */
+  notice?: string | undefined
   onIntent: (intent: Intent) => void
 }
 
@@ -57,22 +61,6 @@ const HOME: View = { at: 'home' }
 /** Under this much time, the clock turns red. */
 const LOW_TIME_MS = 10_000
 
-/** The milliseconds left on the timer: what the fight said, counted down here while it runs. */
-function useCountdown(timer: PlayerFight['timer']): number {
-  const [ticked, setTicked] = useState<{ timer: PlayerFight['timer']; left: number }>()
-  useEffect(() => {
-    if (!timer.running) return
-    const start = Date.now()
-    const interval = setInterval(() => {
-      setTicked({ timer, left: Math.max(0, timer.left - (Date.now() - start)) })
-    }, 250)
-    return () => {
-      clearInterval(interval)
-    }
-  }, [timer])
-  return ticked?.timer === timer ? ticked.left : timer.left
-}
-
 /**
  * A fight on a player's phone (decisions 87 to 94): the scene on the top
  * screen, one foe and one ally at a time, and on the touch screen whatever
@@ -84,7 +72,7 @@ function useCountdown(timer: PlayerFight['timer']): number {
  * `onIntent`, for what the player chose. What it shows changes when the game
  * master's side says so.
  */
-export function BattleScreen({ pack, fight, party, me, answer, onIntent }: BattleScreenProps) {
+export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent }: BattleScreenProps) {
   const language = useLanguage()
   const messages = useMessages()
   const battle = messages.battle
@@ -104,7 +92,7 @@ export function BattleScreen({ pack, fight, party, me, answer, onIntent }: Battl
   const [heard, setHeard] = useState<BattleScreenProps['answer']>()
   // What was asked and not yet answered: nothing more is asked meanwhile.
   const [waiting, setWaiting] = useState<{ fight: PlayerFight; answer: BattleScreenProps['answer'] }>()
-  const pending = waiting !== undefined && waiting.fight === fight && waiting.answer === answer
+  const pending = notice !== undefined || (waiting !== undefined && waiting.fight === fight && waiting.answer === answer)
 
   const fighters = fightersOf(fight, party, pack, language)
   const allies = fighters.filter((fighter) => fighter.side === 'players')
@@ -143,6 +131,7 @@ export function BattleScreen({ pack, fight, party, me, answer, onIntent }: Battl
   const myAsk = (kind: 'run' | 'switch') => fight.asks.find((ask) => ask.kind === kind && ask.from === me)
 
   const message = ((): string => {
+    if (notice) return notice
     if (fight.outcome) return text.over[fight.outcome]
     if (!mine) return text.watching
     if (askToMe) return (askToMe.kind === 'run' ? text.askedRun : text.askedSwitch)(nameOf(askToMe.from), mine.name)
@@ -239,21 +228,12 @@ export function BattleScreen({ pack, fight, party, me, answer, onIntent }: Battl
   const timerWords = fight.timer.seconds === undefined ? undefined : `${text.timer(clockText(Math.ceil(left / 10_000) * 10_000))}${fight.timer.running || fight.timer.expired ? '' : `, ${text.timerStopped}`}`
   const timerClass = `dn-timer${left <= LOW_TIME_MS ? ' dn-timer--low' : ''}`
 
+  const wording: Wording = { pack, language, messages, nameOf }
+  const moveName = (id: string): string => moveNameIn(id, wording)
   const actionText = (entry: Locked): string => {
-    const { choice } = entry
-    const said =
-      choice.do === 'wait'
-        ? text.action.wait
-        : choice.do === 'struggle'
-          ? text.struggle
-          : choice.do === 'bag'
-            ? text.action.bag(pack.items[choice.item]?.name[language] ?? choice.item, nameOf(choice.target))
-            : choice.target
-              ? text.action.moveOn(moveName(choice.move), nameOf(choice.target))
-              : text.action.move(moveName(choice.move))
+    const said = choiceWords(entry.choice, wording)
     return entry.by === 'self' ? said : `${said} · ${entry.by === 'gm' ? text.action.byGm : text.action.byTimer}`
   }
-  const moveName = (id: string): string => pack.moves[id]?.name[language] ?? (id === 'struggle' ? text.struggle : id)
 
   // --- The touch screen -----------------------------------------------------
   const ordered = fight.order.flatMap((id) => byId(id) ?? [])

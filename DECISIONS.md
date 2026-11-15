@@ -275,6 +275,10 @@ Each row is the owner's answer to a question asked that day.
 | 144 | WAIT and the Pokémon's conditions | "Its turn passes" (2026-11-15): like the Bag action (decision 21). When its turn comes, sleep and confusion count down as if it used a move (a confused Pokémon may hurt itself, a sleeping one does not wait), then it does nothing. Its turn comes where an ordinary move's would: priority 0, at its Speed. |
 | 145 | WAIT for a Pokémon locked into a move | "No, it has no choice" (2026-11-15): as in the games, the locked move happens (Outrage, a recharge, the second turn of a charging move). WAIT is offered only when the Pokémon would choose. |
 | 146 | What a player sees of a teammate's locked action | "The move and its target" (2026-11-15): each player sees what every teammate locked, the move or item and on whom. The enemies' locked actions stay with the game master. |
+| 147 | The battle on a player's phone | "Yes, as shown" (2026-11-15, on the board, a real fight on two phones): a move's target, a Bag item's target and the ally for RUN or SWITCH are picked on the battlefield plan, where only what can be picked is lit; the Bag is a list of what can be used in a fight; an ask to an ally is a question on that ally's phone, with ACCEPT and REFUSE, and TAKE BACK for the one who asked; a Pokémon's sheet opens from the battlefield. The wording shown in English and French is approved with it (`src/i18n/`, `battle.choosing`). |
+| 148 | Where WAIT is | In the top left corner of the command screen, mirroring BATTLEFIELD. One tap locks WAIT. |
+| 149 | How the party's order is shown | "Yes, as shown": a column down the left of the ball, with a tick on who has locked. A tap opens the party's list with what each teammate chose; once a player has locked, that list takes the place of the commands, with CHANGE to unlock. |
+| 150 | The timer when a fight is launched | Off until the game master turns it on, at launch or during the fight. It then starts at 60 seconds, which the game master can change. |
 
 ---
 

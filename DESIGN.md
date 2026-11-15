@@ -94,6 +94,11 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `LineBrowser` | One Pokémon of a line at a time | Denborn's own, in the games' manner | An arrow on each side of the HUD box walks along the line; the line's letters sit underneath: the one shown is lit, a downed one struck through in red, an empty slot faded, the viewer's own underlined in gold. Arrows step over empty slots and stop at the ends. The new Pokémon's name is read out. |
 | `FieldPlan` | The battlefield from above | Denborn's own, after the party slots | Both lines as tiles (icon, letter, HP bar or Agony stacks), each line centred on the other at one pitch, so a tile's place is its x of the rules. Six tiles fill the width. The two Pokémon on the scene are lit; a downed one is red; a dead one's slot stays, empty; one out of the viewer's reach is darker (decision 90). Between the lines, the terrain and the weather, each a label in a type's colours (decision 89). At its foot, MORE (with the number of effects) and BACK. |
 | `FieldEffects` | Everything in effect on the battlefield | Denborn's own | The list behind MORE (decisions 92 to 94): terrain, weather, rooms, each side's screens and hazards, then what sits on a single Pokémon (its stat changes as one entry, each other effect as its own). Each entry: a mark for whom it touches (a diamond for the whole field, an arrow up for the foes' side, an arrow down for the party's, as they lie on the plan, followed by the Pokémon's letter when it is one Pokémon's), its name, the turns it has left in gold, the scope in words, what it does. It scrolls, by touch or keyboard. |
+| `.dn-order` | The party's order on the command screen | Denborn's own | A column down the left of the ball (decisions 135 and 149): rank, icon, a drawn tick for who has locked; the viewer's own rank underlined in gold. One button: a tap opens the party's list. |
+| `.dn-timer` | The round's timer | Denborn's own | Minutes and seconds down the right of the ball, red under ten seconds, with "stopped" under it while it is held. An inline form sits in a line of title. Spoken to the nearest ten seconds, never tick by tick. |
+| `.dn-roster` | A list filling the touch screen | Denborn's own, after the list of effects | A line of title, rows that scroll, a row of buttons. The party in its order with what each has locked (decision 146), which is what a player sees once locked, with CHANGE to unlock; the Bag's items; a Pokémon's moves to restore. |
+| `.dn-ask` | A question on the whole touch screen | Denborn's own | An ally's ask to trade places or Speed, with ACCEPT and REFUSE. |
+| `.dn-card` | A Pokémon's sheet during a fight | Denborn's own, after the summary | Its box with HP in numbers, its types, five stats with the stages they carry in gold, Ability, held item, moves in their type's colour with PP. |
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 | `TextField` | A line of text to type | B2W2 option boxes | Label above, a line of help or of what is wrong underneath, tied to the field for screen readers. |
@@ -131,7 +136,15 @@ A session has four players or more, so the scene does not try to show every Pok�
 
 The sheet on the board is a mock: the real one is designed with the character screens (milestone 4). What each effect says it does is, for now, the description of the move that sets it; its proper wording comes with the battle screens.
 
-Not designed yet, and not to be improvised: target selection, the Bag, the party's order, the timer and the GM's console. They come with their milestones, on this system.
+**Choosing a round's action** (decisions 147 to 149), on the touch screen:
+
+- The command screen has WAIT hanging from its top left corner as BATTLEFIELD hangs from the right, the party's order down the left of the ball and the timer down the right.
+- A move that takes a target, a Bag item, RUN and SWITCH are aimed on the battlefield plan itself: the question is written between the two lines, only what can be picked is lit, and the rest is dimmed and cannot be pressed. For RUN, a dead ally's empty place can be pressed.
+- An ask to an ally (RUN, SWITCH) shows as a question on that ally's touch screen; the one who asked sees that it is pending, with TAKE BACK.
+- Once a player has locked, the touch screen is the party's list.
+- The top screen's message says where the player stands: the prompt, ready, an ask, a target lost, no choice, time up.
+
+Not designed yet, and not to be improvised: the GM's console, the round played back step by step, and the names of what is in effect. They come with their steps, on this system.
 
 ## 6. Motion
 
@@ -232,5 +245,8 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 128 | On the join screen, CREATE A CHARACTER sits under the characters to choose from, and is put forward when there is none. |
 | 129 | In the species picker, KEEP ONLY THE SHOWN makes the Pokémon shown the playable ones in one tap; ADD THE SHOWN and REMOVE THE SHOWN build a list in several passes. |
 | 127 | HOST A SESSION sits on a saved campaign's page, above its creation link. |
+| 147 | The battle on a player's phone: a target, a Bag item's target, an ally for RUN or SWITCH are picked on the battlefield plan; the Bag is a list; an ask is answered on the ally's own phone; a Pokémon's sheet opens from the battlefield. Its wording in both languages is the board's. |
+| 148 | WAIT hangs from the top left corner of the command screen. One tap locks it. |
+| 149 | The party's order is a column down the left of the ball, with a tick on who has locked; a tap opens the party's list, which takes the commands' place once the player has locked. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

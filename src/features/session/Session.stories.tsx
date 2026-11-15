@@ -75,6 +75,7 @@ function Hosting({ line, party }: HostArgs) {
         onRemove={(peer) => setSession({ ...session, party: session.party.filter((member) => member.peer !== peer) })}
         onEnd={() => undefined}
         onEncounter={() => undefined}
+        onLaunch={() => undefined}
         onCopy={() => Promise.resolve(true)}
         onBack={() => undefined}
       />
@@ -145,8 +146,8 @@ export const Host: StoryObj<HostArgs> = {
         The game master hosting a session (decision 124). On the top screen: the join code in large letters to read out, its QR code, the
         campaign. Below: COPY THE LINK, then who is asking to come in and the party. The second request is a character the game master
         already has a copy of, which differs (decision 13): both copies, which is more recent, and the pick. A tap on a member opens REMOVE
-        FROM THE SESSION (decision 123). Under the party, the campaign’s encounters (decision 143): a tap opens one to prepare it, NEW
-        ENCOUNTER makes another, and both come back here; the way to launch one comes with the battle. END THE SESSION asks first. Set{' '}
+        FROM THE SESSION (decision 123). Under the party, the campaign’s encounters (decision 143): a tap on one shows LAUNCH, which starts
+        the fight for the party, and PREPARE, which opens it to change it; NEW ENCOUNTER makes another. END THE SESSION asks first. Set{' '}
         <code>line</code> to see what is said when the connection is not there.
       </Note>
     </>

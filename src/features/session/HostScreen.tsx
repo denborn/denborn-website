@@ -21,6 +21,14 @@ export interface HostScreenProps {
   notice?: string | undefined
   /** Opens one of the campaign's encounters, or a new one when no id is given (decision 143). */
   onEncounter: (id: string | undefined) => void
+  /** Launches an encounter for the party. */
+  onLaunch: (id: string) => void
+  /** The encounter being launched, while the battle engine is fetched. */
+  launching?: string | undefined
+  /** Why the last launch made no fight. */
+  noLaunch?: keyof ReturnType<typeof useMessages>['session']['host']['noLaunch'] | undefined
+  /** The fight being played, by its encounter's name, with the way back to it. */
+  fight?: { name: string; onBack: () => void } | undefined
   onApprove: (peer: string, keep: 'theirs' | 'mine') => void
   onDecline: (peer: string) => void
   onRemove: (peer: string) => void
@@ -35,12 +43,14 @@ export interface HostScreenProps {
  * letters with its QR code on the top screen, the link to copy, then who is
  * asking to come in, who is in, and the campaign's encounters (decision 143).
  */
-export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
+export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onLaunch, launching, noLaunch, fight, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.host
   const [copied, setCopied] = useState<boolean>()
   const [opened, setOpened] = useState<string>()
+  /** The encounter whose LAUNCH and PREPARE are shown. */
+  const [chosen, setChosen] = useState<string>()
   const [ending, setEnding] = useState(false)
   const link = joinLink(code, origin)
   const full = session.party.length >= PARTY_MAX
@@ -118,10 +128,39 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
           ))}
           <span className="dn-label">{text.encounters}</span>
           {session.campaign.encounters.length === 0 && <p className="dn-note">{messages.encounters.empty}</p>}
+          {fight && (
+            <>
+              <p className="dn-note">{text.fightOn(fight.name)}</p>
+              <div className="dn-row">
+                <OptionButton primary onClick={fight.onBack}>
+                  {text.toFight}
+                </OptionButton>
+              </div>
+            </>
+          )}
+          {noLaunch && (
+            <p className="dn-note dn-note--error" role="alert">
+              {text.noLaunch[noLaunch]}
+            </p>
+          )}
           <ul className="dn-list">
             {session.campaign.encounters.map((encounter) => (
-              <li key={encounter.id}>
-                <EncounterRow encounter={encounter} onOpen={() => onEncounter(encounter.id)} />
+              <li key={encounter.id} className="dn-entry">
+                <EncounterRow encounter={encounter} expanded={chosen === encounter.id} onOpen={() => setChosen(chosen === encounter.id ? undefined : encounter.id)} />
+                {chosen === encounter.id && (
+                  <div className="dn-row">
+                    {/* One fight at a time: the next encounter waits for this one's end. */}
+                    <OptionButton primary disabled={fight !== undefined || launching !== undefined} onClick={() => onLaunch(encounter.id)}>
+                      {text.launch}
+                    </OptionButton>
+                    <OptionButton onClick={() => onEncounter(encounter.id)}>{text.prepare}</OptionButton>
+                  </div>
+                )}
+                {launching === encounter.id && (
+                  <p className="dn-note" role="status">
+                    {text.launching}
+                  </p>
+                )}
               </li>
             ))}
           </ul>

@@ -7,6 +7,8 @@
  */
 import { create } from 'zustand'
 import type { DataPack } from '../data/types'
+import type { FightCommand } from '../features/battle/fight'
+import type { LaunchRefusal } from '../features/session/host'
 import { type HostRun, type HostView, runHost } from '../features/session/run-host'
 import { sameValue } from '../shared/same-value'
 import type { CampaignDocument } from '../shared/schema/campaign'
@@ -21,6 +23,10 @@ export interface Hosted {
   view: HostView
   /** Set when the device could not keep the copy of a character that joined. */
   notKept?: Extract<WriteResult, { ok: false }>['reason']
+  /** The encounter being launched, while the battle engine is fetched. */
+  launching?: string
+  /** Why the last launch made no fight. */
+  noLaunch?: LaunchRefusal | 'engine'
 }
 
 interface HostingState {
@@ -30,6 +36,10 @@ interface HostingState {
   approve: (peer: string, keep: 'theirs' | 'mine') => void
   decline: (peer: string) => void
   remove: (peer: string) => void
+  /** Launches an encounter of the campaign for the party (decision 143). */
+  launch: (encounterId: string) => void
+  /** The game master's own command in the fight; gives back why it changed nothing, when it did not. */
+  command: (command: FightCommand) => string | undefined
   /** Ends the session for everyone: its code stops working, and the next session gets another. */
   end: () => void
 }
@@ -89,6 +99,24 @@ export const useHosting = create<HostingState>((set, get) => ({
   approve: (peer, keep) => run?.approve(peer, keep),
   decline: (peer) => run?.decline(peer),
   remove: (peer) => run?.remove(peer),
+  launch: (encounterId) => {
+    const hosted = get().hosted
+    const hosting = run
+    if (!hosted || !hosting || hosted.launching) return
+    const starting: Hosted = { ...hosted, launching: encounterId }
+    delete starting.noLaunch
+    set({ hosted: starting })
+    void hosting.launch(encounterId).then((problem) => {
+      const now = get().hosted
+      // The session may have ended, or another campaign's begun, while the engine was fetched.
+      if (!now || run !== hosting) return
+      const next: Hosted = { ...now }
+      delete next.launching
+      if (problem) next.noLaunch = problem
+      set({ hosted: next })
+    })
+  },
+  command: (command) => run?.command(command),
   end: () => {
     const hosted = get().hosted
     run?.end()

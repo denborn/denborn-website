@@ -9,8 +9,9 @@ import { OptionButton } from '../../ui'
 import { Note, Phone, usePack } from '../../ui/stories/board'
 import { sampleQuarry } from '../encounters/samples'
 import { BattleScreen } from './BattleScreen'
+import { GmConsole } from './GmConsole'
 import { fightSetup } from './fight-setup'
-import { type Author, type Choice, type Fight, type FightCommand, type FightContext, fightStep, isReady, openFight, partyView } from './fight'
+import { type Author, type Choice, type Fight, type FightCommand, type FightContext, fightStep, isReady, openFight, partyView, tableView } from './fight'
 import { sampleHero } from './samples'
 
 interface LocalTable {
@@ -81,22 +82,28 @@ function anyChoice(table: LocalTable, id: string): Choice {
   return { do: 'wait' }
 }
 
-function Table({ timer }: { timer: number }) {
+function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
   const pack = usePack()
   const [table, setTable] = useState(() => openTable(pack, timer))
-  const context = (now: number): FightContext => ({ engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, absent: new Set(), now })
+  /** Whether the first player's device is away: the game master may then choose for them. */
+  const [away, setAway] = useState(false)
+  const absent = new Set(away ? [table.party[0]?.id ?? ''] : [])
+  const context = (now: number): FightContext => ({ engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, absent, now })
 
-  /** Carries commands out one after the other, as the game master's side would. */
-  const carryOut = (commands: { author: Author; command: FightCommand; intent?: string }[]): void => {
+  /** Carries commands out one after the other, as the game master's side would; gives back why the last one changed nothing. */
+  const carryOut = (commands: { author: Author; command: FightCommand; intent?: string }[]): string | undefined => {
     const now = Date.now()
     let { fight } = table
+    let refused: string | undefined
     const answers = { ...table.answers }
     for (const { author, command, intent } of commands) {
       const step = fightStep(fight, author, command, context(now))
       fight = step.fight
+      refused = step.refused
       if (intent && author !== 'gm') answers[author.player] = { id: intent, ...(step.refused ? { refused: step.refused } : {}) }
     }
     setTable({ ...table, fight, answers, now })
+    return refused
   }
 
   // The timer runs out by itself, as it does at a real table.
@@ -128,10 +135,63 @@ function Table({ timer }: { timer: number }) {
       />
     </Phone>
   )
-  const others = [third.id, ...table.engine.combatants().filter((combatant) => combatant.side === 'enemies').map((combatant) => combatant.id)].filter(
-    (id) => table.engine.request(id).canAct && table.engine.request(id).forced === null && !(id in table.fight.locked),
+  const unlocked = (id: string): boolean => table.engine.request(id).canAct && table.engine.request(id).forced === null && !(id in table.fight.locked)
+  const enemies = table.engine
+    .combatants()
+    .filter((combatant) => combatant.side === 'enemies')
+    .map((combatant) => combatant.id)
+  /** Locks something for those nobody plays on this board. */
+  const choose = (ids: readonly string[]) => (): void => {
+    carryOut(ids.filter(unlocked).map((id) => ({ author: enemies.includes(id) ? 'gm' : { player: id }, command: { do: 'lock', who: id, choice: anyChoice(table, id) } })))
+  }
+  const again = (
+    <OptionButton
+      onClick={() => {
+        setTable(openTable(pack, timer))
+      }}
+    >
+      START AGAIN
+    </OptionButton>
   )
 
+  if (seat === 'gm') {
+    const teammates = [second.id, third.id]
+    return (
+      <>
+        <div className="sb-row sb-row--top">
+          <Phone>
+            <GmConsole pack={pack} table={tableView(table.fight, context(table.now))} party={table.party} away={[...absent]} onCommand={(command) => carryOut([{ author: 'gm', command }])} />
+          </Phone>
+          {phone(first)}
+        </div>
+        <div className="sb-row dn-row">
+          <OptionButton primary disabled={!teammates.some(unlocked) || table.fight.outcome !== undefined} onClick={choose(teammates)}>
+            BRAISE AND MOUSSE CHOOSE
+          </OptionButton>
+          <OptionButton
+            onClick={() => {
+              setAway(!away)
+            }}
+          >
+            {away ? 'VOLT’S PLAYER IS BACK' : 'VOLT’S PLAYER GOES AWAY'}
+          </OptionButton>
+          {again}
+        </div>
+        <Note>
+          The game master’s console, on the left, beside one player’s phone (Volt). The battlefield stays on the console’s top screen;
+          below it, the round as it stands: the timer (off until turned on, decision 150), each enemy and what it has locked, each
+          player’s Pokémon and what it has locked, and the order of everyone. A tap on a Pokémon, in the list or on the battlefield,
+          opens it. An enemy is given a move (aimed on the battlefield above when it takes a target), WAIT or an item of the enemies’
+          Bag; extra moves are lined up first with ADD AN EXTRA MOVE, then the move chosen locks them all; it can be moved along its
+          line and exchange Speed with another enemy. The Pokémon of a player who is away (the button below) can be chosen for,
+          Struggle included. The round is played by the last lock. Not here yet: the end of the fight and its rewards, and the round
+          played back step by step.
+        </Note>
+      </>
+    )
+  }
+
+  const others = [third.id, ...enemies]
   return (
     <>
       <div className="sb-row">
@@ -139,41 +199,28 @@ function Table({ timer }: { timer: number }) {
         {phone(second)}
       </div>
       <div className="sb-row dn-row">
-        <OptionButton
-          primary
-          disabled={others.length === 0 || table.fight.outcome !== undefined}
-          onClick={() => {
-            carryOut(others.map((id) => ({ author: id === third.id ? { player: id } : 'gm', command: { do: 'lock', who: id, choice: anyChoice(table, id) } })))
-          }}
-        >
+        <OptionButton primary disabled={!others.some(unlocked) || table.fight.outcome !== undefined} onClick={choose(others)}>
           THE OTHERS CHOOSE
         </OptionButton>
         <OptionButton
-          disabled={!isReady(table.fight, context(table.now)) || others.length > 0}
+          disabled={!isReady(table.fight, context(table.now)) || others.some(unlocked)}
           onClick={() => {
             carryOut([{ author: 'gm', command: { do: 'play' } }])
           }}
         >
           PLAY THE ROUND
         </OptionButton>
-        <OptionButton
-          onClick={() => {
-            setTable(openTable(pack, timer))
-          }}
-        >
-          START AGAIN
-        </OptionButton>
+        {again}
       </div>
       <Note>
         A real fight, played in this page by the real battle engine: two players’ phones side by side, Volt’s (A) on the left and Braise’s
         (B) on the right. The buttons underneath stand in for the rest of the table: <strong>THE OTHERS CHOOSE</strong> locks something for
-        the third player (Mousse) and for the three enemies; the round is played as soon as everyone has locked. What is{' '}
-        <strong>new and to be approved</strong>: WAIT in the top left corner; the party’s ORDER down the left of the ball (a tap opens the
-        party’s list, which is also what a player sees once locked, with what each teammate chose); the timer on the right (set{' '}
-        <code>timer</code> below); choosing a target on the battlefield plan, where only what the move reaches can be picked; the Bag’s
-        list, then its target; RUN and SWITCH asking an ally, who answers on their own phone; a Pokémon’s sheet from the battlefield.
-        Not here yet: the round is not played back step by step (the screens jump to its result), and the battlefield names no terrain,
-        weather or effect. Both come with the next step.
+        the third player (Mousse) and for the three enemies; the round is played as soon as everyone has locked. Approved (decisions 147
+        to 149): WAIT in the top left corner; the party’s ORDER down the left of the ball (a tap opens the party’s list, which is also
+        what a player sees once locked); the timer on the right (set <code>timer</code> below); a target chosen on the battlefield plan;
+        the Bag’s list, then its target; RUN and SWITCH asking an ally, who answers on their own phone; a Pokémon’s sheet from the
+        battlefield. Not here yet: the round is not played back step by step (the screens jump to its result), and the battlefield names
+        no terrain, weather or effect. Both come with the next step.
       </Note>
     </>
   )
@@ -182,10 +229,13 @@ function Table({ timer }: { timer: number }) {
 const meta = {
   title: 'Screens/Battle',
   component: Table,
-  args: { timer: 0 },
-  argTypes: { timer: { control: 'inline-radio', options: [0, 20, 60] } },
+  args: { timer: 0, seat: 'players' },
+  argTypes: { timer: { control: 'inline-radio', options: [0, 20, 60] }, seat: { table: { disable: true } } },
 } satisfies Meta<typeof Table>
 export default meta
 
 /** Two players' phones in one fight. */
 export const PlayersPhones: StoryObj<typeof meta> = { render: (args) => <Table key={args.timer} {...args} /> }
+
+/** The game master's console, beside one player's phone. */
+export const GameMastersConsole: StoryObj<typeof meta> = { args: { seat: 'gm' }, render: (args) => <Table key={args.timer} {...args} /> }
