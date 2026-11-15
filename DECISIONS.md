@@ -257,6 +257,7 @@ Each row is the owner's answer to a question asked that day.
 | 126 | The player's joining screen | "Yes, as shown": the code; then the player's characters made for the campaign being played; the wait; the party with who is there and who is away; a sentence for each way of being out, with TRY AGAIN. |
 | 127 | Where hosting starts | A HOST A SESSION button on a saved campaign's page, above its creation link. |
 | 128 | Making a character when joining | "It should offer the possibility to create a character when joining a session" (2026-11-15): on the join screen, under the player's characters of the campaign, a CREATE A CHARACTER button; it is the button put forward when the player has none. |
+| 129 | How the species filters act | The owner found that Pokémon hidden by the filters stayed playable, which meant unticking everything, filtering, then ticking the shown (2026-11-15). Ruled: one button, KEEP ONLY THE SHOWN, makes the Pokémon shown the playable ones and unticks all the others; ADD THE SHOWN and REMOVE THE SHOWN stay for a list built in several passes. Nothing changes until a button is tapped, so looking a Pokémon up by name never unticks another. This replaces TICK ALL SHOWN and UNTICK ALL SHOWN of decision 115. |
 
 ---
 

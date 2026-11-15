@@ -3,7 +3,7 @@ import type { DataPack } from '../../data/types'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import { NumberField, OptionButton, PokemonIcon, Slot, TextField, TypeLabel } from '../../ui'
-import { NO_FILTER, type SpeciesFilter, speciesShown, statTotalOf, statTotalRange, ticked, unticked } from './species-filters'
+import { NO_FILTER, type SpeciesFilter, only, speciesShown, statTotalOf, statTotalRange, ticked, unticked } from './species-filters'
 
 export interface SpeciesRuleProps {
   pack: DataPack
@@ -20,8 +20,9 @@ const TOTAL_SIDES = ['atMost', 'atLeast'] as const
 
 /**
  * The species players may create: each Pokémon is ticked or not. The filters
- * narrow what is shown, and two buttons tick or untick everything shown
- * (decision 112).
+ * narrow what is shown (decision 112); KEEP ONLY THE SHOWN then makes the
+ * Pokémon shown the playable ones in one tap (decision 129), and two smaller
+ * buttons add the shown or take them out.
  */
 export function SpeciesRule({ pack, chosen, onChange, language, text }: SpeciesRuleProps) {
   const [filter, setFilter] = useState<SpeciesFilter>(NO_FILTER)
@@ -107,11 +108,16 @@ export function SpeciesRule({ pack, chosen, onChange, language, text }: SpeciesR
         {text.count(chosen.length, Object.keys(pack.species).length, shown.length)}
       </p>
       <div className="dn-row">
+        <OptionButton primary disabled={shown.length === 0} onClick={() => onChange(only(shownIds, pack))}>
+          {text.keepShown}
+        </OptionButton>
+      </div>
+      <div className="dn-row">
         <OptionButton disabled={shown.length === 0} onClick={() => onChange(ticked(chosen, shownIds, pack))}>
-          {text.tickShown}
+          {text.addShown}
         </OptionButton>
         <OptionButton disabled={shown.length === 0} onClick={() => onChange(unticked(chosen, shownIds))}>
-          {text.untickShown}
+          {text.removeShown}
         </OptionButton>
       </div>
       {shown.length === 0 && <p className="dn-note">{text.noneShown}</p>}

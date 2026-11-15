@@ -1,7 +1,10 @@
 /**
  * The filters of the species picker (decision 112): they narrow the list the
- * game master sees, and the picker ticks or unticks what is shown. The rules
- * keep the ticked species themselves, not the filters that led to them.
+ * game master sees. One tap then makes the species shown the playable ones
+ * (decision 129); two more add the shown to the playable ones, or take them
+ * out, for a list built in several passes. Nothing changes until a button is
+ * tapped: looking a Pokémon up by name never unticks another. The rules keep
+ * the ticked species themselves, not the filters that led to them.
  */
 import type { DataPack, SpeciesData } from '../../data/types.ts'
 import { STAT_IDS } from '../../game-rules/stats.ts'
@@ -56,6 +59,11 @@ export function speciesShown(pack: DataPack, filter: SpeciesFilter, language: La
   return Object.values(pack.species)
     .filter((species) => passes(species, filter, pack, language))
     .sort((a, b) => a.num - b.num)
+}
+
+/** Only these species, and no other: the species shown become the playable ones (decision 129). */
+export function only(species: readonly string[], pack: DataPack): string[] {
+  return inDexOrder(species, pack)
 }
 
 /** The chosen species with some more ticked. */

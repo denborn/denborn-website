@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DataPack, SpeciesData } from '../../data/types'
 import { testPack } from '../../domain/test-pack'
-import { NO_FILTER, type SpeciesFilter, speciesShown, statTotalRange, ticked, unticked } from './species-filters'
+import { NO_FILTER, type SpeciesFilter, only, speciesShown, statTotalRange, ticked, unticked } from './species-filters'
 
 const base = testPack.species.sparkmouse
 if (!base) throw new Error('The test pack lost its first species')
@@ -57,6 +57,10 @@ describe('the species picker’s filters', () => {
 })
 
 describe('ticking what is shown', () => {
+  it('keeps only the species shown, whatever was ticked before, in Pokédex order (decision 129)', () => {
+    expect(only(shown({ stage: 'first' }).reverse(), pack)).toEqual(['pup', 'mouse', 'titan'])
+  })
+
   it('adds to the chosen species without repeating any, in Pokédex order', () => {
     expect(ticked(['titan', 'pup'], ['hound', 'pup'], pack)).toEqual(['pup', 'hound', 'titan'])
   })

@@ -61,7 +61,8 @@ export const NewCampaign: Story = {
       <Note>
         A campaign’s page (decision 113): one row per rule. A tap on a row opens that rule alone, and DONE comes back here. Natures and
         moves have no default and say TO CHOOSE; an item pack is TO ADD; the starting level and Pokédollars show 5 and 3000 (decision 114).
-        SAVE THE RULES lights up once nothing is left to choose. Open Pokémon to try the filters of decision 112.
+        SAVE THE RULES lights up once nothing is left to choose. Open Pokémon to try the filters of decision 112: set some, then KEEP ONLY
+        THE SHOWN makes the Pokémon shown the playable ones in one tap (decision 129).
       </Note>
     </>
   ),

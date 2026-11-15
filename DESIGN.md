@@ -230,6 +230,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 124, 125 | Hosting a session: the join code in large letters with its QR code on the top screen, COPY THE LINK, the requests with the two-copies pick, the party with REMOVE behind a tap. |
 | 126 | Joining a session: the code, the characters made for the campaign, the wait, the party, a sentence for each way of being out. |
 | 128 | On the join screen, CREATE A CHARACTER sits under the characters to choose from, and is put forward when there is none. |
+| 129 | In the species picker, KEEP ONLY THE SHOWN makes the Pokémon shown the playable ones in one tap; ADD THE SHOWN and REMOVE THE SHOWN build a list in several passes. |
 | 127 | HOST A SESSION sits on a saved campaign's page, above its creation link. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

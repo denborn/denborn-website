@@ -35,6 +35,28 @@ test('a changed rule makes the next version once saved, and leaving before that 
   await expect(page.getByRole('button', { name: /Dawn Patrol/ })).toContainText('Rules version 2 · 151 Pokémon')
 })
 
+test('filters, then one tap, make exactly the Pokémon shown the playable ones (decision 129)', async ({ page }) => {
+  await page.goto('/campaigns/new')
+  await page.getByRole('button', { name: /^Pokémon/ }).click()
+  await expect(page.getByRole('status')).toHaveText('151 of 151 playable · 151 shown')
+
+  // Setting filters changes what is shown, and nothing else.
+  await page.getByRole('button', { name: 'FILTERS' }).click()
+  await page.getByRole('group', { name: 'Legendary and Mythical' }).getByRole('button', { name: 'ONLY' }).click()
+  await expect(page.getByRole('status')).toHaveText('151 of 151 playable · 5 shown')
+
+  await page.getByRole('button', { name: 'KEEP ONLY THE SHOWN' }).click()
+  await expect(page.getByRole('status')).toHaveText('5 of 151 playable · 5 shown')
+  await expect(page.getByRole('button', { name: /^Mewtwo/ })).toHaveAttribute('aria-pressed', 'true')
+
+  // With the filter gone, the others are shown again, and are not playable.
+  await page.getByRole('group', { name: 'Legendary and Mythical' }).getByRole('button', { name: 'ANY' }).click()
+  await expect(page.getByRole('status')).toHaveText('5 of 151 playable · 151 shown')
+  await expect(page.getByRole('button', { name: /^Bulbasaur/ })).toHaveAttribute('aria-pressed', 'false')
+  await page.getByRole('button', { name: 'DONE' }).click()
+  await expect(page.getByRole('button', { name: /^Pokémon/ })).toContainText('5 of 151')
+})
+
 test('a campaign leaves as a file, is removed once the question is answered, and comes back in from the file', async ({ page }) => {
   await setCampaign(page, 'Dawn Patrol')
   const downloading = page.waitForEvent('download')
