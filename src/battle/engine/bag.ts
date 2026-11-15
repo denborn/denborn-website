@@ -10,6 +10,7 @@ import type { Battle, Pokemon } from '@pkmn/sim'
 import type { BagUse } from '../../game-rules/bag-effects'
 import { revive } from './agony'
 import { emit, findCombatant, isDowned, stateOf } from './state'
+import { comesToItsTurn } from './turn'
 
 export type BagOutcome = 'used' | 'failed' | 'blocked'
 
@@ -96,20 +97,10 @@ export const bagHandlers = {
     const report = (outcome: BagOutcome): void => emit(this, 'bag', state.id, use.item, use.target, outcome)
 
     // Decision 21: whatever would stop the Pokémon's move this turn stops its Bag action.
-    // Struggle carries the check because the engine already exempts it from everything that
-    // only restricts which move may be chosen (Choice items, Disable, Taunt, Imprison).
-    pokemon.activeMoveActions++
-    const carrier = this.dex.getActiveMove('struggle')
-    const target = findCombatant(this, use.target) ?? null
-    this.setActiveMove(carrier, pokemon, target)
-    const canAct = this.runEvent('BeforeMove', pokemon, target, carrier) as unknown
-    if (!canAct) {
-      this.runEvent('MoveAborted', pokemon, target, carrier)
-      this.clearActiveMove(true)
+    if (!comesToItsTurn(this, pokemon, findCombatant(this, use.target) ?? null)) {
       report('blocked')
       return
     }
-    this.clearActiveMove()
 
     // A failed use still takes the turn; the item then stays in the bag.
     report(apply(this, pokemon, use) ? 'used' : 'failed')

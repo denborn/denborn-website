@@ -82,6 +82,8 @@ export const extra = (id: string, target?: string): MoveChoice =>
 
 export const struggle: RoundAction = { type: 'struggle' }
 
+export const wait: RoundAction = { type: 'wait' }
+
 export function bag(item: string, target: string, effect: BagEffect, moveId?: string): RoundAction {
   const use: BagUse = { item, target, effect }
   if (moveId !== undefined) use.move = moveId

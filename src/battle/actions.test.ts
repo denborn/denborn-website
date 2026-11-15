@@ -177,6 +177,24 @@ describe('the engine\'s own restrictions are kept', () => {
   })
 })
 
+describe('an action checked before it is locked', () => {
+  it('is refused for the reason the round itself would be refused, and nothing is played', () => {
+    const battle = start(
+      [player('one', 'Chansey', ['tackle']), player('two', 'Machamp', ['tackle'])],
+      [enemy('foe', 'Snorlax', ['outrage', 'tackle'])],
+    )
+    expect(code(() => battle.checkAction('one', move('tackle', 'foe')))).toBe('accepted')
+    expect(code(() => battle.checkAction('one', move('tackle')))).toBe('target-required')
+    expect(code(() => battle.checkAction('one', move('surf')))).toBe('unknown-move')
+    expect(code(() => battle.checkAction('one', move('tackle', 'foe'), [extra('tackle', 'foe')]))).toBe('extra-moves')
+    expect(code(() => battle.checkAction('nobody', move('tackle', 'foe')))).toBe('unknown-combatant')
+
+    round(battle, { foe: move('outrage') })
+    expect(code(() => battle.checkAction('foe', move('tackle', 'one')))).toBe('locked')
+    expect(battle.round).toBe(2)
+  })
+})
+
 describe('a move with nobody in its reach', () => {
   it('cannot be locked; Struggle forced by a timeout is used and finds no target', () => {
     // Six players against a lone boss: from slot A, Tackle reaches only B, and B is dead.

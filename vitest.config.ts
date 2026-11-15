@@ -12,14 +12,15 @@ export default defineConfig({
           name: 'unit',
           environment: 'node',
           include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
-          exclude: ['src/battle/**'],
+          exclude: ['src/battle/**', 'src/features/battle/**'],
         },
       },
       {
         test: {
           name: 'engine',
           environment: 'node',
-          include: ['src/battle/**/*.test.ts'],
+          // The fight's table logic is proven on the real engine too.
+          include: ['src/battle/**/*.test.ts', 'src/features/battle/**/*.test.ts'],
         },
       },
       './vitest.worker.config.ts',

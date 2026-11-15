@@ -12,8 +12,24 @@
  */
 import { Battle, extractChannelMessages, toID } from '@pkmn/sim'
 import type { Pokemon, PokemonSet, Side } from '@pkmn/sim'
-import type { BagUse, MajorStatus } from '../game-rules/bag-effects'
+import type { BagUse } from '../game-rules/bag-effects'
 import type { LineSide } from '../game-rules/reach'
+import {
+  type ActionRequest,
+  type BagOutcome,
+  BattleRuleError,
+  type BattleSetup,
+  type BattleSnapshot,
+  type CombatantSetup,
+  type CombatantView,
+  type DenbornEvent,
+  type MoveChoice,
+  type MoveOption,
+  type Outcome,
+  type RoundAction,
+  type RoundInput,
+  type RoundResult,
+} from './contract'
 import { type SetExtras, assertDenbornBattle, registerDenborn } from './engine/format'
 import { lockedAction } from './engine/locks'
 import { swapSlots } from './engine/positions'
@@ -21,174 +37,7 @@ import { type CombatantState, findCombatant, sideOf, stateOf } from './engine/st
 import { clearSpeedExchanges, exchangeTurnOrderSpeed } from './engine/turn-order'
 import { ADAPTER_VERSION, ENGINE_VERSION, FORMAT_ID } from './versions'
 
-// ---------------------------------------------------------------------------
-// Setup
-// ---------------------------------------------------------------------------
-
-export type StatId = 'hp' | 'atk' | 'def' | 'spa' | 'spd' | 'spe'
-export type Stats = Record<StatId, number>
-export type Gender = 'M' | 'F' | 'N'
-
-export interface MoveSetup {
-  id: string
-  /** PP Ups spent on this move (0 to 3). Defaults to 0: base PP. */
-  ppUps?: number
-  /** Current PP. Defaults to the move's maximum. */
-  pp?: number
-}
-
-export interface CombatantSetup {
-  /** Stable id of the character or enemy. */
-  id: string
-  species: string
-  level: number
-  gender: Gender
-  ability: string
-  nature: string
-  item?: string
-  ivs: Stats
-  evs: Stats
-  /** One to six moves. */
-  moves: MoveSetup[]
-  /** Current HP carried into the battle. Defaults to full. A Pokémon at 0 HP sits the encounter out. */
-  hp?: number
-  status?: MajorStatus
-  /** True when 0 HP means Agony: always for players, per enemy for the GM. */
-  agony: boolean
-}
-
-export interface BattleSetup {
-  /** Seed of the engine's random numbers, four 16-bit numbers joined by commas. Same seed, same battle. */
-  seed: string
-  /** In line order, left to right as seen at the table. */
-  players: CombatantSetup[]
-  enemies: CombatantSetup[]
-  /** Adds the engine's debug lines to the log. */
-  debug?: boolean
-}
-
-// ---------------------------------------------------------------------------
-// Actions
-// ---------------------------------------------------------------------------
-
-export interface MoveChoice {
-  move: string
-  /** Combatant id of the target, for moves that take a chosen target. */
-  target?: string
-  /** For the move Ally Switch: the two party members who trade places. */
-  allySwitch?: [string, string]
-}
-
-export type RoundAction =
-  | ({ type: 'move' } & MoveChoice)
-  | { type: 'bag'; use: BagUse }
-  /** Struggle against a random foe in reach: a timeout, or an absent player. */
-  | { type: 'struggle' }
-
-export interface RoundInput {
-  /** One action per standing Pokémon that has a choice, by combatant id. */
-  actions: Record<string, RoundAction>
-  /** Extra moves the GM gives an enemy this round, in the order they were entered. */
-  extraMoves?: Record<string, MoveChoice[]>
-}
-
-// ---------------------------------------------------------------------------
-// Views
-// ---------------------------------------------------------------------------
-
-export interface MoveView {
-  id: string
-  pp: number
-  maxPp: number
-}
-
-export interface CombatantView {
-  id: string
-  side: LineSide
-  /** 0-based slot on its line, from the left. */
-  position: number
-  /** Species currently shown (differs from the character's own while transformed). */
-  species: string
-  hp: number
-  maxHp: number
-  status: string
-  downed: boolean
-  dead: boolean
-  stacks: number
-  item: string
-  ability: string
-  /** Stat stages that are not zero. */
-  boosts: Record<string, number>
-  /** Battle-only effects currently on the Pokémon, by engine id. */
-  volatiles: string[]
-  /** The character's own moves with their PP, as they should be saved after the battle. */
-  moves: MoveView[]
-}
-
-export interface MoveOption extends MoveView {
-  disabled: boolean
-  /** How the move picks its target, in the engine's vocabulary. */
-  target: string
-  /** True when a target has to be chosen for this move. */
-  needsTarget: boolean
-  /**
-   * Combatant ids that can be chosen as target. When a target is needed and
-   * nobody is in reach, the move cannot be locked (decision 69).
-   */
-  targets: string[]
-}
-
-export interface ActionRequest {
-  /** False for a downed or dead Pokémon. */
-  canAct: boolean
-  /** The move the Pokémon is locked into (a rampage, a charging move, a recharge). It then has no choice. */
-  forced: string | null
-  moves: MoveOption[]
-}
-
-export type BagOutcome = 'used' | 'failed' | 'blocked'
-
-/** What Denborn's own rules did during a round. Wording is the interface's business. */
-export type DenbornEvent =
-  | { type: 'downed'; id: string; stacks: number }
-  | { type: 'fainted'; id: string }
-  | { type: 'agonizing'; id: string; stacks: number }
-  | { type: 'agonyhit'; id: string; stacks: number; capped: boolean }
-  | { type: 'died'; id: string }
-  | { type: 'revived'; id: string; hp: number }
-  | { type: 'bag'; user: string; item: string; target: string; outcome: BagOutcome }
-  | { type: 'pp'; id: string; move: string; pp: number }
-
-export interface RoundResult {
-  /** The engine's protocol lines for the round, with nothing hidden, Denborn's own lines included in order. */
-  log: string[]
-  events: DenbornEvent[]
-}
-
-export type Outcome = 'players' | 'enemies' | 'tie'
-
-export interface BattleSnapshot {
-  engine: string
-  adapter: number
-  format: string
-  /** How many engine log lines have already been handed out. */
-  cursor: number
-  /** The engine's own serialised state. */
-  state: unknown
-}
-
-/** A locked action or a setup that the rules of the fight do not allow. */
-export class BattleRuleError extends Error {
-  readonly code: string
-  readonly combatant: string | undefined
-
-  constructor(code: string, message: string, combatant?: string) {
-    super(message)
-    this.name = 'BattleRuleError'
-    this.code = code
-    this.combatant = combatant
-  }
-}
+export * from './contract'
 
 // ---------------------------------------------------------------------------
 
@@ -213,6 +62,16 @@ interface QueuedAction {
   event?: string
   priority?: number
   subOrder?: number
+}
+
+/** One Pokémon's turn as the engine weighs it to order a round. */
+interface OrderedTurn {
+  pokemon: Pokemon
+  choice?: 'move'
+  move?: ReturnType<Battle['dex']['getActiveMove']>
+  priority: number
+  fractionalPriority: number
+  speed: number
 }
 
 function push(side: Side, action: QueuedAction): void {
@@ -286,6 +145,7 @@ function parseEvent(line: string): DenbornEvent | null {
       return { type, id: a, stacks: Number(b) }
     case 'fainted':
     case 'died':
+    case 'wait':
       return { type, id: a }
     case 'agonizing':
       return { type, id: a, stacks: Number(b) }
@@ -452,6 +312,48 @@ export class DenbornBattle {
     exchangeTurnOrderSpeed(first, second)
   }
 
+  /**
+   * Refuses, with its reason, an action the Pokémon could not lock as things
+   * stand: a move it cannot use, a target out of its reach, an action for a
+   * Pokémon that has no choice. The round is checked again as a whole when it
+   * is played.
+   */
+  checkAction(id: string, action: RoundAction, extras: readonly MoveChoice[] = []): void {
+    this.assertChoosing()
+    this.checkTurn(this.find(id), action, extras)
+  }
+
+  /**
+   * The order in which the standing Pokémon would act if the round were
+   * played with these locked actions (decision 135): by the priority of what
+   * each has locked, then by the Speed the engine orders turns with, Speed
+   * exchanges included. A Pokémon with nothing locked stands where an
+   * ordinary move would put it.
+   *
+   * Nothing random is drawn: equal Speeds keep the order of the lines here
+   * and are drawn when the round is played, as is an item such as Quick Claw.
+   */
+  turnOrder(locked: Readonly<Record<string, RoundAction | undefined>>): string[] {
+    const battle = this.battle
+    const turns = battle
+      .getAllPokemon()
+      .filter((pokemon) => !pokemon.fainted)
+      .map((pokemon) => {
+        const forced = lockedAction(pokemon)
+        const action = forced ? undefined : locked[stateOf(pokemon).id]
+        const turn: OrderedTurn = { pokemon, priority: action?.type === 'bag' ? 1 : 0, speed: 0, fractionalPriority: 0 }
+        const moveId = forced?.move ?? (action?.type === 'move' ? toID(action.move) : undefined)
+        if (moveId) {
+          turn.choice = 'move'
+          turn.move = battle.dex.getActiveMove(moveId)
+        }
+        // The engine's own computation: a move's priority with what changes it (Prankster, Gale Wings), and the Speed turns are ordered by.
+        battle.getActionSpeed(turn)
+        return turn
+      })
+    return turns.sort((a, b) => b.priority - a.priority || b.speed - a.speed).map((turn) => stateOf(turn.pokemon).id)
+  }
+
   /** Plays the round with every action locked, and returns what happened. */
   resolveRound(input: RoundInput): RoundResult {
     this.assertChoosing()
@@ -541,34 +443,35 @@ export class DenbornBattle {
 
   /** Refuses the whole round, before anything is played, if any locked action breaks a rule. */
   private checkInput(input: RoundInput): void {
-    const battle = this.battle
     for (const id of [...Object.keys(input.actions), ...Object.keys(input.extraMoves ?? {})]) this.find(id)
-
-    for (const pokemon of battle.getAllPokemon()) {
+    for (const pokemon of this.battle.getAllPokemon()) {
       const { id } = stateOf(pokemon)
-      const action = input.actions[id]
-      const extras = input.extraMoves?.[id] ?? []
-
-      if (pokemon.fainted) {
-        if (action || extras.length) fail('cannot-act', 'A downed or dead Pokémon cannot act', id)
-        continue
-      }
-      const locked = lockedAction(pokemon)
-      if (locked) {
-        if (action) fail('locked', `This Pokémon is locked into ${locked.move} and has no choice this round`, id)
-      } else if (!action) {
-        fail('no-action', 'Every standing Pokémon needs an action', id)
-      } else if (action.type === 'move') {
-        this.checkMove(pokemon, action)
-      } else if (action.type === 'bag') {
-        this.checkBag(action.use, id)
-      }
-
-      if (extras.length && sideOf(pokemon) !== 'enemies') {
-        fail('extra-moves', 'Only enemies can be given extra moves', id)
-      }
-      for (const extra of extras) this.checkMove(pokemon, extra)
+      this.checkTurn(pokemon, input.actions[id], input.extraMoves?.[id] ?? [])
     }
+  }
+
+  /** Refuses what one Pokémon is given to do this round when the rules of the fight forbid it. */
+  private checkTurn(pokemon: Pokemon, action: RoundAction | undefined, extras: readonly MoveChoice[]): void {
+    const { id } = stateOf(pokemon)
+    if (pokemon.fainted) {
+      if (action || extras.length) fail('cannot-act', 'A downed or dead Pokémon cannot act', id)
+      return
+    }
+    const locked = lockedAction(pokemon)
+    if (locked) {
+      if (action) fail('locked', `This Pokémon is locked into ${locked.move} and has no choice this round`, id)
+    } else if (!action) {
+      fail('no-action', 'Every standing Pokémon needs an action', id)
+    } else if (action.type === 'move') {
+      this.checkMove(pokemon, action)
+    } else if (action.type === 'bag') {
+      this.checkBag(action.use, id)
+    }
+
+    if (extras.length && sideOf(pokemon) !== 'enemies') {
+      fail('extra-moves', 'Only enemies can be given extra moves', id)
+    }
+    for (const extra of extras) this.checkMove(pokemon, extra)
   }
 
   private checkMove(pokemon: Pokemon, choice: MoveChoice): void {
@@ -649,6 +552,9 @@ export class DenbornBattle {
         state.bag = action.use
         // Priority +1: after +2 moves, in Speed order among +1 actions, before every ordinary move.
         push(side, { choice: 'event', event: 'DenbornBag', pokemon, priority: 1 })
+      } else if (action?.type === 'wait') {
+        // Its turn comes where an ordinary move's would: priority 0, at its Speed.
+        push(side, { choice: 'event', event: 'DenbornWait', pokemon, priority: 0 })
       } else {
         // Engine: Side.chooseMove pushes exactly this when a Pokémon has no usable move.
         push(side, { choice: 'move', pokemon, moveid: 'struggle' })

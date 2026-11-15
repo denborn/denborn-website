@@ -15,6 +15,7 @@ import { battleTargetingOverrides, pokemonOverrides } from './lines'
 import { lockActionOverrides } from './locks'
 import { modData } from './mod'
 import { newCombatantState } from './state'
+import { waitHandlers } from './turn'
 import { turnOrderOverrides } from './turn-order'
 
 /** What the adapter attaches to each Pokémon's set for the battle's setup. Plain data. */
@@ -105,6 +106,7 @@ const format = {
 
   ...agonyHandlers,
   ...bagHandlers,
+  ...waitHandlers,
 }
 
 /** Registers the mod and the format. Safe to call any number of times. */
