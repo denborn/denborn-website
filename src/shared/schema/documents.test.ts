@@ -3,7 +3,7 @@ import { newcomer, testRules } from '../../domain/test-pack'
 import { readCampaign } from './campaign'
 import { readCharacter } from './character'
 
-const campaign = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [newcomer()] }
+const campaign = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [newcomer()], encounters: [] }
 
 describe('reading a saved document', () => {
   it('gives the document back when it is well formed', () => {
@@ -11,10 +11,11 @@ describe('reading a saved document', () => {
     expect(readCampaign(campaign)).toEqual({ ok: true, value: campaign })
   })
 
-  it('reads a campaign saved before sessions existed as one no character has joined yet', () => {
+  it('reads a campaign saved before sessions and encounters existed as one nobody joined and nothing was prepared for', () => {
     const older: Partial<typeof campaign> = { ...campaign }
     delete older.characters
-    expect(readCampaign(older)).toEqual({ ok: true, value: { ...campaign, characters: [] } })
+    delete older.encounters
+    expect(readCampaign(older)).toEqual({ ok: true, value: { ...campaign, characters: [], encounters: [] } })
   })
 
   it('survives the trip through a JSON file', () => {

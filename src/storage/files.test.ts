@@ -3,7 +3,7 @@ import { newcomer, testRules } from '../domain/test-pack'
 import type { CampaignDocument } from '../shared/schema/campaign'
 import { MAX_FILE_LENGTH, campaignFile, characterFile, fileSlug, openFile, storedCharacterFile } from './files'
 
-const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 4, dataPackVersion: 'test-pack', name: 'Les Égarés', rulesHistory: [testRules()], characters: [] }
+const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 4, dataPackVersion: 'test-pack', name: 'Les Égarés', rulesHistory: [testRules()], characters: [], encounters: [] }
 
 describe('a character file', () => {
   it('carries the character and the rules it was made under, and reads back', () => {

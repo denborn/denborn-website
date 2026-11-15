@@ -14,7 +14,7 @@ const campaign = (changes: Partial<CampaignDocument> = {}): CampaignDocument => 
   dataPackVersion: 'test-pack',
   name: 'Test',
   rulesHistory: [testRules()],
-  characters: [],
+  characters: [], encounters: [],
   ...changes,
 })
 

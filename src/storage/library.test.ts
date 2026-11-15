@@ -25,7 +25,7 @@ function memory(options: { room?: number; refuses?: boolean } = {}): KeyValue & 
   }
 }
 
-const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [] }
+const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [], encounters: [] }
 const invite = (version: number): Invitation => ({ campaign: { id: 'campaign-0001', name: 'Test' }, dataPackVersion: 'test-pack', rules: testRules({ version }) })
 
 describe('the documents kept on a device', () => {
@@ -102,7 +102,7 @@ describe('the invitations opened on a device', () => {
 
   it('come from the campaign itself on the device that keeps it, any version of its history', () => {
     const library = openLibrary(memory())
-    library.saveCampaign({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 1, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules(), testRules({ version: 2, startingLevel: 30 })], characters: [] })
+    library.saveCampaign({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 1, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules(), testRules({ version: 2, startingLevel: 30 })], characters: [], encounters: [] })
     expect(library.rulesOf('campaign-0001', 1, testPack.species)?.startingLevel).toBe(5)
     expect(library.rulesOf('campaign-0001', 2, testPack.species)?.startingLevel).toBe(30)
     expect(library.rulesOf('campaign-0001', 3, testPack.species)).toBeUndefined()

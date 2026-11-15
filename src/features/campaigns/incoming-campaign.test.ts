@@ -5,7 +5,7 @@ import { campaignFile, characterFile } from '../../storage/files'
 import type { Stored } from '../../storage/library'
 import { readIncomingCampaign } from './incoming-campaign'
 
-const campaign = (changes: Partial<CampaignDocument> = {}): CampaignDocument => ({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 3, dataPackVersion: 'test-pack', name: 'Night Shift', rulesHistory: [testRules()], characters: [], ...changes })
+const campaign = (changes: Partial<CampaignDocument> = {}): CampaignDocument => ({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 3, dataPackVersion: 'test-pack', name: 'Night Shift', rulesHistory: [testRules()], characters: [], encounters: [], ...changes })
 const kept = (document: CampaignDocument): Stored<CampaignDocument> => ({ id: document.id, read: { ok: true, value: document }, raw: JSON.stringify(document) })
 const read = (document: CampaignDocument, here: Stored<CampaignDocument>[] = []) => readIncomingCampaign(campaignFile(document).text, testPack, here)
 

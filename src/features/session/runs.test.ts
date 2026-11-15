@@ -10,7 +10,7 @@ import { type HostView, runHost } from './run-host'
 import { runGuest } from './run-guest'
 
 const PEER = '0123456789abcdef'
-const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [] }
+const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [], encounters: [] }
 
 /** A line the test plays the relay's part on: what was sent on it, and the relay's words fed into it. */
 function fakeLine() {

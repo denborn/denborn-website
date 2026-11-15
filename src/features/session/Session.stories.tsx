@@ -30,7 +30,7 @@ function heroes(pack: DataPack): CharacterDocument[] {
 }
 
 function campaign(pack: DataPack, characters: CharacterDocument[] = []): CampaignDocument {
-  return { kind: 'denborn.campaign', schemaVersion: 1, ...CAMPAIGN, revision: 4, dataPackVersion: pack.version, rulesHistory: [{ ...sampleRules(pack, 2, 2, 4), version: 1 }], characters }
+  return { kind: 'denborn.campaign', schemaVersion: 1, ...CAMPAIGN, revision: 4, dataPackVersion: pack.version, rulesHistory: [{ ...sampleRules(pack, 2, 2, 4), version: 1 }], characters, encounters: [] }
 }
 
 interface HostArgs {

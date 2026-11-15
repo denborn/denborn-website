@@ -25,7 +25,7 @@ describe('a character coming in from its file', () => {
   })
 
   it('says what the file is when it is not a character', () => {
-    const campaign = campaignFile({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [] })
+    const campaign = campaignFile({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [], encounters: [] })
     expect(readIncomingFile(campaign.text, device())).toEqual({ ok: false, problem: 'campaignFile' })
     expect(readIncomingFile('a holiday picture', device())).toEqual({ ok: false, problem: 'notACharacter' })
     expect(readIncomingFile('{"kind":"something else"}', device())).toEqual({ ok: false, problem: 'notACharacter' })
