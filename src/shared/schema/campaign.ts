@@ -1,10 +1,11 @@
 /**
- * A campaign, as the GM keeps it (spec section 8). For now: its name and the
- * history of its rules. The registered characters, the encounters and the
- * battle in progress join it with the milestones that build them.
+ * A campaign, as the GM keeps it (spec section 8). For now: its name, the
+ * history of its rules and the characters that joined it. The encounters and
+ * the battle in progress join it with the milestones that build them.
  */
 import { z } from 'zod'
 import { type ReadResult, documentId, readDocument, whole } from './common.ts'
+import { characterDocument } from './character.ts'
 import { campaignRules } from './rules.ts'
 
 export const CAMPAIGN_KIND = 'denborn.campaign'
@@ -19,6 +20,13 @@ export const campaignDocument = z.object({
   name: z.string().min(1).max(60),
   /** Every version of the rules, oldest first; the last one is in force. */
   rulesHistory: z.array(campaignRules).min(1).max(9999),
+  /**
+   * The game master's own copy of every character that joined a session of
+   * the campaign (spec section 5), each without the rules it carries
+   * elsewhere: the campaign has them. A campaign saved before sessions
+   * existed has none.
+   */
+  characters: z.array(characterDocument).max(200).default([]),
 })
 
 export type CampaignDocument = z.infer<typeof campaignDocument>

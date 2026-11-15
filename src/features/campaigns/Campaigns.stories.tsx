@@ -19,7 +19,7 @@ function Editor({ saved }: Args) {
   const [rule, setRule] = useState<RuleId>()
   const [campaign, setCampaign] = useState<CampaignDocument | undefined>(() =>
     saved
-      ? { kind: 'denborn.campaign', schemaVersion: 1, id: 'Hn4wB9cE2yU6sJ5d', revision: 2, dataPackVersion: pack.version, name: 'Les Égarés de Denborn', rulesHistory: [{ ...sampleRules(pack, 2, 2, 4), version: 1 }] }
+      ? { kind: 'denborn.campaign', schemaVersion: 1, id: 'Hn4wB9cE2yU6sJ5d', revision: 2, dataPackVersion: pack.version, name: 'Les Égarés de Denborn', rulesHistory: [{ ...sampleRules(pack, 2, 2, 4), version: 1 }], characters: [] }
       : undefined,
   )
   return (
@@ -90,6 +90,7 @@ function Campaigns() {
     dataPackVersion: pack.version,
     name,
     rulesHistory: [{ ...sampleRules(pack, 2, 2, 4, species), version }],
+    characters: [],
   })
   const entries = [kept('Hn4wB9cE2yU6sJ5d', 'Les Égarés de Denborn', 3, 151), kept('q8Zr3vX1mK7pL0aT', 'Night Shift', 1, 47)].map((campaign) => ({ id: campaign.id, read: { ok: true as const, value: campaign }, raw: '' }))
   return (
@@ -119,6 +120,7 @@ function Importing({ standing }: { standing: 'new' | 'newer' }) {
     dataPackVersion: pack.version,
     name: 'Les Égarés de Denborn',
     rulesHistory: [{ ...sampleRules(pack, 2, 2, 4, species), version, startingLevel }],
+    characters: [],
   })
   const read = (): IncomingCampaignResult => ({ ok: true, campaign: made(3, 151, 20), otherGameData: false, standing, ...(standing === 'newer' ? { kept: made(2, 120, 5) } : {}) })
   return (

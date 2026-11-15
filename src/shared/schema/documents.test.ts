@@ -3,12 +3,18 @@ import { newcomer, testRules } from '../../domain/test-pack'
 import { readCampaign } from './campaign'
 import { readCharacter } from './character'
 
-const campaign = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()] }
+const campaign = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 0, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules()], characters: [newcomer()] }
 
 describe('reading a saved document', () => {
   it('gives the document back when it is well formed', () => {
     expect(readCharacter(newcomer())).toEqual({ ok: true, value: newcomer() })
     expect(readCampaign(campaign)).toEqual({ ok: true, value: campaign })
+  })
+
+  it('reads a campaign saved before sessions existed as one no character has joined yet', () => {
+    const older: Partial<typeof campaign> = { ...campaign }
+    delete older.characters
+    expect(readCampaign(older)).toEqual({ ok: true, value: { ...campaign, characters: [] } })
   })
 
   it('survives the trip through a JSON file', () => {
