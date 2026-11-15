@@ -122,7 +122,7 @@ describe('a session being joined', () => {
     expect(line.hello()).toEqual({ t: 'join', token: 'player-token-0123456789abcdef' })
     line.says({ t: 'joined', peer: PEER, host: true })
     expect(line.sent).toEqual([{ t: 'send', body: encodeMessage({ t: 'hello' }) }])
-    line.says(fromHost({ t: 'about', campaign: { id: 'campaign-0001', name: 'Test' } }))
+    line.says(fromHost({ t: 'about', invitation: { campaign: { id: 'campaign-0001', name: 'Test' }, dataPackVersion: 'test-pack', rules: testRules() } }))
     expect(run.state()).toMatchObject({ at: 'choosing' })
     run.choose(newcomer())
     expect(line.sent.at(-1)).toMatchObject({ t: 'send', body: { t: 'ask', character: { id: 'character-0001' } } })

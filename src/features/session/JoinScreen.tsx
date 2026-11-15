@@ -1,6 +1,7 @@
 import { type SyntheticEvent, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
+import type { Invitation } from '../../shared/codec/codes'
 import { ROOM_CODE_LENGTH, joinCodeIn } from '../../shared/protocol/room-code'
 import type { Party } from '../../shared/protocol/session'
 import type { CharacterDocument } from '../../shared/schema/character'
@@ -19,6 +20,8 @@ export interface JoinScreenProps {
   onCode: (code: string) => void
   /** Asks to come in with a character. */
   onChoose: (character: CharacterDocument) => void
+  /** Makes a new character for the campaign being played, under the rules the game master's side gave (decision 128). */
+  onCreate: (invitation: Invitation) => void
   onLeave: () => void
   /** Starts over from the code, after being out. */
   onAgain: () => void
@@ -30,7 +33,7 @@ export interface JoinScreenProps {
  * bring among those made for the campaign, the wait for the game master,
  * then the party; and each way of being out, said in words.
  */
-export function JoinScreen({ pack, code: given, state, characters, onCode, onChoose, onLeave, onAgain, onBack }: JoinScreenProps) {
+export function JoinScreen({ pack, code: given, state, characters, onCode, onChoose, onCreate, onLeave, onAgain, onBack }: JoinScreenProps) {
   const messages = useMessages()
   const text = messages.session.join
   const [typed, setTyped] = useState(given ?? '')
@@ -93,7 +96,7 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
           {state?.at === 'hostAway' && <Status text={text.hostAway} />}
           {state?.at === 'asking' && <Status text={text.asking} />}
           {state?.at === 'waiting' && <Status text={text.waiting} />}
-          {state?.at === 'choosing' && <Choosing pack={pack} campaign={state.campaign} characters={characters} onChoose={onChoose} />}
+          {state?.at === 'choosing' && <Choosing pack={pack} invitation={state.invitation} characters={characters} onChoose={onChoose} onCreate={onCreate} />}
           {state?.at === 'in' && (
             <>
               {!state.linked && <Status text={text.lineDown} />}
@@ -176,21 +179,27 @@ function Members({ pack, party }: { pack: DataPack; party: Party }) {
 
 interface ChoosingProps {
   pack: DataPack
-  campaign: { id: string; name: string }
+  invitation: Invitation
   characters: readonly CharacterDocument[]
   onChoose: (character: CharacterDocument) => void
+  onCreate: (invitation: Invitation) => void
 }
 
-/** The player's characters made for the campaign being played: one of them comes in (decision 119). */
-function Choosing({ pack, campaign, characters, onChoose }: ChoosingProps) {
+/**
+ * The player's characters made for the campaign being played: one of them
+ * comes in (decision 119). Under them, the way to make a new one there and
+ * then (decision 128), put forward when the player has none.
+ */
+function Choosing({ pack, invitation, characters, onChoose, onCreate }: ChoosingProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.join
+  const campaign = invitation.campaign
   const mine = characters.filter((character) => character.campaign.id === campaign.id)
   return (
     <>
       <span className="dn-label">{text.choose(campaign.name)}</span>
-      {mine.length === 0 && <p className="dn-note dn-note--error">{text.noCharacter(campaign.name)}</p>}
+      {mine.length === 0 && <p className="dn-note">{text.noCharacter(campaign.name)}</p>}
       {mine.map((character) => {
         const species = pack.species[character.species]
         return (
@@ -203,6 +212,12 @@ function Choosing({ pack, campaign, characters, onChoose }: ChoosingProps) {
           </Slot>
         )
       })}
+      <p className="dn-note">{text.createHint}</p>
+      <div className="dn-row">
+        <OptionButton primary={mine.length === 0} onClick={() => onCreate(invitation)}>
+          {text.create}
+        </OptionButton>
+      </div>
     </>
   )
 }

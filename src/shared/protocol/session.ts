@@ -11,6 +11,7 @@
  */
 import { z } from 'zod'
 import { PARTY_MAX } from '../../game-rules/party.ts'
+import { invitation } from '../codec/codes.ts'
 import { characterDocument } from '../schema/character.ts'
 import { documentId, whole } from '../schema/common.ts'
 
@@ -68,8 +69,13 @@ export type Party = z.infer<typeof party>
 
 /** From the game master to a player. */
 export const hostMessage = z.discriminatedUnion('t', [
-  /** The campaign being played: the player chooses among their characters made for it. */
-  z.object({ t: z.literal('about'), campaign: z.object({ id: documentId, name: z.string().min(1).max(60) }) }),
+  /**
+   * The campaign being played, with its rules in force and the game data the
+   * game master's app carries: the player chooses among their characters made
+   * for it, or makes one there and then (decision 128). The same as a
+   * creation link holds.
+   */
+  z.object({ t: z.literal('about'), invitation }),
   /** The request is in front of the game master. */
   z.object({ t: z.literal('waiting') }),
   z.object({ t: z.literal('refused'), reason: z.enum(REFUSALS) }),

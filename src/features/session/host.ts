@@ -156,7 +156,13 @@ function heard(session: HostSession, peer: string, body: unknown, pack: DataPack
   if (!decoded.ok) return decoded.reason === 'version' ? refuse(session, peer, 'version') : { session, send: [] }
   const message = decoded.message
 
-  if (message.t === 'hello') return { session, send: [{ to: [peer], message: { t: 'about', campaign: { id: session.campaign.id, name: session.campaign.name } } }] }
+  if (message.t === 'hello') {
+    // What a creation link of the campaign would hold, as it stands now.
+    const rules = session.campaign.rulesHistory.at(-1)
+    if (!rules) return { session, send: [] }
+    const invitation = { campaign: { id: session.campaign.id, name: session.campaign.name }, dataPackVersion: pack.version, rules }
+    return { session, send: [{ to: [peer], message: { t: 'about', invitation } }] }
+  }
 
   if (message.t === 'leave') {
     const requests = session.requests.filter((request) => request.peer !== peer)

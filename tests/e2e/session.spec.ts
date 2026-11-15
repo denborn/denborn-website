@@ -87,6 +87,26 @@ test('a player sent away may ask again, a request may be refused, and ending the
   await expect(gm.locator('.dn-join__code')).not.toHaveText(code)
 })
 
+test('a player with no character makes one from the join screen, and asks to come in with it (decision 128)', async ({ page: gm }) => {
+  await setCampaign(gm, 'Dawn Patrol')
+  await gm.getByRole('button', { name: 'HOST A SESSION' }).click()
+  const code = await gm.locator('.dn-join__code').innerText()
+  const browser = gm.context().browser()
+  if (!browser) throw new Error('No browser to open the player’s phone in')
+  // A phone that never opened the campaign's creation link: all it has is the join code.
+  const player = await (await browser.newContext({ ...devices['Pixel 7'], locale: 'en-US' })).newPage()
+  await player.goto(`/#DNJ1.${code}`)
+  await expect(player.getByText('No character of Dawn Patrol is on this device yet.')).toBeVisible()
+
+  await player.getByRole('button', { name: 'CREATE A CHARACTER' }).click()
+  await createPikachu(player, 'Volt', 'Field kit')
+  // Back in the session with the character just made: no second choice to make.
+  await expect(player.getByText('Your request is in front of the game master.')).toBeVisible()
+  await gm.getByRole('group', { name: 'Volt' }).getByRole('button', { name: 'LET IN' }).click()
+  await expect(player.getByText('Volt (you)')).toBeVisible()
+  await expect(gm.getByText('Pikachu · Lv. 5 · here')).toBeVisible()
+})
+
 test('a join link opens the join screen with its code, and a code that is none says so', async ({ page }) => {
   await page.goto('/#DNJ1.NOTACODE')
   await expect(page.getByRole('heading', { name: 'Join a session' })).toBeVisible()

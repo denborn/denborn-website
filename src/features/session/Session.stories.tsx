@@ -109,8 +109,8 @@ function Joining({ step, out }: JoinArgs) {
     code: undefined,
     reaching: { at: 'reaching' },
     hostAway: { at: 'hostAway' },
-    choosing: { at: 'choosing', campaign: CAMPAIGN },
-    choosingNone: { at: 'choosing', campaign: { id: 'another-campaign', name: 'Night Shift' } },
+    choosing: { at: 'choosing', invitation: { campaign: CAMPAIGN, dataPackVersion: pack.version, rules: sampleRules(pack, 2, 2, 4) } },
+    choosingNone: { at: 'choosing', invitation: { campaign: { id: 'another-campaign', name: 'Night Shift' }, dataPackVersion: pack.version, rules: sampleRules(pack, 2, 2, 4) } },
     asking: { at: 'asking' },
     waiting: { at: 'waiting' },
     in: { at: 'in', party, linked: true, hostThere: true },
@@ -120,7 +120,7 @@ function Joining({ step, out }: JoinArgs) {
   }
   return (
     <Phone>
-      <JoinScreen key={`${step}-${out}`} pack={pack} state={states[step]} characters={characters.slice(0, 2)} onCode={() => undefined} onChoose={() => undefined} onLeave={() => undefined} onAgain={() => undefined} onBack={() => undefined} />
+      <JoinScreen key={`${step}-${out}`} pack={pack} state={states[step]} characters={characters.slice(0, 2)} onCode={() => undefined} onChoose={() => undefined} onCreate={() => undefined} onLeave={() => undefined} onAgain={() => undefined} onBack={() => undefined} />
     </Phone>
   )
 }
@@ -161,7 +161,8 @@ export const Join: StoryObj<JoinArgs> = {
       <Joining {...args} />
       <Note>
         A player’s side, from the home’s JOIN A SESSION. Set <code>step</code> to walk it: the code (typed, or filled in from the link or
-        a scan), reaching the session, choosing among the characters made for the campaign being played (decision 119: one per device),
+        a scan), reaching the session, choosing among the characters made for the campaign being played (decision 119: one per device) or
+        making a new one there and then (decision 128),
         waiting for the game master, then the party, with what is said when the game master is away or the connection drops (decision
         122). With <code>step</code> on “out”, set <code>out</code> to read each reason for not being in.
       </Note>

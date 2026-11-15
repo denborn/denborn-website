@@ -35,20 +35,25 @@ describe('a player who has not chosen a character yet', () => {
     return { state, sent }
   }
 
-  it('asks which campaign is played, and is shown it to choose among its characters', () => {
+  const invitation = { campaign: { id: 'campaign-0001', name: 'Test' }, dataPackVersion: 'test-pack', rules: testRules() }
+
+  it('asks which campaign is played, and is given it with its rules, to choose a character or make one', () => {
     const met = playing(GUEST_START, nobody, { on: 'joined', host: true })
     expect(met).toEqual({ state: { at: 'meeting' }, sent: [{ t: 'hello' }] })
-    const told = playing(met.state, nobody, says({ t: 'about', campaign: { id: 'campaign-0001', name: 'Test' } }))
-    expect(told.state).toEqual({ at: 'choosing', campaign: { id: 'campaign-0001', name: 'Test' } })
+    expect(playing(met.state, nobody, says({ t: 'about', invitation })).state).toEqual({ at: 'choosing', invitation })
+  })
+
+  it('is told at once when the game master’s app carries other game data: nothing made or brought could be let in', () => {
+    const told = playing({ at: 'meeting' }, nobody, says({ t: 'about', invitation: { ...invitation, dataPackVersion: 'newer-pack' } }))
+    expect(told.state).toEqual({ at: 'out', why: 'refused', reason: 'other-data' })
   })
 
   it('asks to come in as soon as the character is chosen', () => {
-    const choosing: GuestState = { at: 'choosing', campaign: { id: 'campaign-0001', name: 'Test' } }
-    expect(playing(choosing, mine, { on: 'chosen' })).toMatchObject({ state: { at: 'asking' }, sent: [{ t: 'ask', character: { id: 'character-0001' } }] })
+    expect(playing({ at: 'choosing', invitation }, mine, { on: 'chosen' })).toMatchObject({ state: { at: 'asking' }, sent: [{ t: 'ask', character: { id: 'character-0001' } }] })
   })
 
   it('greets again when the game master comes back before a character was chosen', () => {
-    const back = playing({ at: 'choosing', campaign: { id: 'campaign-0001', name: 'Test' } }, nobody, { on: 'host', present: false }, { on: 'host', present: true })
+    const back = playing({ at: 'choosing', invitation }, nobody, { on: 'host', present: false }, { on: 'host', present: true })
     expect(back).toEqual({ state: { at: 'meeting' }, sent: [{ t: 'hello' }] })
   })
 })

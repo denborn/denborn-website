@@ -327,6 +327,11 @@ export function JoinSessionPage() {
         if (code) sessionKeys.bring(code, character.id)
         run.current?.choose(character)
       }}
+      onCreate={(invitation) => {
+        // The rules the game master's side gave are kept like a creation link's; creation then knows to come back here.
+        library.saveInvitation(invitation, pack.species)
+        void navigate(`/characters/new/${invitation.campaign.id}`, { state: { session: code } })
+      }}
       onLeave={() => run.current?.leave()}
       onAgain={() => setAttempt(attempt + 1)}
       onBack={() => void navigate('/')}
@@ -497,6 +502,8 @@ export function CreateCharacterPage() {
   const [unsaved, setUnsaved] = useState<{ character: CharacterDocument; reason: Extract<WriteResult, { ok: false }>['reason'] }>()
   usePageTitle(messages.creation.title)
   const invitation = library.invitations(pack.species).find((entry) => entry.campaign.id === campaignId)
+  // Set when creation was started from a session's join screen (decision 128): the code of the session to come back to.
+  const session = (useLocation().state as { session?: string } | null)?.session
 
   if (!invitation) {
     return (
@@ -543,9 +550,20 @@ export function CreateCharacterPage() {
   const keep = (character: CharacterDocument): void => {
     // Kept with the rules it was made under, like its file: the entry alone is enough to check it later.
     const saved = library.saveCharacter({ ...character, rules: invitation.rules })
-    if (saved.ok) void navigate('/characters')
-    else setUnsaved({ character, reason: saved.reason })
+    if (!saved.ok) {
+      setUnsaved({ character, reason: saved.reason })
+      return
+    }
+    if (session === undefined) {
+      void navigate('/characters')
+      return
+    }
+    // Made from a session's join screen: it is the character brought, and the session is where the player goes back to.
+    sessionKeys.bring(session, character.id)
+    void navigate(`/session/${session}`, { replace: true })
   }
 
-  return <CreationFlow invitation={invitation} pack={pack} newId={newId} onLeave={() => void navigate('/characters/new')} onCreate={keep} />
+  // Leaving before the character is made goes back where creation was started from.
+  const leave = (): void => void navigate(session === undefined ? '/characters/new' : `/session/${session}`)
+  return <CreationFlow invitation={invitation} pack={pack} newId={newId} onLeave={leave} onCreate={keep} />
 }

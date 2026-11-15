@@ -81,7 +81,7 @@ export function unpackBytes(compressed: Uint8Array | undefined, maxBytes: number
     // One byte more than allowed: fflate fills the buffer and stops, so a full buffer means "too large".
     const inflated = inflateSync(compressed, { out: new Uint8Array(maxBytes + 1) })
     if (inflated.length > maxBytes) return undefined
-    return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(inflated)) as unknown
+    return JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(inflated)) as unknown
   } catch {
     // Not deflate, cut short, not UTF-8 or not JSON: all the same to the caller, who reports a damaged code.
     return undefined

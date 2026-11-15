@@ -9,6 +9,7 @@
  * back from a dropped connection, and keeps the copy of its character the
  * game master's side gives back.
  */
+import type { Invitation } from '../../shared/codec/codes.ts'
 import { CLOSED } from '../../shared/protocol/relay.ts'
 import { type GuestMessage, type Party, type Refusal, decodeHostMessage } from '../../shared/protocol/session.ts'
 import { sameValue } from '../../shared/same-value.ts'
@@ -38,8 +39,8 @@ export type GuestState =
   | { at: 'hostAway' }
   /** Asked which campaign is played; no answer yet. */
   | { at: 'meeting' }
-  /** The campaign is known: the player chooses a character made for it. */
-  | { at: 'choosing'; campaign: { id: string; name: string } }
+  /** The campaign is known: the player chooses a character made for it, or makes one under the rules given (decision 128). */
+  | { at: 'choosing'; invitation: Invitation }
   /** Asked; no answer yet. */
   | { at: 'asking' }
   /** The request is in front of the game master. */
@@ -122,8 +123,13 @@ export function guestStep(state: GuestState, event: GuestEvent, mine: Mine): Gue
       const decoded = decodeHostMessage(event.body)
       if (!decoded.ok) return decoded.reason === 'version' ? out({ why: 'update' }) : stay(state)
       const message = decoded.message
-      // Only a device that has not chosen yet needs to know the campaign.
-      if (message.t === 'about') return stay(mine.character ? state : { at: 'choosing', campaign: message.campaign })
+      if (message.t === 'about') {
+        // Only a device that has not chosen yet needs to know the campaign.
+        if (mine.character) return stay(state)
+        // Other game data on the two sides: no character made or brought here could be let in. Said now, not after a choice.
+        if (message.invitation.dataPackVersion !== mine.dataPackVersion) return out({ why: 'refused', reason: 'other-data' })
+        return stay({ at: 'choosing', invitation: message.invitation })
+      }
       if (message.t === 'waiting') return stay(state.at === 'in' ? state : { at: 'waiting' })
       if (message.t === 'refused') return out({ why: 'refused', reason: message.reason })
       if (message.t === 'removed') return out({ why: 'removed' })

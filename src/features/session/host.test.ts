@@ -38,8 +38,11 @@ const withParty = (...peers: string[]): HostSession =>
   play(openSession(campaign()), ...peers.flatMap((peer): HostEvent[] => [from(peer, asks(hero(`hero-${peer}`))), { on: 'approve', peer, keep: 'theirs' }])).session
 
 describe('a player asking to come in', () => {
-  it('is told which campaign is played before choosing a character', () => {
-    expect(play(openSession(campaign()), from('ann', encodeMessage({ t: 'hello' }))).sent).toEqual([{ to: ['ann'], message: { t: 'about', campaign: { id: 'campaign-0001', name: 'Test' } } }])
+  it('is told which campaign is played, with the rules in force a character is made under (decision 128)', () => {
+    const history = [testRules(), testRules({ version: 2, startingLevel: 30 })]
+    expect(play(openSession(campaign({ rulesHistory: history })), from('ann', encodeMessage({ t: 'hello' }))).sent).toEqual([
+      { to: ['ann'], message: { t: 'about', invitation: { campaign: { id: 'campaign-0001', name: 'Test' }, dataPackVersion: 'test-pack', rules: history[1] } } },
+    ])
   })
 
   it('waits for the game master’s answer, and is in once approved', () => {
