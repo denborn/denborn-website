@@ -225,5 +225,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 112 | The species picker's filters: stage of evolution, base stat total, Legendary and Mythical, type. |
 | 113, 115 | A campaign's page: one row per rule, each opening its rule alone; the creation link and its QR code under the rules once saved. |
 | 114 | Starting level 5 and 3000 Pokédollars are shown before the game master sets them. |
+| 117, 118 | Importing and removing a campaign follow the characters' screens: IMPORT in the list's foot, shown before kept, both copies when already here; removal confirmed with the file offered first. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

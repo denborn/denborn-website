@@ -12,6 +12,7 @@ import { sameValue } from '../../shared/same-value.ts'
 import type { CampaignRules } from '../../shared/schema/rules.ts'
 import { openFile } from '../../storage/files.ts'
 import type { Stored } from '../../storage/library.ts'
+import { type Standing, standingOf } from './standing.ts'
 
 export type IncomingProblem =
   /** Neither a character's code nor a file of Denborn's. */
@@ -31,13 +32,7 @@ export type IncomingProblem =
   /** It, or its rules, do not pass the checks against this app's game data. */
   | 'invalid'
 
-/**
- * How a character coming in stands against the copy kept here under the same
- * id: there is none (`new`), they are alike (`same`), one was saved after the
- * other (`newer`, `older`: the one coming in), they were changed apart
- * (`differs`), or the kept one cannot be read (`unreadable`).
- */
-export type Standing = 'new' | 'same' | 'newer' | 'older' | 'differs' | 'unreadable'
+export type { Standing }
 
 export interface IncomingCharacter {
   ok: true
@@ -93,19 +88,9 @@ function judge(character: CharacterDocument, device: Device): Incoming {
     character: opened.character,
     rules: opened.rules,
     otherGameData: opened.otherGameData,
-    standing: standingOf(opened.character, entry),
+    standing: standingOf(opened.character, entry, sameCharacter),
     ...(kept ? { kept } : {}),
   }
-}
-
-function standingOf(character: CharacterDocument, entry: Stored<CharacterDocument> | undefined): Standing {
-  if (!entry) return 'new'
-  if (!entry.read.ok) return 'unreadable'
-  const kept = entry.read.value
-  if (sameCharacter(kept, character)) return 'same'
-  if (character.revision > kept.revision) return 'newer'
-  if (character.revision < kept.revision) return 'older'
-  return 'differs'
 }
 
 /** Whether two copies are the same character in every respect. The rules a copy may carry are not part of it: a code carries none. */

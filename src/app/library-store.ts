@@ -26,6 +26,8 @@ interface LibraryState {
   /** The campaigns this device keeps as their game master. */
   campaigns: () => Stored<CampaignDocument>[]
   saveCampaign: (campaign: CampaignDocument) => WriteResult
+  /** Takes a campaign off this device, for good. Characters made for it stay: each carries its rules. */
+  removeCampaign: (id: string) => void
   /** The campaigns a character can be made for here: this device's own, and those whose creation link was opened, each with its newest rules. */
   invitations: (species: SpeciesIndex) => Invitation[]
   saveInvitation: (invitation: Invitation, species: SpeciesIndex) => WriteResult
@@ -44,6 +46,10 @@ export const useLibrary = create<LibraryState>((set) => {
     characters: () => library.characters(),
     campaigns: () => library.campaigns(),
     saveCampaign: (campaign) => written(library.saveCampaign(campaign)),
+    removeCampaign: (id) => {
+      library.removeCampaign(id)
+      written({ ok: true })
+    },
     saveCharacter: (character) => written(library.saveCharacter(character)),
     removeCharacter: (id) => {
       library.removeCharacter(id)

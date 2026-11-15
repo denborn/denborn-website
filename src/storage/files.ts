@@ -42,6 +42,12 @@ export function storedCharacterFile(entry: { id: string; raw: string; read: Read
   return { name: `denborn-${name || entry.id}.json`, text: entry.raw }
 }
 
+/** A kept campaign exactly as it is stored: the way out for one this app cannot read. */
+export function storedCampaignFile(entry: { id: string; raw: string; read: ReadResult<CampaignDocument> }): FileToSave {
+  const name = entry.read.ok ? fileSlug(entry.read.value.name) : ''
+  return { name: `denborn-campaign-${name || entry.id}.json`, text: entry.raw }
+}
+
 export function campaignFile(campaign: CampaignDocument): FileToSave {
   return { name: `denborn-campaign-${fileSlug(campaign.name) || campaign.id}.json`, text: JSON.stringify(campaign, null, 2) }
 }

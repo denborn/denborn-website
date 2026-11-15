@@ -5,6 +5,9 @@ import type { CampaignDocument } from '../../shared/schema/campaign'
 import { Note, Phone, usePack } from '../../ui/stories/board'
 import { CampaignEditor, type RuleId } from './CampaignEditor'
 import { CampaignList } from './CampaignList'
+import { ImportCampaign } from './ImportCampaign'
+import { RemoveCampaign } from './RemoveCampaign'
+import type { IncomingCampaignResult } from './incoming-campaign'
 
 interface Args {
   /** A campaign already saved, or one being set for the first time. */
@@ -34,6 +37,7 @@ function Editor({ saved }: Args) {
         origin="https://denborn-website.kori-san.workers.dev"
         onCopy={() => Promise.resolve(true)}
         onSaveFile={() => undefined}
+        onRemove={() => undefined}
         onBack={() => undefined}
       />
     </Phone>
@@ -90,7 +94,7 @@ function Campaigns() {
   const entries = [kept('Hn4wB9cE2yU6sJ5d', 'Les Égarés de Denborn', 3, 151), kept('q8Zr3vX1mK7pL0aT', 'Night Shift', 1, 47)].map((campaign) => ({ id: campaign.id, read: { ok: true as const, value: campaign }, raw: '' }))
   return (
     <Phone>
-      <CampaignList entries={[...entries, { id: 'broken', read: { ok: false, reason: 'not-this-kind' }, raw: '' }]} onBack={() => undefined} onNew={() => undefined} onOpen={() => undefined} />
+      <CampaignList entries={[...entries, { id: 'broken', read: { ok: false, reason: 'not-this-kind' }, raw: '' }]} onBack={() => undefined} onNew={() => undefined} onImport={() => undefined} onOpen={() => undefined} />
     </Phone>
   )
 }
@@ -101,6 +105,43 @@ export const List: Story = {
     <>
       <Campaigns />
       <Note>The list of campaigns, built like the list of characters: a row opens the campaign’s page, NEW starts one.</Note>
+    </>
+  ),
+}
+
+function Importing({ standing }: { standing: 'new' | 'newer' }) {
+  const pack = usePack()
+  const made = (version: number, species: number, startingLevel: number): CampaignDocument => ({
+    kind: 'denborn.campaign',
+    schemaVersion: 1,
+    id: 'Hn4wB9cE2yU6sJ5d',
+    revision: version,
+    dataPackVersion: pack.version,
+    name: 'Les Égarés de Denborn',
+    rulesHistory: [{ ...sampleRules(pack, 2, 2, 4, species), version, startingLevel }],
+  })
+  const read = (): IncomingCampaignResult => ({ ok: true, campaign: made(3, 151, 20), otherGameData: false, standing, ...(standing === 'newer' ? { kept: made(2, 120, 5) } : {}) })
+  return (
+    <Phone>
+      <ImportCampaign read={read} textOfFile={() => Promise.resolve('a file')} onKeep={() => ({ ok: true })} onOpen={() => undefined} onBack={() => undefined} />
+    </Phone>
+  )
+}
+
+/** Importing and removing a campaign follow the characters' screens (decisions 117 and 118). */
+export const ImportAndRemove: Story = {
+  render: () => (
+    <>
+      <Importing standing="new" />
+      <Importing standing="newer" />
+      <Phone>
+        <RemoveCampaign name="Les Égarés de Denborn" onSaveFile={() => undefined} onRemove={() => undefined} onKeep={() => undefined} />
+      </Phone>
+      <Note>
+        A campaign comes in by its file only: choose a file on either of the first two phones to see it read (the first as new here, the
+        second as more recent than the copy kept). The third phone is the question asked before a campaign is removed; the way there is
+        at the end of a saved campaign’s page.
+      </Note>
     </>
   ),
 }

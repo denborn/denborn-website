@@ -228,6 +228,37 @@ export const en = {
     tooLarge: 'These rules are too long for a QR code. Send the link.',
     fileHint: 'Its file holds the campaign and every version of its rules.',
     saveFile: 'SAVE ITS FILE',
+    removeHint: 'It can be removed from this device. Its file, once saved, still holds it.',
+    remove: 'REMOVE FROM THIS DEVICE',
+    /** The screen that confirms the removal of a campaign (decision 118). */
+    removal: {
+      title: (name: string) => `Remove ${name}?`,
+      titleUnreadable: 'Remove this campaign?',
+      warning: 'It will be gone from this device for good: the app keeps no bin.',
+      fileHint: 'Its file is the only way to bring it back. Save it first if you have not.',
+      characters: 'Characters made for it stay on this device: each carries its own copy of the rules.',
+      remove: 'REMOVE',
+      keep: 'KEEP IT',
+    },
+    /** Taking in a campaign from its file (decision 117). */
+    importing: {
+      title: 'Import a campaign',
+      entry: 'IMPORT',
+      hint: 'A campaign comes in from its file.',
+      fileHint: 'The file saved from the campaign’s page.',
+      ready: (name: string) => `${name} can be added to this device.`,
+      open: 'OPEN IT',
+      rulesVersion: 'Rules version',
+      otherData: 'This campaign was saved with other game data than this version of the app uses. Check its rules before you play.',
+      problem: {
+        notACampaign: 'This is not a campaign’s file.',
+        characterFile: 'This is a character’s file, not a campaign’s. Import it from Characters.',
+        tooLarge: 'This file is far too large to be a campaign.',
+        damaged: 'This campaign’s file is incomplete or was altered.',
+        newer: 'This campaign was saved by a newer version of the app. Update the app, then open it again.',
+        invalid: 'This campaign’s rules name things this version of the app does not know, so it cannot be imported.',
+      },
+    },
   },
   /** Taking in a character from its file, its link or its QR code. */
   import: {

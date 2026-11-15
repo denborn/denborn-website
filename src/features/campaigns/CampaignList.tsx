@@ -7,12 +7,14 @@ export interface CampaignListProps {
   entries: readonly Stored<CampaignDocument>[]
   onBack: () => void
   onNew: () => void
+  /** Opens the screen that takes in a campaign from its file. */
+  onImport: () => void
   /** Opens the page of one of them, by the id it is kept under. */
   onOpen: (id: string) => void
 }
 
 /** The campaigns this device keeps as their game master. */
-export function CampaignList({ entries, onBack, onNew, onOpen }: CampaignListProps) {
+export function CampaignList({ entries, onBack, onNew, onImport, onOpen }: CampaignListProps) {
   const messages = useMessages()
   const text = messages.campaigns
   return (
@@ -32,11 +34,13 @@ export function CampaignList({ entries, onBack, onNew, onOpen }: CampaignListPro
             {entries.map((entry) => {
               const campaign = entry.read.ok ? entry.read.value : undefined
               const rules = campaign?.rulesHistory.at(-1)
-              // One that cannot be read is listed, never dropped; it opens nothing until campaigns can be exported as stored.
+              // One that cannot be read is listed, never dropped: its page gives its file and the way to remove it.
               if (!campaign || !rules) {
                 return (
-                  <li key={entry.id} className="dn-slot dn-slot--down">
-                    <span className="dn-slot__main dn-text-shadow">{text.unreadable}</span>
+                  <li key={entry.id}>
+                    <Slot state="down" onClick={() => onOpen(entry.id)}>
+                      <span className="dn-slot__main dn-text-shadow">{text.unreadable}</span>
+                    </Slot>
                   </li>
                 )
               }
@@ -55,6 +59,7 @@ export function CampaignList({ entries, onBack, onNew, onOpen }: CampaignListPro
         </div>
         <div className="dn-foot">
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
+          <OptionButton onClick={onImport}>{text.importing.entry}</OptionButton>
           <OptionButton primary onClick={onNew}>
             {text.new}
           </OptionButton>

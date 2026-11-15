@@ -66,3 +66,32 @@ test('a changed rule makes the next version once saved, and leaving before that 
   await page.reload()
   await expect(page.getByRole('button', { name: /Dawn Patrol/ })).toContainText('Rules version 2 · 151 Pokémon')
 })
+
+test('a campaign leaves as a file, is removed once the question is answered, and comes back in from the file', async ({ page }) => {
+  await setCampaign(page, 'Dawn Patrol')
+  const downloading = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'SAVE ITS FILE' }).click()
+  const file = await (await downloading).path()
+
+  // Keeping it changes nothing.
+  await page.getByRole('button', { name: 'REMOVE FROM THIS DEVICE' }).click()
+  await expect(page.getByRole('heading', { name: 'Remove Dawn Patrol?' })).toBeVisible()
+  await page.getByRole('button', { name: 'KEEP IT' }).click()
+  await expect(page.getByText('Creation link · Rules version 1')).toBeVisible()
+
+  await page.getByRole('button', { name: 'REMOVE FROM THIS DEVICE' }).click()
+  await page.getByRole('button', { name: 'REMOVE', exact: true }).click()
+  await expect(page.getByText('No campaign on this device yet.')).toBeVisible()
+
+  // Shown first, kept only when asked.
+  await page.getByRole('button', { name: 'IMPORT' }).click()
+  await page.locator('input[type=file]').setInputFiles(file)
+  await expect(page.getByText('Dawn Patrol can be added to this device.')).toBeVisible()
+  await page.getByRole('button', { name: 'ADD IT' }).click()
+  await expect(page.getByText('Creation link · Rules version 1')).toBeVisible()
+
+  // The same file again leaves nothing to choose.
+  await page.goto('/campaigns/import')
+  await page.locator('input[type=file]').setInputFiles(file)
+  await expect(page.getByText('Dawn Patrol is already on this device, exactly as it is here.')).toBeVisible()
+})

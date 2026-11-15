@@ -7,6 +7,9 @@ import { useBeforeUnload, useBlocker, useLocation, useNavigate, useParams, useSe
 import { usePack } from '../data/use-pack'
 import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
 import { CampaignList } from '../features/campaigns/CampaignList'
+import { ImportCampaign } from '../features/campaigns/ImportCampaign'
+import { RemoveCampaign } from '../features/campaigns/RemoveCampaign'
+import { readIncomingCampaign } from '../features/campaigns/incoming-campaign'
 import { CharacterList } from '../features/characters/CharacterList'
 import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
 import { CreationFlow } from '../features/creation/CreationFlow'
@@ -24,7 +27,7 @@ import { useLanguage, useMessages } from '../i18n'
 import { decodeCreationCode } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
 import { saveToDevice, textOfPickedFile } from '../storage/browser'
-import { campaignFile, characterFile, storedCharacterFile } from '../storage/files'
+import { campaignFile, characterFile, storedCampaignFile, storedCharacterFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
 import { OptionButton, Panel, Screen, StepHeader } from '../ui'
@@ -43,7 +46,94 @@ export function CampaignsPage() {
   const navigate = useNavigate()
   const library = useLibrary()
   usePageTitle(useMessages().campaigns.title)
-  return <CampaignList entries={library.campaigns()} onBack={() => void navigate('/')} onNew={() => void navigate('/campaigns/new')} onOpen={(id) => void navigate(`/campaigns/${id}`)} />
+  return (
+    <CampaignList
+      entries={library.campaigns()}
+      onBack={() => void navigate('/')}
+      onNew={() => void navigate('/campaigns/new')}
+      onImport={() => void navigate('/campaigns/import')}
+      onOpen={(id) => void navigate(`/campaigns/${id}`)}
+    />
+  )
+}
+
+export function ImportCampaignPage() {
+  const navigate = useNavigate()
+  const pack = usePack()
+  const library = useLibrary()
+  usePageTitle(useMessages().campaigns.importing.title)
+  return (
+    <ImportCampaign
+      read={(text) => readIncomingCampaign(text, pack, library.campaigns())}
+      textOfFile={textOfPickedFile}
+      onKeep={(campaign) => library.saveCampaign(campaign)}
+      onOpen={(id) => void navigate(`/campaigns/${id}`)}
+      onBack={() => void navigate('/campaigns')}
+    />
+  )
+}
+
+export function RemoveCampaignPage() {
+  const navigate = useNavigate()
+  const library = useLibrary()
+  const messages = useMessages()
+  const { id } = useParams()
+  const entry = library.campaigns().find((stored) => stored.id === id)
+  const campaign = entry?.read.ok ? entry.read.value : undefined
+  usePageTitle(campaign ? messages.campaigns.removal.title(campaign.name) : messages.campaigns.removal.titleUnreadable)
+
+  if (!entry) return <CampaignUnavailable message={messages.campaigns.missing} />
+  return (
+    <RemoveCampaign
+      name={campaign?.name}
+      // Its file as the app writes it when it can be read; otherwise what is kept, exactly as it is stored.
+      onSaveFile={() => saveToDevice(campaign ? campaignFile(campaign) : storedCampaignFile(entry))}
+      onRemove={() => {
+        library.removeCampaign(entry.id)
+        // The list takes this page's place: going back does not return to a question already answered.
+        void navigate('/campaigns', { replace: true })
+      }}
+      onKeep={() => void navigate(`/campaigns/${entry.id}`)}
+    />
+  )
+}
+
+interface CampaignUnavailableProps {
+  message: string
+  /** Given when the device does keep something under that id: it can leave as a file and be removed. */
+  onSaveFile?: () => void
+  onRemove?: () => void
+}
+
+/** In a campaign's place when there is none to show: why, and for an entry that cannot be read, its file and the way to remove it. */
+function CampaignUnavailable({ message, onSaveFile, onRemove }: CampaignUnavailableProps) {
+  const navigate = useNavigate()
+  const messages = useMessages()
+  return (
+    <div className="dn-page">
+      <Screen kind="menu" label={messages.campaigns.title} tall>
+        <StepHeader title={messages.campaigns.title} />
+        <div className="dn-stack">
+          <p className="dn-note dn-note--error">{message}</p>
+          {onSaveFile && (
+            <div className="dn-row">
+              <OptionButton primary onClick={onSaveFile}>
+                {messages.campaigns.saveFile}
+              </OptionButton>
+            </div>
+          )}
+          {onRemove && (
+            <div className="dn-row">
+              <OptionButton onClick={onRemove}>{messages.campaigns.remove}</OptionButton>
+            </div>
+          )}
+        </div>
+        <div className="dn-foot">
+          <OptionButton onClick={() => void navigate('/campaigns')}>{messages.nav.back}</OptionButton>
+        </div>
+      </Screen>
+    </div>
+  )
 }
 
 const isRule = (value: string | null): value is RuleId => RULE_IDS.some((id) => id === value)
@@ -71,20 +161,10 @@ export function CampaignPage() {
   const asked = search.get('rule')
   usePageTitle(campaign?.name ?? messages.campaigns.newTitle)
 
+  const remove = (): void => void navigate(`/campaigns/${id ?? ''}/remove`)
   if (id !== undefined && !campaign) {
-    return (
-      <div className="dn-page">
-        <Screen kind="menu" label={messages.campaigns.title} tall>
-          <StepHeader title={messages.campaigns.title} />
-          <div className="dn-stack">
-            <p className="dn-note dn-note--error">{entry ? messages.campaigns.unreadable : messages.campaigns.missing}</p>
-          </div>
-          <div className="dn-foot">
-            <OptionButton onClick={() => void navigate('/campaigns')}>{messages.nav.back}</OptionButton>
-          </div>
-        </Screen>
-      </div>
-    )
+    if (!entry) return <CampaignUnavailable message={messages.campaigns.missing} />
+    return <CampaignUnavailable message={messages.campaigns.unreadable} onSaveFile={() => saveToDevice(storedCampaignFile(entry))} onRemove={remove} />
   }
 
   return (
@@ -109,6 +189,7 @@ export function CampaignPage() {
       origin={window.location.origin}
       onCopy={copyText}
       onSaveFile={(kept) => saveToDevice(campaignFile(kept))}
+      onRemove={remove}
       onBack={() => void navigate('/campaigns')}
       onUnsaved={setUnsaved}
       leaving={blocker.state === 'blocked' ? { stay: () => blocker.reset(), leave: () => blocker.proceed() } : undefined}

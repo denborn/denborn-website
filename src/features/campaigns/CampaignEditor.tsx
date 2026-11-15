@@ -30,6 +30,8 @@ export interface CampaignEditorProps {
   /** Puts a text on the clipboard; false when the browser refuses. */
   onCopy: (text: string) => Promise<boolean>
   onSaveFile: (campaign: CampaignDocument) => void
+  /** Asks to remove the campaign from this device: the answer is confirmed on a screen of its own. */
+  onRemove: () => void
   onBack: () => void
   /** Told whenever the page starts or stops holding changes not saved yet. */
   onUnsaved?: (unsaved: boolean) => void
@@ -48,7 +50,7 @@ const MOVE_ACCESS = ['level-up', 'level-up-tm-tutor-egg'] as const
  * of its rules when one changed. Once saved, its creation link and QR code
  * stand under the rules.
  */
-export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onBack, onUnsaved, leaving }: CampaignEditorProps) {
+export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onRemove, onBack, onUnsaved, leaving }: CampaignEditorProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.campaigns
@@ -239,7 +241,7 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
                   {messages.saving[notKept]}
                 </p>
               )}
-              {campaign && !changed && <CampaignLink campaign={campaign} pack={pack} origin={origin} onCopy={onCopy} onSaveFile={() => onSaveFile(campaign)} />}
+              {campaign && !changed && <CampaignLink campaign={campaign} pack={pack} origin={origin} onCopy={onCopy} onSaveFile={() => onSaveFile(campaign)} onRemove={onRemove} />}
             </div>
             <div className="dn-foot">
               <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
@@ -260,10 +262,11 @@ interface CampaignLinkProps {
   origin: string
   onCopy: (text: string) => Promise<boolean>
   onSaveFile: () => void
+  onRemove: () => void
 }
 
-/** Under the rules of a saved campaign: the link players make their characters from, as a QR code and as text, and the campaign's file. */
-function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile }: CampaignLinkProps) {
+/** Under the rules of a saved campaign: the link players make their characters from, as a QR code and as text, the campaign's file, and last the way to remove it. */
+function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile, onRemove }: CampaignLinkProps) {
   const text = useMessages().campaigns
   const [copied, setCopied] = useState<boolean>()
   const rules = campaign.rulesHistory.at(-1)
@@ -291,6 +294,10 @@ function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile }: CampaignLi
       <p className="dn-note">{text.fileHint}</p>
       <div className="dn-row">
         <OptionButton onClick={onSaveFile}>{text.saveFile}</OptionButton>
+      </div>
+      <p className="dn-note">{text.removeHint}</p>
+      <div className="dn-row">
+        <OptionButton onClick={onRemove}>{text.remove}</OptionButton>
       </div>
     </>
   )
