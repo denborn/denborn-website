@@ -115,6 +115,17 @@ export const en = {
     qr: 'Its QR code holds the whole character too.',
     printHint: 'Its sheet can be printed, with its QR code on it.',
     print: 'PRINT ITS SHEET',
+    removeHint: 'It can be removed from this device. Its file, once saved, still holds it.',
+    remove: 'REMOVE FROM THIS DEVICE',
+    /** The screen that confirms a removal (decision 110). */
+    removal: {
+      title: (name: string) => `Remove ${name}?`,
+      titleUnreadable: 'Remove this character?',
+      warning: 'It will be gone from this device for good: the app keeps no bin.',
+      fileHint: 'Its file is the only way to bring it back. Save it first if you have not.',
+      remove: 'REMOVE',
+      keep: 'KEEP IT',
+    },
     /** The printed sheet (decision 98). */
     paper: {
       identity: 'Identity',

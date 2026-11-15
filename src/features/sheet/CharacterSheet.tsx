@@ -37,6 +37,8 @@ export interface CharacterSheetProps {
   onBack: () => void
   onSaveFile: () => void
   onPrint: () => void
+  /** Asks to remove it from this device: the answer is confirmed on a screen of its own. */
+  onRemove: () => void
 }
 
 /**
@@ -44,7 +46,7 @@ export interface CharacterSheetProps {
  * parts below: who it is, its stats, its moves, its bag, and the ways to copy
  * it elsewhere. It shows; it changes nothing.
  */
-export function CharacterSheet({ pack, character, numbers, origin, notice, onBack, onSaveFile, onPrint }: CharacterSheetProps) {
+export function CharacterSheet({ pack, character, numbers, origin, notice, onBack, onSaveFile, onPrint, onRemove }: CharacterSheetProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.sheet
@@ -70,7 +72,7 @@ export function CharacterSheet({ pack, character, numbers, origin, notice, onBac
           {part === 'stats' && <StatsPart {...shown} />}
           {part === 'moves' && <MovesPart {...shown} />}
           {part === 'bag' && <BagPart {...shown} />}
-          {part === 'share' && <SharePart character={character} origin={origin} text={text} onSaveFile={onSaveFile} onPrint={onPrint} />}
+          {part === 'share' && <SharePart character={character} origin={origin} text={text} onSaveFile={onSaveFile} onPrint={onPrint} onRemove={onRemove} />}
         </Tabs>
         <div className="dn-foot">
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
@@ -246,10 +248,11 @@ interface SharePartProps {
   text: Messages['sheet']
   onSaveFile: () => void
   onPrint: () => void
+  onRemove: () => void
 }
 
-/** The ways to take the character elsewhere: its file, its sheet on paper, and its QR code. */
-function SharePart({ character, origin, text, onSaveFile, onPrint }: SharePartProps) {
+/** The ways to take the character elsewhere: its file, its sheet on paper, and its QR code. Last, the way to remove it from here. */
+function SharePart({ character, origin, text, onSaveFile, onPrint, onRemove }: SharePartProps) {
   return (
     <>
       <p className="dn-note">{text.file}</p>
@@ -264,6 +267,10 @@ function SharePart({ character, origin, text, onSaveFile, onPrint }: SharePartPr
       </div>
       <p className="dn-note">{text.qr}</p>
       <QrCode text={characterLink(character, origin)} label={character.nickname} tooLong={text.tooLarge} />
+      <p className="dn-note">{text.removeHint}</p>
+      <div className="dn-row">
+        <OptionButton onClick={onRemove}>{text.remove}</OptionButton>
+      </div>
     </>
   )
 }

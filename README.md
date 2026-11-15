@@ -10,7 +10,7 @@ Unofficial and non-commercial. Pokémon belongs to Nintendo, Creatures Inc. and 
 - Milestone 1 (battle engine) is done: `src/battle/` runs Denborn's fights on the real simulator, with every rule proven by tests (see DECISIONS.md, section 5).
 - Milestone 2 (game data) is done: 151 species, their moves, Abilities and items in English and French, with the sprites, built from pinned sources.
 - Milestone 3 (art direction) is done: the design system Denborn DA, after Pokémon Black / White, with its components shown in Storybook.
-- Milestone 4 (offline flows) is under way. In the app: the home, creating a character step by step from a campaign's creation link, the list of the characters kept on the device, a character's sheet with its file, its QR code and its printed form, importing a character from its file, its link or a scan of its QR code, and the options with the system check. Still to come in this milestone: removing a character, and the game master's campaign screens, which make the creation link.
+- Milestone 4 (offline flows) is under way. In the app: the home, creating a character step by step from a campaign's creation link, the list of the characters kept on the device, a character's sheet with its file, its QR code and its printed form, importing a character from its file, its link or a scan of its QR code, removing one, and the options with the system check. Still to come in this milestone: the game master's campaign screens, which make the creation link (until then, `node scripts/dev/creation-link.ts` prints one for a test campaign).
 - No battle can be played in the app yet.
 
 ## What is authoritative

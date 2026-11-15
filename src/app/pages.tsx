@@ -15,6 +15,7 @@ import { type Device, readIncomingCode, readIncomingFile } from '../features/imp
 import { Options } from '../features/options/Options'
 import { CharacterSheet } from '../features/sheet/CharacterSheet'
 import { PaperSheet } from '../features/sheet/PaperSheet'
+import { RemoveCharacter } from '../features/sheet/RemoveCharacter'
 import { SheetUnavailable } from '../features/sheet/SheetUnavailable'
 import { sheetToShow } from '../features/sheet/open-sheet'
 import { useLanguage, useMessages } from '../i18n'
@@ -102,9 +103,18 @@ export function CharacterPage() {
   usePageTitle(shown.show === 'sheet' ? shown.character.nickname : messages.sheet.title)
   const back = (): void => void navigate('/characters')
 
+  const remove = (): void => void navigate(`/characters/${id ?? ''}/remove`)
+
   if (shown.show === 'problem') {
-    // Whatever is kept under that id can still leave as a file, exactly as it is stored.
-    return <SheetUnavailable problem={shown.problem} onBack={back} onSaveFile={entry ? () => saveToDevice(storedCharacterFile(entry)) : undefined} />
+    // Whatever is kept under that id can still leave as a file, exactly as it is stored, and can be removed.
+    return (
+      <SheetUnavailable
+        problem={shown.problem}
+        onBack={back}
+        onSaveFile={entry ? () => saveToDevice(storedCharacterFile(entry)) : undefined}
+        onRemove={entry ? remove : undefined}
+      />
+    )
   }
   const origin = window.location.origin
   return (
@@ -118,10 +128,39 @@ export function CharacterPage() {
         onBack={back}
         onSaveFile={() => saveToDevice(characterFile(shown.character, shown.rules))}
         onPrint={() => window.print()}
+        onRemove={remove}
       />
       {/* Out of sight on screen; in print it takes the place of the screens. */}
       <PaperSheet pack={pack} character={shown.character} numbers={shown.numbers} language={language} messages={messages} origin={origin} />
     </>
+  )
+}
+
+export function RemoveCharacterPage() {
+  const navigate = useNavigate()
+  const pack = usePack()
+  const library = useLibrary()
+  const messages = useMessages()
+  const language = useLanguage()
+  const { id } = useParams()
+  const entry = library.characters().find((stored) => stored.id === id)
+  const shown = sheetToShow(entry, (campaign) => library.rulesOf(campaign.id, campaign.rulesVersion, pack.species), pack)
+  const sheet = shown.show === 'sheet' ? shown : undefined
+  usePageTitle(sheet ? messages.sheet.removal.title(sheet.character.nickname) : messages.sheet.removal.titleUnreadable)
+
+  if (!entry) return <SheetUnavailable problem="missing" onBack={() => void navigate('/characters')} />
+  return (
+    <RemoveCharacter
+      shown={sheet && { pack, character: sheet.character, numbers: sheet.numbers, language, messages }}
+      // The file with its rules when the character passes its checks; otherwise what is kept, exactly as it is stored.
+      onSaveFile={() => saveToDevice(sheet ? characterFile(sheet.character, sheet.rules) : storedCharacterFile(entry))}
+      onRemove={() => {
+        library.removeCharacter(entry.id)
+        // The list takes this page's place: going back does not return to a question already answered.
+        void navigate('/characters', { replace: true })
+      }}
+      onKeep={() => void navigate(`/characters/${entry.id}`)}
+    />
   )
 }
 

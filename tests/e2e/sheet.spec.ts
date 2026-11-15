@@ -76,6 +76,35 @@ test('a character changed in the browser’s storage past its rules gets no shee
   expect(saved).toMatchObject({ nickname: 'Volt', ivs: { hp: 31 } })
 })
 
+test('a character is removed only once the question is answered, with its file offered first', async ({ page }) => {
+  const askToRemove = async (): Promise<void> => {
+    await page.getByRole('tab', { name: 'SHARE' }).click()
+    await page.getByRole('button', { name: 'REMOVE FROM THIS DEVICE' }).click()
+    await expect(page.getByRole('heading', { name: 'Remove Volt?' })).toBeVisible()
+  }
+  await page.goto(`/#${code}`)
+  await createPikachu(page, 'Volt')
+  await page.getByRole('button', { name: /Volt/ }).click()
+
+  // Keeping it changes nothing.
+  await askToRemove()
+  await page.getByRole('button', { name: 'KEEP IT' }).click()
+  await expect(page.getByRole('heading', { name: 'Volt', exact: true })).toBeVisible()
+
+  await askToRemove()
+  const downloading = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'SAVE ITS FILE' }).click()
+  expect(openFile(readFileSync(await (await downloading).path(), 'utf8'))).toMatchObject({ kind: 'character', read: { ok: true, value: { nickname: 'Volt' } } })
+  await page.getByRole('button', { name: 'REMOVE', exact: true }).click()
+
+  await expect(page.getByRole('heading', { name: 'Characters' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Volt/ })).toHaveCount(0)
+  // Gone from what the browser keeps, not only from the screen.
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Characters' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Volt/ })).toHaveCount(0)
+})
+
 test('the address of a character this device does not keep says so', async ({ page }) => {
   await page.goto('/characters/nobodyAtAll00000')
   await expect(page.getByText('This character is not on this device.')).toBeVisible()

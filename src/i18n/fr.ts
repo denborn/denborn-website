@@ -117,6 +117,16 @@ export const fr: Messages = {
     qr: 'Son code QR contient lui aussi tout le personnage.',
     printHint: 'Sa fiche peut être imprimée, avec son code QR.',
     print: 'IMPRIMER SA FICHE',
+    removeHint: 'Il peut être retiré de cet appareil. Son fichier, une fois enregistré, le contient toujours.',
+    remove: 'RETIRER DE CET APPAREIL',
+    removal: {
+      title: (name) => `Retirer ${name}\u00a0?`,
+      titleUnreadable: 'Retirer ce personnage\u00a0?',
+      warning: 'Il disparaîtra de cet appareil pour de bon\u00a0: l’application n’a pas de corbeille.',
+      fileHint: 'Son fichier est le seul moyen de le retrouver. Enregistrez-le d’abord si ce n’est pas fait.',
+      remove: 'RETIRER',
+      keep: 'LE GARDER',
+    },
     paper: {
       identity: 'Identité',
       combat: 'Stats de combat',

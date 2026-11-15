@@ -9,6 +9,7 @@ import { Note, Phone, usePack } from '../../ui/stories/board'
 import { useLanguage, useMessages } from '../../i18n'
 import { CharacterSheet } from './CharacterSheet'
 import { PaperSheet } from './PaperSheet'
+import { RemoveCharacter } from './RemoveCharacter'
 import { SheetUnavailable } from './SheetUnavailable'
 import type { SheetProblem } from './open-sheet'
 
@@ -43,7 +44,7 @@ function Sheet({ condition }: Args) {
   if (!numbers) return null
   return (
     <Phone>
-      <CharacterSheet pack={pack} character={character} numbers={numbers} origin={ORIGIN} onBack={() => undefined} onSaveFile={() => undefined} onPrint={() => window.print()} />
+      <CharacterSheet pack={pack} character={character} numbers={numbers} origin={ORIGIN} onBack={() => undefined} onSaveFile={() => undefined} onPrint={() => window.print()} onRemove={() => undefined} />
       <Note>
         A character’s sheet. The Pokémon, its HP and its condition stay on the top screen; below, five parts: who it is and its roleplay
         attributes, its stats with the IVs and EVs behind them, its six moves, its bag, and the ways to take it elsewhere (its file, its
@@ -86,6 +87,35 @@ function Paper({ condition }: Args) {
 /** The printed sheet, as a page. */
 export const OnPaper: StoryObj<typeof meta> = { render: (args) => <Paper {...args} /> }
 
+function Removal({ condition }: Args) {
+  const pack = usePack()
+  const language = useLanguage()
+  const messages = useMessages()
+  const sample = withPossiblePp({ ...sampleCharacter(pack, 50, 'Braise', 6, 12), exp: expForLevel(50) + 3200 }, pack)
+  const character = inCondition(sample, condition)
+  const numbers = sheetNumbers(character, pack)
+  if (!numbers) return null
+  const handlers = { onSaveFile: () => undefined, onRemove: () => undefined, onKeep: () => undefined }
+  return (
+    <>
+      <Phone>
+        <RemoveCharacter shown={{ pack, character, numbers, language, messages }} {...handlers} />
+      </Phone>
+      <Phone>
+        <RemoveCharacter shown={undefined} {...handlers} />
+      </Phone>
+      <Note>
+        Before a character leaves the device (decision 110): the removal cannot be undone, so its file is offered first, and it is the
+        button put forward. REMOVE and KEEP IT are the two ways out. The second phone shows the same question for an entry that cannot be
+        read. The way here is at the end of the sheet’s SHARE tab (decision 111).
+      </Note>
+    </>
+  )
+}
+
+/** The question asked before a character is removed from the device. */
+export const Removing: StoryObj<typeof meta> = { render: (args) => <Removal {...args} /> }
+
 const PROBLEMS: SheetProblem[] = ['missing', 'unreadable', 'newer', 'rulesUnknown', 'invalid']
 
 /** In the sheet's place when there is none to show: each reason, one under the other. */
@@ -94,7 +124,7 @@ export const NoSheet: StoryObj<typeof meta> = {
     <>
       {PROBLEMS.map((problem) => (
         <Phone key={problem}>
-          <SheetUnavailable problem={problem} onBack={() => undefined} onSaveFile={problem === 'missing' ? undefined : () => undefined} />
+          <SheetUnavailable problem={problem} onBack={() => undefined} {...(problem === 'missing' ? {} : { onSaveFile: () => undefined, onRemove: () => undefined })} />
         </Phone>
       ))}
       <Note>

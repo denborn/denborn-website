@@ -20,6 +20,8 @@ interface LibraryState {
   writes: number
   characters: () => Stored<CharacterDocument>[]
   saveCharacter: (character: CharacterDocument) => WriteResult
+  /** Takes a character off this device, for good. */
+  removeCharacter: (id: string) => void
   /** The campaigns opened on this device, each with the newest rules it was opened with. */
   invitations: (species: SpeciesIndex) => Invitation[]
   saveInvitation: (invitation: Invitation, species: SpeciesIndex) => WriteResult
@@ -37,6 +39,10 @@ export const useLibrary = create<LibraryState>((set) => {
     writes: 0,
     characters: () => library.characters(),
     saveCharacter: (character) => written(library.saveCharacter(character)),
+    removeCharacter: (id) => {
+      library.removeCharacter(id)
+      written({ ok: true })
+    },
     invitations: (species) => {
       const newest = new Map<string, Invitation>()
       // Listed oldest version first: the last one seen for a campaign is its newest.
