@@ -41,7 +41,7 @@ describe('the species picker’s filters', () => {
   })
 
   it('keep one type, whichever of a Pokémon’s two it is', () => {
-    expect(shown({ type: 'Dark' })).toEqual(['cerbère', 'titan'])
+    expect(shown({ type: 'dark' })).toEqual(['cerbère', 'titan'])
   })
 
   it('keep the stat totals on one side of a number, the number included', () => {
@@ -52,7 +52,7 @@ describe('the species picker’s filters', () => {
 
   it('find a name without its accents or capitals, and narrow with the other filters', () => {
     expect(shown({ search: 'CERBERE' })).toEqual(['cerbère'])
-    expect(shown({ search: 'e', stage: 'final', type: 'Electric' })).toEqual(['mouse'])
+    expect(shown({ search: 'e', stage: 'final', type: 'electric' })).toEqual(['mouse'])
   })
 })
 

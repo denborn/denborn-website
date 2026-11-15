@@ -1215,6 +1215,12 @@
   padding: calc(6 * var(--dn-u));
 }
 
+/* A link shown as text, to be selected and copied by hand: it breaks anywhere, since it has no spaces. */
+.dn-link {
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 /* A row of tabs under a page's title: equal widths, the current one lit and underlined. */
 .dn-tabs {
   display: grid;

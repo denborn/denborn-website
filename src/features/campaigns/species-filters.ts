@@ -15,7 +15,7 @@ export interface SpeciesFilter {
   /** `first`: has not evolved from another playable Pokémon. `final`: evolves into no other playable Pokémon. */
   stage: 'any' | 'first' | 'final'
   legendary: 'any' | 'only' | 'without'
-  /** A type as the game data names it; nothing for any. */
+  /** A type's id in the game data; nothing for any. */
   type: string | undefined
   /** The six base stats added up, against a number. */
   statTotal: { side: 'atMost' | 'atLeast'; total: number } | undefined
@@ -43,7 +43,7 @@ function passes(species: SpeciesData, filter: SpeciesFilter, pack: DataPack, lan
   if (filter.stage === 'first' && species.earlierStages.some((earlier) => earlier in pack.species)) return false
   if (filter.stage === 'final' && species.evolutions.length > 0) return false
   if (filter.legendary !== 'any' && species.tags.some((tag) => LEGENDARY_TAGS.includes(tag)) !== (filter.legendary === 'only')) return false
-  if (filter.type !== undefined && !species.types.includes(filter.type)) return false
+  if (filter.type !== undefined && !species.types.some((type) => type.toLowerCase() === filter.type)) return false
   if (filter.statTotal) {
     const total = statTotalOf(species)
     if (filter.statTotal.side === 'atMost' ? total > filter.statTotal.total : total < filter.statTotal.total) return false
