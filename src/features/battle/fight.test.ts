@@ -148,6 +148,7 @@ describe('locking a round', () => {
       get ended() { return engine.ended },
       get outcome() { return engine.outcome },
       combatants: () => engine.combatants(),
+      field: () => engine.field(),
       request: (id) => engine.request(id),
       checkAction: (id, action, extras) => { engine.checkAction(id, action, extras) },
       turnOrder: (locked) => engine.turnOrder(locked),

@@ -113,6 +113,28 @@ export interface CombatantView {
   moves: MoveView[]
 }
 
+/** Something in effect: a weather, a screen, what sits on a Pokémon. */
+export interface EffectView {
+  /** The engine's id of the effect. */
+  id: string
+  /** The turns it still lasts, when it ends by itself. */
+  turns?: number
+  /** How many layers of it there are, for what can be laid several times (Spikes). */
+  layers?: number
+}
+
+/** Everything in effect on the battlefield (decisions 89 and 92 to 94). */
+export interface FieldView {
+  weather?: EffectView
+  terrain?: EffectView
+  /** What holds over the whole field besides the weather and the terrain: Trick Room, Gravity. */
+  rooms: EffectView[]
+  /** Each side's conditions: screens, Tailwind, hazards. */
+  sides: Record<LineSide, EffectView[]>
+  /** What sits on one Pokémon, by its id. Stat changes are in its own view. */
+  pokemon: Record<string, EffectView[]>
+}
+
 export interface MoveOption extends MoveView {
   disabled: boolean
   /** How the move picks its target, in the engine's vocabulary. */

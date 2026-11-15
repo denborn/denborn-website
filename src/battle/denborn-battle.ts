@@ -23,6 +23,8 @@ import {
   type CombatantSetup,
   type CombatantView,
   type DenbornEvent,
+  type EffectView,
+  type FieldView,
   type MoveChoice,
   type MoveOption,
   type Outcome,
@@ -265,6 +267,31 @@ export class DenbornBattle {
 
   combatant(id: string): CombatantView {
     return this.view(this.find(id))
+  }
+
+  /** Everything in effect on the battlefield: the weather, the terrain, each side's conditions and what sits on each Pokémon. */
+  field(): FieldView {
+    const { field } = this.battle
+    const effect = (id: string, state: { duration?: number; layers?: number } | undefined): EffectView => ({
+      id,
+      ...(state?.duration ? { turns: state.duration } : {}),
+      ...(state?.layers ? { layers: state.layers } : {}),
+    })
+    const all = (effects: Record<string, { duration?: number; layers?: number }>): EffectView[] => Object.entries(effects).map(([id, state]) => effect(id, state))
+    const sideOfLine = (line: LineSide): Side | undefined => this.battle.sides.find((side) => side.name === SIDE_NAMES[line])
+    const view: FieldView = {
+      rooms: all(field.pseudoWeather),
+      sides: { players: all(sideOfLine('players')?.sideConditions ?? {}), enemies: all(sideOfLine('enemies')?.sideConditions ?? {}) },
+      pokemon: Object.fromEntries(
+        this.battle
+          .getAllPokemon()
+          .filter((pokemon) => !pokemon.fainted)
+          .map((pokemon) => [stateOf(pokemon).id, all(pokemon.volatiles)]),
+      ),
+    }
+    if (field.weather) view.weather = effect(field.weather, field.weatherState)
+    if (field.terrain) view.terrain = effect(field.terrain, field.terrainState)
+    return view
   }
 
   /** The combatant a protocol identity such as "p1a: P2" or "p2: E1" refers to. */

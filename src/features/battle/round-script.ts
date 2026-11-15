@@ -41,17 +41,22 @@ export interface RoundScript {
 /** Lines that change nothing a player is shown, or whose sentence is not written yet: they are passed over. */
 const SILENT = new Set([
   '', 'turn', 'upkeep', 'start', 'split', 'debug', 'player', 'teamsize', 'gametype', 'gen', 'tier', 'rule', 'switch', 'drag', 'swap', 'win', 'tie', 'faint', 't:', 'done', 'request', 'error',
-  '-hint', '-message', '-anim', '-hitcount', '-prepare', '-mustrecharge', '-ability', '-endability', '-item', '-enditem', '-fieldstart', '-fieldend', '-fieldactivate', '-sidestart', '-sideend',
+  '-hint', '-message', '-anim', '-hitcount', '-mustrecharge', '-ability', '-endability', '-item', '-enditem', '-fieldactivate',
   '-swapsideconditions', '-singlemove', '-transform', '-formechange', 'detailschange', 'replace', '-clearallboost', '-clearboost', '-clearpositiveboost', '-clearnegativeboost', '-copyboost',
   '-invertboost', '-swapboost', '-setboost', '-block', '-nothing', '-waiting', '-zpower', '-zbroken', '-mega', '-primal', '-burst', '-terastallize', '-center', '-combine', '-ohko', '-candynamax',
 ])
 
 /** Engine names of what hurts a Pokémon at the end of a turn or after its move, and our name for the sentence. */
-const HURT_BY: Record<string, string> = { brn: 'brn', psn: 'psn', tox: 'tox', recoil: 'recoil', confusion: 'confusion', sandstorm: 'sandstorm', leechseed: 'leechseed' }
+const HURT_BY: Record<string, string> = { brn: 'brn', psn: 'psn', tox: 'tox', recoil: 'recoil', confusion: 'confusion', sandstorm: 'sandstorm', leechseed: 'leechseed', spikes: 'spikes', stealthrock: 'stealthrock' }
 const CANT: Record<string, string> = { slp: 'slp', par: 'par', frz: 'frz', flinch: 'flinch', recharge: 'recharge', truant: 'truant', attract: 'attract' }
 const WEATHERS = new Set(['raindance', 'sunnyday', 'sandstorm', 'snowscape'])
 const STATUSES = new Set(['brn', 'par', 'slp', 'psn', 'tox', 'frz'])
 const STATS = new Set(['atk', 'def', 'spa', 'spd', 'spe', 'accuracy', 'evasion'])
+/** What holds over the whole field, and what lies on one side, that has a sentence for its start (and its end, for those that end). */
+const FIELDS = new Set(['electricterrain', 'grassyterrain', 'mistyterrain', 'psychicterrain', 'trickroom', 'gravity'])
+const SIDES = new Set(['reflect', 'lightscreen', 'auroraveil', 'tailwind', 'safeguard', 'mist', 'stealthrock', 'spikes', 'toxicspikes', 'stickyweb'])
+const LASTING_SIDES = new Set(['reflect', 'lightscreen', 'auroraveil', 'tailwind', 'safeguard', 'mist'])
+const CHARGING = new Set(['solarbeam', 'fly', 'dig', 'razorwind', 'skyattack'])
 
 /** An engine name as an id: "move: Leech Seed" and "Leech Seed" both give "leechseed". */
 const idOf = (name: string): string => name.replace(/^[a-z]+: /i, '').toLowerCase().replace(/[^a-z0-9]/g, '')
@@ -162,7 +167,29 @@ export function roundScript(played: Pick<Played, 'log' | 'events'>): RoundScript
         const effect = idOf(second)
         if (effect === 'confusion') say(kind === '-start' ? 'confusion.start' : kind === '-end' ? 'confusion.end' : 'confusion.is')
         else if (effect === 'leechseed' && kind === '-start') say('leechseed.start')
+        else if (effect === 'substitute' && kind !== '-activate') say(kind === '-start' ? 'substitute.start' : 'substitute.end')
         else if (effect === 'protect' && kind === '-activate') say('protect')
+        break
+      }
+      case '-fieldstart':
+      case '-fieldend': {
+        const effect = idOf(who)
+        if (!FIELDS.has(effect)) break
+        const by = tag(fields, 'of')
+        steps.push({ said: { key: `field.${effect}.${kind === '-fieldstart' ? 'start' : 'end'}`, ...(by ? { pokemon: [by] } : {}) }, show: by ? [by] : [] })
+        break
+      }
+      case '-sidestart':
+      case '-sideend': {
+        // The side is named "p1: players" or "p2: enemies": a player reads theirs as "your team".
+        const effect = idOf(second)
+        const whose = who.startsWith('p1') ? 'party' : 'foes'
+        if (kind === '-sidestart' ? SIDES.has(effect) : LASTING_SIDES.has(effect)) steps.push({ said: { key: `side.${effect}.${kind === '-sidestart' ? 'start' : 'end'}.${whose}` }, show: [] })
+        break
+      }
+      case '-prepare': {
+        const charged = idOf(second)
+        if (CHARGING.has(charged)) say(`prepare.${charged}`)
         break
       }
       case 'denborn':
@@ -198,8 +225,10 @@ function ownSteps([event = '', a = '', b = '', c = '', d = '']: readonly string[
         { said: { key: 'own.bagUsed', pokemon: [a, c], item: b }, show: [a, c] },
         { said: { key: 'own.bagNoEffect', pokemon: [c] }, show: [c] },
       ]
+    case 'wait':
+      return [{ said: { key: 'own.waited', pokemon: [a] }, show: [a] }]
     default:
-      // A Pokémon that waits, PP given back: nothing is said.
+      // PP given back: nothing is said.
       return []
   }
 }

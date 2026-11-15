@@ -9,6 +9,7 @@ import {
   type BattlerHandle,
   CommandMenu,
   CornerButton,
+  FieldEffects,
   FieldPlan,
   type FieldTile,
   HudBox,
@@ -20,13 +21,15 @@ import {
   PokemonIcon,
   Screen,
   StatusBadge,
+  TypeLabel,
 } from '../../ui'
 import { TEXT_PACE, useTextSpeed } from '../options/text-speed'
 import { FighterSheet, statusOf } from './FighterSheet'
+import { effectsOf, groundOf } from './effects'
 import { type Fighter, clockText, fightersOf, reaches } from './fighters'
 import { roundScript, sentence, standingAfter } from './round-script'
 import { useCountdown } from './use-countdown'
-import { type Wording, choiceWords, moveName as moveNameIn, tellingOf } from './words'
+import { type Wording, choiceWords, effectWords, moveName as moveNameIn, tellingOf } from './words'
 
 export interface BattleScreenProps {
   pack: DataPack
@@ -59,6 +62,7 @@ type View =
   | { at: 'switch' }
   | { at: 'party' }
   | { at: 'field' }
+  | { at: 'effects' }
   | { at: 'sheet'; id: string }
 
 const HOME: View = { at: 'home' }
@@ -121,7 +125,8 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const pending = notice !== undefined || (waiting !== undefined && waiting.fight === fight && waiting.answer === answer)
 
   // While the round is told, everyone stands as the steps told so far leave them.
-  const fighters = fightersOf(playing ? { ...fight, combatants: standingAfter(fight.last.before, script.steps, toldSteps + 1) } : fight, party, pack, language)
+  const named = useMemo(() => new Set(Object.keys(battleText.states)), [battleText])
+  const fighters = fightersOf(playing ? { ...fight, combatants: standingAfter(fight.last.before, script.steps, toldSteps + 1) } : fight, party, pack, language, named)
   const allies = fighters.filter((fighter) => fighter.side === 'players')
   const foes = fighters.filter((fighter) => fighter.side === 'enemies')
   const byId = (id: string | undefined): Fighter | undefined => fighters.find((fighter) => fighter.id === id)
@@ -178,6 +183,10 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
 
   const wording: Wording = { pack, language, messages, nameOf }
   const telling = tellingOf(wording, battleText)
+  /** The terrain and the weather, named on the plan, and everything in effect, behind MORE (decisions 89 and 92 to 94). */
+  const inEffect = effectWords(wording, battleText)
+  const ground = groundOf(fight.field, inEffect)
+  const effects = effectsOf(fight.field, fighters, inEffect)
   /** Everything said so far of the round being told, in order. */
   const saidSoFar = playing ? script.steps.slice(0, toldSteps + 1).flatMap((earlier) => (earlier.said ? (sentence(earlier.said, telling) ?? []) : [])) : []
   const skip = (): void => {
@@ -607,10 +616,24 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
                 show({ at: 'sheet', id })
               }}
               labels={{ foes: words.foes, allies: words.party }}
+              ground={ground.map((label) => (
+                <TypeLabel key={label.id} type={label.type} text={label.name} />
+              ))}
             >
-              <span />
+              <OptionButton primary={effects.length > 0} onClick={() => show({ at: 'effects' })}>
+                {words.more} · {effects.length}
+              </OptionButton>
               <OptionButton onClick={() => show(HOME)}>{battle.back}</OptionButton>
             </FieldPlan>
+          ),
+        }
+      case 'effects':
+        return {
+          kind: 'menu',
+          content: (
+            <FieldEffects effects={effects} label={words.effects} empty={words.noEffects}>
+              <OptionButton onClick={() => show({ at: 'field' })}>{battle.back}</OptionButton>
+            </FieldEffects>
           ),
         }
       case 'sheet': {

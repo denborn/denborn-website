@@ -598,6 +598,8 @@ export const fr: Messages = {
       noEffects: 'Aucun effet en cours.',
       turnsLeft: (turns) => (turns === 1 ? '1 tour restant' : `${turns} tours restants`),
       scope: { field: 'Tout le terrain', foes: 'Côté ennemi', party: 'Votre côté' },
+      accuracy: 'Précision',
+      evasion: 'Esquive',
       changed: 'sous effets',
       weather: { rain: 'Pluie', sun: 'Soleil', sand: 'Tempête de sable', snow: 'Neige' },
     },
@@ -710,6 +712,7 @@ export const fr: Messages = {
       switched: (a, b) => `${a} et ${b} échangent leur tour.`,
       ran: (a, b) => `${a} et ${b} échangent leur place.`,
       timeout: (name) => `Temps écoulé\u00a0! ${name} n'a d'autre choix que Lutte.`,
+      waited: (name) => `${name} attend.`,
     },
   },
 }

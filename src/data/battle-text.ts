@@ -11,6 +11,8 @@ export interface BattleText {
   source: string
   /** Each message by our name for it, as a sentence with named gaps: `{pokemon0}`, `{move}`, `{de}`. */
   messages: Record<string, { en: string; fr: string }>
+  /** What can be in effect during a fight, by the engine's id: the games' name for it, and what they say it does. */
+  states: Record<string, { name: { en: string; fr: string }; text: { en: string; fr: string } }>
 }
 
 let loading: Promise<BattleText> | undefined

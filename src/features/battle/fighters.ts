@@ -41,7 +41,7 @@ export interface Fighter {
   state: FieldState
   /** Its stats before any stage, as its sheet gives them; nothing when its species is not in the game data. */
   stats: StatSpread | undefined
-  /** True when it carries stat changes. */
+  /** True when it carries stat changes, or an effect of its own that the games have a name for. */
   changed: boolean
   /** What the fight says of it. */
   now: Combatant
@@ -52,8 +52,12 @@ function natureOf(pack: DataPack, id: string | undefined): NatureEffect {
   return nature ? { ...(nature.plus ? { plus: nature.plus } : {}), ...(nature.minus ? { minus: nature.minus } : {}) } : {}
 }
 
-/** Everyone on the field, the party's line first, each line from the left. */
-export function fightersOf(fight: PlayerFight, party: readonly CharacterDocument[], pack: DataPack, language: 'en' | 'fr'): Fighter[] {
+/**
+ * Everyone on the field, the party's line first, each line from the left.
+ * `named` holds the effects the games have a name for: the others are the
+ * engine's own bookkeeping, and mark nobody.
+ */
+export function fightersOf(fight: PlayerFight, party: readonly CharacterDocument[], pack: DataPack, language: 'en' | 'fr', named: ReadonlySet<string> = new Set()): Fighter[] {
   const fighters = fight.combatants.map((now): Fighter => {
     const character = party.find((member) => member.id === now.id)
     const enemy = fight.enemies.find((sheet) => sheet.id === now.id)
@@ -71,7 +75,7 @@ export function fightersOf(fight: PlayerFight, party: readonly CharacterDocument
       level: build?.level ?? 1,
       state: now.dead ? 'gone' : now.downed ? 'downed' : 'standing',
       stats: build && own ? computeStats({ baseStats: own.baseStats, ivs: build.ivs, evs: build.evs, level: build.level, nature: natureOf(pack, build.nature) }) : undefined,
-      changed: Object.keys(now.boosts).length > 0,
+      changed: Object.keys(now.boosts).length > 0 || (fight.field.pokemon[now.id] ?? []).some((effect) => named.has(effect.id)),
       now,
     }
   })

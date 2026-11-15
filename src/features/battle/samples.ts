@@ -9,8 +9,14 @@ import type { CampaignRules } from '../../shared/schema/rules'
 import { type DraftChoice, choose, movesOffered } from '../creation/draft'
 import { enemyContext, enemyOf, newEnemy } from '../encounters/encounter-draft'
 
-/** A character of that species and level, with up to six of the moves it may know and a few things in its bag. */
-export function sampleHero(pack: DataPack, rules: CampaignRules, id: string, species: string, level: number, nickname: string): CharacterDocument {
+/** Six moves among those offered: the ones asked for when they are offered, then the last of the list. */
+function known(offered: readonly string[], wanted: readonly string[]): string[] {
+  const first = wanted.filter((move) => offered.includes(move))
+  return [...first, ...offered.filter((move) => !first.includes(move)).slice(-6)].slice(0, 6)
+}
+
+/** A character of that species and level, with up to six of the moves it may know (those asked for first) and a few things in its bag. */
+export function sampleHero(pack: DataPack, rules: CampaignRules, id: string, species: string, level: number, nickname: string, wanted: readonly string[] = []): CharacterDocument {
   const context = enemyContext(rules, pack, level)
   const data = pack.species[species]
   let build = choose(newEnemy(id, rules).build, { choose: 'species', species }, context)
@@ -18,9 +24,7 @@ export function sampleHero(pack: DataPack, rules: CampaignRules, id: string, spe
     { choose: 'gender', gender: data?.genders[0] ?? 'N' },
     { choose: 'nature', nature: 'jolly' },
     { choose: 'ability', ability: data?.abilities[0] ?? '' },
-    ...movesOffered(build, context)
-      .slice(-6)
-      .map((move): DraftChoice => ({ choose: 'move', move })),
+    ...known(movesOffered(build, context), wanted).map((move): DraftChoice => ({ choose: 'move', move })),
   ]
   for (const choice of choices) build = choose(build, choice, context)
   const made = enemyOf({ id, level, class: 'minion', agony: false, build }, rules)

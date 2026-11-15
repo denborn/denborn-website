@@ -6,10 +6,11 @@ import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { FieldPlan, type FieldTile, ItemIconImage, NumberField, OptionButton, PokemonIcon, Screen, Slot, StepHeader, TypeLabel } from '../../ui'
 import type { Choice, FightCommand, TableView } from './fight'
+import { effectsOf } from './effects'
 import { type Fighter, clockText, fightersOf } from './fighters'
 import { roundScript, sentence } from './round-script'
 import { useCountdown } from './use-countdown'
-import { type Wording, choiceWords, moveName, moveWords, tellingOf } from './words'
+import { type Wording, choiceWords, effectWords, moveName, moveWords, tellingOf } from './words'
 
 export interface GmConsoleProps {
   pack: DataPack
@@ -63,7 +64,7 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
     setKept({ ...state, ...changes })
   }
 
-  const fighters = fightersOf(table, party, pack, language)
+  const fighters = fightersOf(table, party, pack, language, new Set(Object.keys(battleText.states)))
   const foes = fighters.filter((fighter) => fighter.side === 'enemies')
   const allies = fighters.filter((fighter) => fighter.side === 'players')
   const byId = (id: string | undefined): Fighter | undefined => fighters.find((fighter) => fighter.id === id)
@@ -318,6 +319,8 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
   /** The last round, in the words the players were told it with. */
   const telling = tellingOf(wording, battleText)
   const played = roundScript(table.last).steps.flatMap((step) => (step.said ? (sentence(step.said, telling) ?? []) : []))
+  /** Everything in effect: the weather, the terrain, each side's conditions, what sits on a Pokémon. */
+  const effects = effectsOf(table.field, fighters, effectWords(wording, battleText))
   const order = table.order.flatMap((id) => byId(id) ?? []).map((fighter, index) => `${index + 1} ${fighter.name}`)
 
   return (
@@ -381,6 +384,18 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
               <span className="dn-label">{text.party}</span>
               {allies.map(row)}
               <p className="dn-note">{text.order(order.join(', '))}</p>
+              {effects.length > 0 && (
+                <>
+                  <span className="dn-label">{battle.field.effects}</span>
+                  <ul className="dn-list">
+                    {effects.map((effect) => (
+                      <li key={effect.id} className="dn-note">
+                        {[effect.name, effect.lasting, effect.scopeText].filter((part) => part !== undefined).join(' · ')}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
               {played.length > 0 && (
                 <>
                   <span className="dn-label">{text.played(table.last.round)}</span>

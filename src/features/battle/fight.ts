@@ -13,6 +13,7 @@ import {
   BattleRuleError,
   type CombatantView,
   type DenbornEvent,
+  type FieldView,
   type MoveChoice,
   type Outcome,
   type RoundAction,
@@ -30,6 +31,7 @@ export interface FightEngine {
   readonly ended: boolean
   readonly outcome: Outcome | null
   combatants(): CombatantView[]
+  field(): FieldView
   request(id: string): ActionRequest
   checkAction(id: string, action: RoundAction, extras?: readonly MoveChoice[]): void
   /** The combatant a Pokémon named in the engine's log refers to, such as "p1a: P2". */
@@ -546,6 +548,8 @@ export interface FightView {
   outcome: Outcome | undefined
   /** Everyone on both lines. Players see everything of the enemies (decision 17). */
   combatants: CombatantView[]
+  /** The weather, the terrain and everything else in effect. */
+  field: FieldView
   enemies: EnemySheet[]
   /** What each Pokémon may lock, by its id. */
   requests: Record<string, ActionRequest>
@@ -590,6 +594,7 @@ export function tableView(fight: Fight, context: FightContext): TableView {
     round: fight.round,
     outcome: fight.outcome,
     combatants,
+    field: engine.field(),
     enemies: fight.enemies.map(sheetOf),
     requests: Object.fromEntries(combatants.map((combatant) => [combatant.id, engine.request(combatant.id)])),
     locked: { ...fight.locked },
@@ -631,6 +636,7 @@ export function partyView(fight: Fight, context: FightContext): FightView {
     round: table.round,
     outcome: table.outcome,
     combatants: table.combatants,
+    field: table.field,
     enemies: table.enemies,
     requests: ofParty(table.requests),
     locked: ofParty(table.locked),

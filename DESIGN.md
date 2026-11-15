@@ -148,7 +148,9 @@ The sheet on the board is a mock: the real one is designed with the character sc
 
 **A round told step by step** (decisions 91, 155 and 156): once everyone has locked, the top screen says the round one sentence at a time, in the games' own words (decision 154). Each step brings the Pokémon it is about onto the scene, the one acting first; the one acting lunges, the one hit recoils, and its HP bar moves then. The touch screen lists what was said so far, the newest last, with SKIP, which goes straight to the round's result and the commands; a tap on the message goes to the next step. Text goes at the speed chosen in the Options: slow, normal or fast, as in the games (25, 45 or 90 letters a second; a sentence stays 2.4, 1.6 or 1 second; the figures are Denborn's own). With reduced motion nothing slides or lunges and each sentence shows whole. The game master's console lists the last round's sentences under the order.
 
-Not designed yet, and not to be improvised: the names of what is in effect, and the end of a fight. They come with their steps, on this system.
+**What is in effect** now comes from the fight itself: the terrain and the weather are named between the lines of the plan, each a label in a type's colours (Electric, Grass, Fairy, Psychic for the terrains; Water, Fire, Rock, Ice for rain, sun, sandstorm, snow), and MORE lists everything with the games' own names and descriptions in both languages (decision 154), the turns each has left as the engine counts them, and "×2" for what is laid twice. The game master's console lists the same under the order, one line each.
+
+Not designed yet, and not to be improvised: the end of a fight. It comes with its step, on this system.
 
 ## 6. Motion
 

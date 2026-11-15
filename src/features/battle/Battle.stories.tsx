@@ -29,9 +29,10 @@ interface LocalTable {
 function openTable(pack: DataPack, timerSeconds: number): LocalTable {
   const rules = sampleRules(pack, 2, 2, 4)
   const party = [
-    sampleHero(pack, rules, 'hero-volt-00001', 'pikachu', 16, 'Volt'),
-    sampleHero(pack, rules, 'hero-braise-0001', 'charmeleon', 17, 'Braise'),
-    sampleHero(pack, rules, 'hero-mousse-0001', 'ivysaur', 16, 'Mousse'),
+    // Moves that show the battlefield at work: a terrain, weathers, a screen, a seed.
+    sampleHero(pack, rules, 'hero-volt-00001', 'pikachu', 16, 'Volt', ['thunderbolt', 'electricterrain', 'raindance', 'lightscreen', 'agility', 'thunderwave']),
+    sampleHero(pack, rules, 'hero-braise-0001', 'charmeleon', 17, 'Braise', ['flamethrower', 'sunnyday', 'swordsdance', 'willowisp', 'smokescreen', 'dragonbreath']),
+    sampleHero(pack, rules, 'hero-mousse-0001', 'ivysaur', 16, 'Mousse', ['leechseed', 'razorleaf', 'sleeppowder', 'growth']),
   ]
   const encounter = sampleQuarry(pack, rules)
   const launch = fightSetup(encounter, party, '11,22,33,44')
@@ -222,8 +223,10 @@ function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
         battlefield. Approved too (decisions 155 and 156): once everyone has locked, the round is told step by step on the top screen,
         in the games’ own words in both languages (decision 154): the scene follows who acts and who is hit, HP bars move as each hit
         lands, and the touch screen lists what was said so far, with SKIP to go straight to the next choices; a tap on the message goes to
-        the next step. The text goes at the speed set in the app’s Options (slow, normal, fast). Not said yet: what items, Abilities,
-        terrains and screens do when they trigger (their effects still play). The battlefield names no terrain, weather or effect yet.
+        the next step. The text goes at the speed set in the app’s Options (slow, normal, fast). The battlefield now names the terrain
+        and the weather, and MORE lists everything in effect with the games’ own names and descriptions: try Volt’s Electric Terrain
+        or Rain Dance, Braise’s Swords Dance, then BATTLEFIELD. Not said yet: what items and Abilities do when they trigger (their
+        effects still play).
       </Note>
     </>
   )

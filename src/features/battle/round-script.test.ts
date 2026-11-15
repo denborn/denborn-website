@@ -65,6 +65,18 @@ describe('a round as it is told', () => {
     expect(second.script.steps.filter((step) => step.said?.key === 'boost.atk.-1').map((step) => step.said?.pokemon)).toEqual([['foe'], ['mob']])
   })
 
+  it('says what begins on the field and on each side, a charging turn and a substitute', () => {
+    const battle = start(
+      [player('one', 'Machamp', ['reflect', 'substitute']), player('two', 'Venusaur', ['electricterrain', 'solarbeam'])],
+      [enemy('foe', 'Chansey', ['spikes', 'lightscreen'])],
+    )
+    const first = play(battle, { one: move('reflect'), two: move('electricterrain'), foe: move('spikes') })
+    // The enemy's Spikes lie on the players' side: "your team", for a player.
+    expect(first.keys).toEqual(expect.arrayContaining(['side.reflect.start.party', 'field.electricterrain.start', 'side.spikes.start.party']))
+    const second = play(battle, { one: move('substitute'), two: move('solarbeam', 'foe'), foe: move('lightscreen') })
+    expect(second.keys).toEqual(expect.arrayContaining(['substitute.start', 'prepare.solarbeam', 'side.lightscreen.start.foes']))
+  })
+
   it('tells Denborn\'s own events in the owner\'s words: down, hit while down, the Bag', () => {
     const battle = start([player('one', 'Machamp', ['tackle'], { hp: 1 }), player('two', 'Chansey', ['tackle'], { hp: 40 })], [enemy('foe', 'Jolteon', ['tackle'])])
     const first = play(battle, { foe: move('tackle', 'one'), two: bag('medicine', 'two', HEAL) })

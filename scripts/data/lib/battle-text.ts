@@ -29,6 +29,8 @@ interface Mapping {
   moveUsed: string[]
   /** Our name for a message, and the id of the line that says it. */
   messages: Record<string, string>
+  /** What can be in effect during a fight, by the engine's id: the number of the lines that name it and say what it does. */
+  states: Record<string, number>
 }
 
 export type Localized = { en: string; fr: string }
@@ -112,6 +114,8 @@ export interface BattleText {
   /** Where the texts come from: the commit of the source they were read at. */
   source: string
   messages: Record<string, Localized>
+  /** The games' name for each thing that can be in effect, and what it says it does, by the engine's id. */
+  states: Record<string, { name: Localized; text: Localized }>
 }
 
 /** Reads the pinned lines and builds every mapped message. Lists what is missing or cannot be read. */
@@ -119,7 +123,7 @@ export async function buildBattleText(lock: BattleTextLock): Promise<{ battleTex
   const problems: string[] = []
   const mapping = await readJson<Mapping>(MAPPING)
   const [ids, en, fr] = await Promise.all(Object.values(FILES).map(async (file) => (await readFile(cachePath(lock, file), 'utf8')).split('\n')))
-  if (!ids || !en || !fr || ids.length !== en.length || ids.length !== fr.length) return { battleText: { source: lock.commit, messages: {} }, problems: ['The battle text files do not have the same number of lines'] }
+  if (!ids || !en || !fr || ids.length !== en.length || ids.length !== fr.length) return { battleText: { source: lock.commit, messages: {}, states: {} }, problems: ['The battle text files do not have the same number of lines'] }
   const lineOf = new Map(ids.map((id, index) => [id, index]))
 
   const sentence = (id: string, key: string): Localized | undefined => {
@@ -145,5 +149,13 @@ export async function buildBattleText(lock: BattleTextLock): Promise<{ battleTex
   const used = { en: sharedSentence(announced.map((line) => line.en), 'move'), fr: sharedSentence(announced.map((line) => line.fr), 'move') }
   if (used.en && used.fr) messages.moveUsed = { en: used.en, fr: used.fr }
   else problems.push('Battle message "moveUsed": the lines that announce a move share no sentence')
-  return { battleText: { source: lock.commit, messages }, problems }
+
+  const states: BattleText['states'] = {}
+  for (const [effect, number] of Object.entries(mapping.states)) {
+    const line = `sv.btl_state.BTR_STATE_${String(number).padStart(2, '0')}`
+    const name = sentence(`${line}_01`, `state ${effect} (name)`)
+    const text = sentence(`${line}_02`, `state ${effect} (description)`)
+    if (name && text) states[effect] = { name, text }
+  }
+  return { battleText: { source: lock.commit, messages, states }, problems }
 }

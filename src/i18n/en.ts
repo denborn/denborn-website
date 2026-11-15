@@ -617,6 +617,9 @@ export const en = {
       turnsLeft: (turns: number) => (turns === 1 ? '1 turn left' : `${turns} turns left`),
       /** Whom an effect touches. */
       scope: { field: 'Whole field', foes: "Foes' side", party: 'Your side' },
+      /** The two stats that only exist in battle. */
+      accuracy: 'Accuracy',
+      evasion: 'Evasiveness',
       /** Said of a Pokémon that carries stat changes or effects of its own. */
       changed: 'under effects',
       /** The games' names for the weather. */
@@ -736,6 +739,7 @@ export const en = {
       switched: (a: string, b: string) => `${a} and ${b} switch their turns.`,
       ran: (a: string, b: string) => `${a} and ${b} swap places.`,
       timeout: (name: string) => `Time's up! ${name} has no choice but to struggle.`,
+      waited: (name: string) => `${name} waits.`,
     },
   },
 }

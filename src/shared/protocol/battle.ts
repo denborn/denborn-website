@@ -73,6 +73,18 @@ const combatant = z.object({
   moves: z.array(moveView).max(6),
 })
 
+/** Something in effect: its id in the engine, the turns it still lasts, its layers. */
+const effect = z.object({ id: engineWord, turns: whole(1, 999).optional(), layers: whole(1, 9).optional() })
+
+const field = z.object({
+  weather: effect.optional(),
+  terrain: effect.optional(),
+  rooms: z.array(effect).max(20),
+  sides: z.object({ players: z.array(effect).max(30), enemies: z.array(effect).max(30) }),
+  /** What sits on one Pokémon, by its id. */
+  pokemon: z.record(combatantId, z.array(effect).max(60)),
+})
+
 const actionRequest = z.object({
   canAct: z.boolean(),
   /** The move the Pokémon is locked into, when it has no choice. */
@@ -113,6 +125,8 @@ export const playerFight = z.object({
   outcome: z.enum(['players', 'enemies', 'tie']).optional(),
   /** Everyone on both lines: players see everything of the enemies (decision 17). */
   combatants: z.array(combatant).max(2 * LINE_MAX),
+  /** The weather, the terrain and everything else in effect (decisions 89 and 92). */
+  field,
   /** The enemies' sheets, without the class the game master gave each (decision 133). */
   enemies: z.array(enemy.omit({ class: true })).max(LINE_MAX),
   /** What each Pokémon of the party may lock. */

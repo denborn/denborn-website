@@ -39,7 +39,10 @@ const sheet = (id: string, changes: Partial<PlayerFight['enemies'][number]> = {}
 })
 
 /** Only what the screens read of a fight: who is on the field, and the enemies' sheets. */
-const fight = (combatants: Combatant[], enemies: PlayerFight['enemies'] = []): PlayerFight => ({ combatants, enemies }) as PlayerFight
+function fight(combatants: Combatant[], enemies: PlayerFight['enemies'] = [], pokemon: PlayerFight['field']['pokemon'] = {}): PlayerFight {
+  const shown: Partial<PlayerFight> = { combatants, enemies, field: { rooms: [], sides: { players: [], enemies: [] }, pokemon } }
+  return shown as PlayerFight
+}
 
 describe('the Pokémon of a fight as the screens draw them', () => {
   it('lists the party first, each line from the left, with the letter of each place', () => {
@@ -70,9 +73,10 @@ describe('the Pokémon of a fight as the screens draw them', () => {
     expect(transformed?.stats?.spe).toBe(plain?.stats?.spe)
   })
 
-  it('marks a Pokémon that carries stat changes', () => {
-    const shown = fightersOf(fight([on('a', 'players', 0, { boosts: { atk: 2 } }), on('b', 'players', 1)]), [], testPack, 'en')
-    expect(shown.map((fighter) => fighter.changed)).toEqual([true, false])
+  it('marks a Pokémon that carries stat changes, or an effect the games have a name for', () => {
+    const carried = { b: [{ id: 'seeded' }], c: [{ id: 'bookkeeping' }] }
+    const shown = fightersOf(fight([on('a', 'players', 0, { boosts: { atk: 2 } }), on('b', 'players', 1), on('c', 'players', 2)], [], carried), [], testPack, 'en', new Set(['seeded']))
+    expect(shown.map((fighter) => fighter.changed)).toEqual([true, true, false])
   })
 
   it('reaches, with a one-target move, the foes that face it and the allies beside it', () => {
