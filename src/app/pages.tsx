@@ -11,9 +11,10 @@ import { CreationFlow } from '../features/creation/CreationFlow'
 import { Home } from '../features/home/Home'
 import { Options } from '../features/options/Options'
 import { CharacterSheet } from '../features/sheet/CharacterSheet'
+import { PaperSheet } from '../features/sheet/PaperSheet'
 import { SheetUnavailable } from '../features/sheet/SheetUnavailable'
 import { sheetToShow } from '../features/sheet/open-sheet'
-import { useMessages } from '../i18n'
+import { useLanguage, useMessages } from '../i18n'
 import { decodeCreationCode } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
 import { saveToDevice } from '../storage/browser'
@@ -59,6 +60,7 @@ export function CharacterPage() {
   const pack = usePack()
   const library = useLibrary()
   const messages = useMessages()
+  const language = useLanguage()
   const { id } = useParams()
   const entry = library.characters().find((stored) => stored.id === id)
   const shown = sheetToShow(entry, (campaign) => library.rulesOf(campaign.id, campaign.rulesVersion, pack.species), pack)
@@ -69,16 +71,22 @@ export function CharacterPage() {
     // Whatever is kept under that id can still leave as a file, exactly as it is stored.
     return <SheetUnavailable problem={shown.problem} onBack={back} onSaveFile={entry ? () => saveToDevice(storedCharacterFile(entry)) : undefined} />
   }
+  const origin = window.location.origin
   return (
-    <CharacterSheet
-      pack={pack}
-      character={shown.character}
-      numbers={shown.numbers}
-      origin={window.location.origin}
-      notice={shown.otherGameData ? messages.sheet.otherData : undefined}
-      onBack={back}
-      onSaveFile={() => saveToDevice(characterFile(shown.character, shown.rules))}
-    />
+    <>
+      <CharacterSheet
+        pack={pack}
+        character={shown.character}
+        numbers={shown.numbers}
+        origin={origin}
+        notice={shown.otherGameData ? messages.sheet.otherData : undefined}
+        onBack={back}
+        onSaveFile={() => saveToDevice(characterFile(shown.character, shown.rules))}
+        onPrint={() => window.print()}
+      />
+      {/* Out of sight on screen; in print it takes the place of the screens. */}
+      <PaperSheet pack={pack} character={shown.character} numbers={shown.numbers} language={language} messages={messages} origin={origin} />
+    </>
   )
 }
 

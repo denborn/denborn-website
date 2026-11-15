@@ -152,6 +152,12 @@
    */
   --dn-font-scale: 1.4;
 
+  /* --- Paper (Denborn's own: the games print nothing) ----------------------- */
+  /* A printed sheet is black on white: it must read from any printer, with the least ink. */
+  --dn-paper: #ffffff;
+  --dn-paper-ink: #000000;
+  --dn-paper-soft: #4a4a4a; /* labels and small print: lighter than the values, still dark on any printer */
+
   /* --- Motion (Denborn's own; the games' timings are not documented) -------- */
   --dn-press: 90ms; /* a button going down */
   --dn-quick: 160ms; /* a selection moving, a badge appearing */

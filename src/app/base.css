@@ -23,3 +23,17 @@ body {
 .app .dn-page__top {
   top: env(safe-area-inset-top, 0px);
 }
+
+/* On paper the app is the page: no phone's width, no dark surround. */
+@media print {
+  :root {
+    color-scheme: light;
+    background: var(--dn-paper);
+  }
+
+  .app {
+    max-width: none;
+    min-height: 0;
+    padding: 0;
+  }
+}

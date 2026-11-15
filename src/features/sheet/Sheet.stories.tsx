@@ -6,9 +6,13 @@ import { expForLevel } from '../../game-rules/exp'
 import { maxPp } from '../../game-rules/pp'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { Note, Phone, usePack } from '../../ui/stories/board'
+import { useLanguage, useMessages } from '../../i18n'
 import { CharacterSheet } from './CharacterSheet'
+import { PaperSheet } from './PaperSheet'
 import { SheetUnavailable } from './SheetUnavailable'
 import type { SheetProblem } from './open-sheet'
+
+const ORIGIN = 'https://denborn-website.kori-san.workers.dev'
 
 interface Args {
   condition: 'standing' | 'downed' | 'dead'
@@ -39,11 +43,11 @@ function Sheet({ condition }: Args) {
   if (!numbers) return null
   return (
     <Phone>
-      <CharacterSheet pack={pack} character={character} numbers={numbers} origin="https://denborn-website.kori-san.workers.dev" onBack={() => undefined} onSaveFile={() => undefined} />
+      <CharacterSheet pack={pack} character={character} numbers={numbers} origin={ORIGIN} onBack={() => undefined} onSaveFile={() => undefined} onPrint={() => window.print()} />
       <Note>
         A character’s sheet. The Pokémon, its HP and its condition stay on the top screen; below, five parts: who it is and its roleplay
-        attributes, its stats with the IVs and EVs behind them, its six moves, its bag, and the ways to copy it elsewhere (its file, its QR
-        code). It only shows: nothing can be changed here. The control below sets its condition.
+        attributes, its stats with the IVs and EVs behind them, its six moves, its bag, and the ways to take it elsewhere (its file, its
+        sheet on paper, its QR code). It only shows: nothing can be changed here. The control below sets its condition.
       </Note>
     </Phone>
   )
@@ -58,6 +62,29 @@ const meta = {
 export default meta
 
 export const FiveParts: StoryObj<typeof meta> = {}
+
+function Paper({ condition }: Args) {
+  const pack = usePack()
+  const language = useLanguage()
+  const messages = useMessages()
+  const sample = withPossiblePp({ ...sampleCharacter(pack, 50, 'Braise', 6, 12), exp: expForLevel(50) + 3200 }, pack)
+  const character = inCondition(sample, condition)
+  const numbers = sheetNumbers(character, pack)
+  if (!numbers) return null
+  return (
+    <>
+      <PaperSheet pack={pack} character={character} numbers={numbers} language={language} messages={messages} origin={ORIGIN} preview />
+      <Note>
+        The sheet on paper (decision 98), shown here as an A4 page. In the app it exists only in print: PRINT ITS SHEET on the SHARE tab, or
+        the browser’s own print command, puts it on the page in place of the screens. Black on white; types and categories are words in
+        boxes, since printers leave coloured backgrounds out. The QR code is drawn as lines, so it stays sharp.
+      </Note>
+    </>
+  )
+}
+
+/** The printed sheet, as a page. */
+export const OnPaper: StoryObj<typeof meta> = { render: (args) => <Paper {...args} /> }
 
 const PROBLEMS: SheetProblem[] = ['missing', 'unreadable', 'newer', 'rulesUnknown', 'invalid']
 

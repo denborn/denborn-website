@@ -1,0 +1,265 @@
+/*
+ * Denborn DA on paper — a character's printed sheet (decision 98).
+ *
+ * Denborn's own: the games print nothing. Black on white and no backgrounds,
+ * which browsers leave out of a print unless told otherwise. Sizes are in
+ * millimetres and points: a sheet of paper has no DS pixel. One weight only,
+ * as VT323 has one.
+ *
+ * A paper sheet stays out of sight on screen and takes the page's place in
+ * print. `--preview` shows it on screen as a page, for the design board.
+ */
+.dn-paper {
+  display: none;
+  box-sizing: border-box;
+  color: var(--dn-paper-ink);
+  background: var(--dn-paper);
+  font-family: var(--dn-font);
+  font-size: 12pt;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.dn-paper--preview {
+  display: block;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 12mm;
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  .dn-paper,
+  .dn-paper--preview {
+    display: block;
+    width: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* The screens stay off the paper when a page has a sheet to print. */
+  body:has(.dn-paper) .dn-page {
+    display: none;
+  }
+}
+
+.dn-paper :is(h1, h2, p, dl, dd, ul) {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+/* The head: the Pokémon, its name with its species and campaign, its level. */
+.dn-paper__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 6mm;
+  padding-bottom: 3mm;
+  border-bottom: 0.6mm solid var(--dn-paper-ink);
+}
+
+/* The sprite a quarter larger than one dot per pixel: paper has dots to spare. */
+.dn-paper__sprite {
+  zoom: 1.25;
+}
+
+.dn-paper__name {
+  font-size: 34pt;
+  line-height: 0.9;
+  overflow-wrap: anywhere;
+}
+
+.dn-paper__sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1mm 2.5mm;
+  margin-top: 1mm;
+  font-size: 14pt;
+}
+
+.dn-paper__level {
+  font-size: 20pt;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dn-paper__section {
+  margin-top: 3.5mm;
+  break-inside: avoid;
+}
+
+.dn-paper__title {
+  margin-bottom: 1.5mm;
+  border-bottom: 0.3mm solid var(--dn-paper-ink);
+  font-size: 15pt;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Two blocks side by side. */
+.dn-paper__cols {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 8mm;
+}
+
+.dn-paper__facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.8mm 4mm;
+}
+
+.dn-paper__facts dt,
+.dn-paper__small {
+  color: var(--dn-paper-soft);
+}
+
+.dn-paper__small {
+  margin-top: 0.5mm;
+  font-size: 10.5pt;
+}
+
+/* The six roleplay attributes: large, to be read across a table when a D100 is rolled. */
+.dn-paper__scores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2mm;
+  list-style: none;
+}
+
+.dn-paper__score {
+  padding: 1.5mm 1mm 1mm;
+  border: 0.3mm solid var(--dn-paper-ink);
+  text-align: center;
+}
+
+.dn-paper__score-value {
+  display: block;
+  font-size: 24pt;
+  line-height: 0.85;
+}
+
+.dn-paper__score-name {
+  font-size: 10.5pt;
+}
+
+.dn-paper__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dn-paper__table th {
+  font-weight: normal;
+  text-align: left;
+}
+
+.dn-paper__table thead th {
+  border-bottom: 0.3mm solid var(--dn-paper-ink);
+  color: var(--dn-paper-soft);
+  font-size: 11pt;
+}
+
+.dn-paper__table :is(td, th) {
+  padding: 0.4mm 3mm 0.4mm 0;
+  vertical-align: baseline;
+}
+
+.dn-paper__table :is(td, th):last-child {
+  padding-right: 0;
+}
+
+.dn-paper__table .dn-paper__figure {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* A move and what it does are two rows of one entry: a thin line closes each entry, and no page break splits one. */
+.dn-paper__table tbody.dn-paper__entry {
+  break-inside: avoid;
+  border-bottom: 0.2mm dotted var(--dn-paper-soft);
+}
+
+.dn-paper__table tbody.dn-paper__entry td.dn-paper__small {
+  padding-top: 0;
+}
+
+/* A type or a category: a word in a box, where the screen has a coloured label. */
+.dn-paper__tag {
+  display: inline-block;
+  padding: 0 1.5mm;
+  border: 0.3mm solid var(--dn-paper-ink);
+  font-size: 11pt;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* An empty box to pencil a number in at the table: HP and PP change during play. */
+.dn-paper__box {
+  display: inline-block;
+  width: 12mm;
+  /* No taller than a line of text, so that a row with a box is no taller than one without. */
+  height: 4.6mm;
+  margin-left: 2mm;
+  border: 0.3mm solid var(--dn-paper-ink);
+  vertical-align: middle;
+}
+
+.dn-paper__box--wide {
+  width: 20mm;
+  margin-right: 1mm;
+}
+
+.dn-paper__bag {
+  columns: 3;
+  column-gap: 8mm;
+  margin-top: 2mm;
+  list-style: none;
+}
+
+.dn-paper__bag li {
+  display: flex;
+  justify-content: space-between;
+  gap: 3mm;
+  border-bottom: 0.2mm dotted var(--dn-paper-soft);
+  break-inside: avoid;
+}
+
+.dn-paper__code {
+  display: grid;
+  justify-items: center;
+  gap: 1.5mm;
+  text-align: center;
+}
+
+.dn-paper-qr {
+  display: block;
+  width: 48mm;
+  height: 48mm;
+}
+
+.dn-paper-qr--too-long {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding: 3mm;
+  border: 0.3mm dashed var(--dn-paper-soft);
+  font-size: 11pt;
+}
+
+.dn-paper__foot {
+  margin-top: 4mm;
+  padding-top: 1.5mm;
+  border-top: 0.3mm solid var(--dn-paper-ink);
+  color: var(--dn-paper-soft);
+  font-size: 10pt;
+  text-align: center;
+}

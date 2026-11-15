@@ -105,6 +105,18 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `.dn-figures` | A small table of numbers | BW summary | Names on the left, figures on the right; the last column, the value, stands out from the figures it is made from. A stat its nature raises is red with an arrow up, a lowered one blue with an arrow down. |
 | `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |
 | `QrCode` | A code as a QR code | — | Always black on white with its quiet border, as wide as its container. The finest shown is 101 × 101 squares (decision 99); for a longer text it shows what it is given instead, such as the way to the file. |
+| `PaperQrCode` | The same QR code, for paper | — | Drawn as lines, not as a picture, so a printer keeps it sharp at any size. Same limit of 101 × 101 squares. |
+
+### On paper
+
+A character's sheet can be printed (decision 98). Paper is Denborn's own: the games print nothing. Its rules are in `src/ui/paper.css` (classes `dn-paper…`, tokens `--dn-paper…`):
+
+- **Black on white, no backgrounds.** Browsers leave backgrounds out of a print unless told otherwise, so nothing on paper depends on one. A type or a category is a word in a box where the screen has a coloured label; no icon sheet is used. The Pokémon's sprite is the one picture.
+- **Millimetres and points.** A sheet of paper has no DS pixel. Text is VT323 at 12 pt, small print at 10.5 pt, never smaller than 10 pt.
+- **One page when it can.** A character with six moves and a dozen kinds of item fits one A4 page; a longer bag runs on to a second. No entry (a move with what it does, an item) is split by a page break.
+- **Out of sight on screen.** The paper sheet is in the page all along and shows only in print, where it takes the place of the screens. The browser's own print command gives the same result as the app's button.
+- **The QR code is drawn as lines** (`PaperQrCode`), 48 mm wide: at the finest code allowed (decision 99) one square is still about 0.44 mm.
+- **Room to write.** HP and each move's PP change during play: an empty box beside each takes the new number in pencil (decision 106). The box is no taller than a line of text.
 
 ### The battle view
 
@@ -202,5 +214,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 102 | Menus and forms: the top DS screen stays, the lower one is as long as its content and scrolls. |
 | 103 | The character sheet: the Pokémon, its battle box and types on the top screen; five tabs below (INFO, STATS, MOVES, BAG, SHARE). |
 | 104 | A dead character on its sheet: sprite still, HP at 0, a plate that says DEAD / MORT. |
+| 105 | The sheet on paper: one page, black on white; head, identity and attributes, combat stats with the QR code, moves, items. |
+| 106 | On paper, an empty box beside the HP and each move's PP, to pencil in what changes at the table. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

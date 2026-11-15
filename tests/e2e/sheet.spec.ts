@@ -28,6 +28,29 @@ test('a kept character opens as its sheet, which gives its file and its QR code'
   await expect(page.getByRole('heading', { name: 'Characters' })).toBeVisible()
 })
 
+test('the sheet prints as a page of its own, in place of the screens', async ({ page }) => {
+  // The browser's print window cannot be driven: the test only notes that it was asked for.
+  await page.addInitScript({ content: `window.print = () => { document.documentElement.dataset.printAsked = 'yes' }` })
+  await page.goto(`/#${code}`)
+  await createPikachu(page, 'Volt')
+  await page.getByRole('button', { name: /Volt/ }).click()
+
+  const paper = page.locator('.dn-paper')
+  await expect(page.getByRole('tablist')).toBeVisible()
+  await expect(paper).toBeHidden()
+  await page.getByRole('tab', { name: 'SHARE' }).click()
+  await page.getByRole('button', { name: 'PRINT ITS SHEET' }).click()
+  await expect(page.locator('html')).toHaveAttribute('data-print-asked', 'yes')
+
+  // What the printer gets: the paper sheet with the character on it, and none of the screens.
+  await page.emulateMedia({ media: 'print' })
+  await expect(paper).toBeVisible()
+  await expect(page.getByRole('tablist')).toBeHidden()
+  await expect(paper.getByRole('heading', { name: 'Volt' })).toBeVisible()
+  await expect(paper).toContainText('Thunder Shock')
+  await expect(paper.getByRole('img', { name: 'Volt' })).toBeVisible()
+})
+
 test('a character changed in the browser’s storage past its rules gets no sheet, and still gives its file', async ({ page }) => {
   await page.goto(`/#${code}`)
   await createPikachu(page, 'Volt')

@@ -1,3 +1,4 @@
+import { toSvgPath } from 'lean-qr/extras/svg'
 import { type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { qrFor } from './qr-size'
 
@@ -28,4 +29,21 @@ export function QrCode({ text, label, tooLong }: QrCodeProps) {
 
   if (!code) return <div className="dn-qr dn-qr--too-long">{tooLong}</div>
   return <canvas ref={canvas} className="dn-qr" role="img" aria-label={label} />
+}
+
+/**
+ * The same QR code drawn as lines instead of a picture, for paper: a printer
+ * keeps lines sharp at any size, where it may blur a small picture it enlarges.
+ */
+export function PaperQrCode({ text, label, tooLong }: QrCodeProps) {
+  const code = useMemo(() => qrFor(text), [text])
+  if (!code) return <div className="dn-paper-qr dn-paper-qr--too-long">{tooLong}</div>
+  const side = code.size + 2 * QUIET
+  return (
+    <svg className="dn-paper-qr" viewBox={`${-QUIET} ${-QUIET} ${side} ${side}`} shapeRendering="crispEdges" role="img" aria-label={label}>
+      {/* Black on white whatever the paper's own colours: the same as on screen. */}
+      <rect x={-QUIET} y={-QUIET} width={side} height={side} fill="#ffffff" />
+      <path d={toSvgPath(code)} fill="#000000" />
+    </svg>
+  )
 }

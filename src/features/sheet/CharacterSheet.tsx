@@ -3,9 +3,8 @@ import type { DataPack } from '../../data/types'
 import type { SheetNumbers } from '../../domain/sheet'
 import { ATTRIBUTE_IDS } from '../../game-rules/attributes'
 import { STAT_IDS } from '../../game-rules/stats'
-import { type Language, useLanguage, useMessages } from '../../i18n'
+import { useLanguage, useMessages } from '../../i18n'
 import type { Messages } from '../../i18n/en'
-import { encodeCharacterCode, qrForm } from '../../shared/codec/codes'
 import type { CharacterDocument } from '../../shared/schema/character'
 import {
   AgonyBadge,
@@ -22,6 +21,7 @@ import {
   Tabs,
   TypeLabel,
 } from '../../ui'
+import { type SheetView, characterLink, typeName } from './shown'
 
 /** The parts of the sheet, in the order of their tabs. */
 const PARTS = ['info', 'stats', 'moves', 'bag', 'share'] as const
@@ -41,15 +41,7 @@ export interface CharacterSheetProps {
   notice?: string | undefined
   onBack: () => void
   onSaveFile: () => void
-}
-
-/** What every part of the sheet is drawn from. */
-interface PartProps {
-  pack: DataPack
-  character: CharacterDocument
-  numbers: SheetNumbers
-  language: Language
-  messages: Messages
+  onPrint: () => void
 }
 
 /**
@@ -57,12 +49,12 @@ interface PartProps {
  * parts below: who it is, its stats, its moves, its bag, and the ways to copy
  * it elsewhere. It shows; it changes nothing.
  */
-export function CharacterSheet({ pack, character, numbers, origin, notice, onBack, onSaveFile }: CharacterSheetProps) {
+export function CharacterSheet({ pack, character, numbers, origin, notice, onBack, onSaveFile, onPrint }: CharacterSheetProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.sheet
   const [part, setPart] = useState<PartId>('info')
-  const shown: PartProps = { pack, character, numbers, language, messages }
+  const shown: SheetView = { pack, character, numbers, language, messages }
 
   return (
     <div className="dn-page">
@@ -83,7 +75,7 @@ export function CharacterSheet({ pack, character, numbers, origin, notice, onBac
           {part === 'stats' && <StatsPart {...shown} />}
           {part === 'moves' && <MovesPart {...shown} />}
           {part === 'bag' && <BagPart {...shown} />}
-          {part === 'share' && <SharePart character={character} origin={origin} text={text} onSaveFile={onSaveFile} />}
+          {part === 'share' && <SharePart character={character} origin={origin} text={text} onSaveFile={onSaveFile} onPrint={onPrint} />}
         </Tabs>
         <div className="dn-foot">
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
@@ -94,7 +86,7 @@ export function CharacterSheet({ pack, character, numbers, origin, notice, onBac
 }
 
 /** The top screen: the Pokémon, its box with its HP and condition, and its types. */
-function Portrait({ pack, character, numbers, language, messages }: PartProps) {
+function Portrait({ pack, character, numbers, language, messages }: SheetView) {
   const battle = messages.battle
   const species = pack.species[character.species]
   const condition = character.condition
@@ -128,7 +120,7 @@ function Portrait({ pack, character, numbers, language, messages }: PartProps) {
 }
 
 /** Who it is: its species and campaign, its nature, what it holds, its Ability, its EXP and its six roleplay attributes. */
-function InfoPart({ pack, character, numbers, language, messages }: PartProps) {
+function InfoPart({ pack, character, numbers, language, messages }: SheetView) {
   const text = messages.sheet
   const nature = character.nature ? pack.natures[character.nature] : undefined
   const ability = pack.abilities[character.ability]
@@ -175,7 +167,7 @@ function InfoPart({ pack, character, numbers, language, messages }: PartProps) {
 }
 
 /** Its six stats, with the IVs and EVs behind each and the two its nature moves. */
-function StatsPart({ pack, character, numbers, language, messages }: PartProps) {
+function StatsPart({ pack, character, numbers, language, messages }: SheetView) {
   const text = messages.sheet
   const nature = character.nature ? pack.natures[character.nature] : undefined
   return (
@@ -217,7 +209,7 @@ function StatsPart({ pack, character, numbers, language, messages }: PartProps) 
 }
 
 /** Its moves, each with its type, category, PP, power, accuracy and what it does. */
-function MovesPart({ pack, character, numbers, language, messages }: PartProps) {
+function MovesPart({ pack, character, numbers, language, messages }: SheetView) {
   const text = messages.sheet
   return (
     <ul className="dn-list">
@@ -237,8 +229,12 @@ function MovesPart({ pack, character, numbers, language, messages }: PartProps) 
               </span>
               <span className="dn-tags">
                 {/* A move without a set power, or one that never misses, shows the games' three dashes. */}
-                <span>{text.power(move.power > 0 ? String(move.power) : text.noFigure)}</span>
-                <span>{text.accuracy(move.accuracy === true ? text.noFigure : String(move.accuracy))}</span>
+                <span>
+                  {text.power} {move.power > 0 ? move.power : text.noFigure}
+                </span>
+                <span>
+                  {text.accuracy} {move.accuracy === true ? text.noFigure : move.accuracy}
+                </span>
               </span>
               <span className="dn-note">{move.description[language]}</span>
             </span>
@@ -250,7 +246,7 @@ function MovesPart({ pack, character, numbers, language, messages }: PartProps) 
 }
 
 /** What it holds, its money and everything in its bag. */
-function BagPart({ pack, character, language, messages }: PartProps) {
+function BagPart({ pack, character, language, messages }: SheetView) {
   const text = messages.sheet
   const held = character.heldItem ? pack.items[character.heldItem] : undefined
   return (
@@ -288,10 +284,11 @@ interface SharePartProps {
   origin: string
   text: Messages['sheet']
   onSaveFile: () => void
+  onPrint: () => void
 }
 
-/** The ways to copy the character elsewhere: its file, and its QR code. */
-function SharePart({ character, origin, text, onSaveFile }: SharePartProps) {
+/** The ways to take the character elsewhere: its file, its sheet on paper, and its QR code. */
+function SharePart({ character, origin, text, onSaveFile, onPrint }: SharePartProps) {
   return (
     <>
       <p className="dn-note">{text.file}</p>
@@ -300,13 +297,12 @@ function SharePart({ character, origin, text, onSaveFile }: SharePartProps) {
           {text.saveFile}
         </OptionButton>
       </div>
+      <p className="dn-note">{text.printHint}</p>
+      <div className="dn-row">
+        <OptionButton onClick={onPrint}>{text.print}</OptionButton>
+      </div>
       <p className="dn-note">{text.qr}</p>
-      <QrCode text={qrForm(encodeCharacterCode(character), origin)} label={character.nickname} tooLong={text.tooLarge} />
+      <QrCode text={characterLink(character, origin)} label={character.nickname} tooLong={text.tooLarge} />
     </>
   )
-}
-
-/** A type's name in the app's language; the data pack's own word when it has no such type. */
-function typeName(pack: DataPack, type: string, language: Language): string {
-  return pack.types[type.toLowerCase()]?.name[language] ?? type
 }

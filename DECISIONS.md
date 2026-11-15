@@ -233,6 +233,8 @@ Each row is the owner's answer to a question asked that day.
 | 102 | The layout of menus and forms | "Yes, the lower screen scrolls": the top DS screen stays in place and shows what is being worked on; the lower screen keeps the DS look but is as long as its content, and scrolls. The battle keeps its two DS screens. |
 | 103 | The character sheet | "Yes, five tabs" (2026-11-15, on the board): the Pokémon with its battle box, HP and types on the top screen; below, INFO, STATS, MOVES, BAG and SHARE (INFOS, STATS, CAPACITÉS, SAC, PARTAGE), holding what decision 98 lists. It only shows. |
 | 104 | A dead character on its sheet | "Yes, as shown": its sprite still, its HP at 0 and a plate that says DEAD / MORT. |
+| 105 | The sheet on paper | "Yes, as shown" (2026-11-15, on the board): one page, black on white: the Pokémon with its name, species, types, campaign, level and gender; identity beside the six roleplay attributes in large boxes; combat stats beside the character's QR code; the six moves with what each does; held item, Pokédollars and bag. Printed from the SHARE tab or with the browser's own print command. |
+| 106 | Room to write on the printed sheet | "Add boxes to pencil in": an empty box beside the HP and beside each move's PP, to track them by hand at the table. The rest prints as it stands. |
 
 ---
 
@@ -599,3 +601,5 @@ Not checked: a real phone; a screen reader; the installed app on iOS.
 The main script grew from 487 kB (154 kB compressed) to 575 kB (183 kB compressed): the sheet brought the QR code drawing and the writing of character codes into it, which until now only the board used. The offline cache holds the same 409 files (19.1 MB). Nothing is split off yet; sizes are set against a budget in milestone 8.
 
 The sheet's QR code holds a link (`<site>/#DNC1…`) that the app does not read yet: opening a character from a link, a scan or a file is the next step.
+
+**The sheet on paper (2026-11-15).** Printed from the built app to PDF with Chromium, a character with six moves and fourteen kinds of item, in French: one page on A4; two on US Letter, where the items go to the second page whole (no block is split by a page break). The sheet is black on white and depends on no background, so it prints the same whether or not the browser's "background graphics" option is on. The QR code is drawn as lines, 48 mm wide. One more browser test (13 in all, passing): in print the paper sheet shows and the screens do not, and the app's button asks the browser to print. Not checked: a real printer; Safari's and Firefox's print; scanning the printed code (the app cannot read a character's code yet).

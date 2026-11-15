@@ -13,7 +13,8 @@
 | `src/ui/field.tsx`, `line.ts` | `LineBrowser`, `FieldPlan` and `FieldEffects`; how the arrows walk a line (pure, tested). |
 | `src/ui/forms.tsx` | `TextField`, `NumberField`, `StatRow`, `StepHeader`. |
 | `src/features/<name>/` | The app's screens, built on the kit: a pure `draft.ts` or similar for choices and checks (tested), components that only show it, and a story under "Screens". |
-| `src/ui/qr.tsx`, `qr-size.ts` | `QrCode`; which QR code holds a text and the largest the app shows (pure, tested). |
+| `src/ui/qr.tsx`, `qr-size.ts` | `QrCode`, and `PaperQrCode` for print (lines, not a picture); which QR code holds a text and the largest the app shows (pure, tested). |
+| `src/ui/paper.css` | What prints: classes `dn-paper…`, in millimetres and points, black on white, no backgrounds and no icon sheets (printers leave backgrounds out). A paper sheet is `display: none` on screen and replaces `.dn-page` in print; `dn-paper--preview` shows it on the board. See DESIGN.md, "On paper". |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |
 | `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories (`proposals.ts`, created when needed), never in `src/i18n/`, until the owner rules. |
 | `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language switch. |
