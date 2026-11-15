@@ -152,9 +152,8 @@ export const Host: StoryObj<HostArgs> = {
         already has a copy of, which differs (decision 13): both copies, which is more recent, and the pick. A tap on a member opens REMOVE
         FROM THE SESSION (decision 123). Under the party, the campaign’s encounters (decision 143): a tap on one shows LAUNCH, which starts
         the fight for the party, and PREPARE, which opens it to change it; NEW ENCOUNTER makes another. END THE SESSION asks first. Set{' '}
-        <code>line</code> to see what is said when the connection is not there. <strong>New and to be approved</strong>: set{' '}
-        <code>stale</code> to see a fight that was kept before the app closed and cannot be taken up again (decision 139), with its two
-        ways out.
+        <code>line</code> to see what is said when the connection is not there. Set <code>stale</code> to see a fight that was kept before the app
+        closed and cannot be taken up again (decision 139), with its two ways out.
       </Note>
     </>
   ),

@@ -257,7 +257,7 @@ function Ending() {
         <RewardsScreen pack={pack} encounter={encounter.name} party={table.party} defaults={rewardDefaults(defeated, table.party, pack)} onAward={() => undefined} onBack={() => undefined} />
       </Phone>
       <Note>
-        <strong>New and to be approved.</strong> The end of an encounter, for the game master: END THE ENCOUNTER on the console opens
+        Approved (decisions 162 and 163). The end of an encounter, for the game master: END THE ENCOUNTER on the console opens
         this. Every character of the party has a line (decision 159) with the EXP the app worked out for it from the enemies defeated
         (decisions 130 and 160; here two minions out of three), and one amount of Pokédollars goes to each (decision 134). Every amount
         can be changed; a line says when its EXP takes the character to a new level (decision 161). AWARD AND END writes how the fight

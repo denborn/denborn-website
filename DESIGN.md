@@ -150,7 +150,7 @@ The sheet on the board is a mock: the real one is designed with the character sc
 
 **What is in effect** now comes from the fight itself: the terrain and the weather are named between the lines of the plan, each a label in a type's colours (Electric, Grass, Fairy, Psychic for the terrains; Water, Fire, Rock, Ice for rain, sun, sandstorm, snow), and MORE lists everything with the games' own names and descriptions in both languages (decision 154), the turns each has left as the engine counts them, and "×2" for what is laid twice. The game master's console lists the same under the order, one line each.
 
-**The end of an encounter** (on the board, awaiting approval): END THE ENCOUNTER on the console opens a page like the others, the party on its top screen; below, one field of EXP per character, filled in by the app, and one of Pokédollars for each; a line under a field says when its EXP reaches a new level, or that the amount is not a whole number; BACK returns to the fight, AWARD AND END closes it. A player then reads on the session screen what their character received, with OK. A fight kept before the app closed that this version cannot play on is said on the hosting screen, with START IT AGAIN and END IT (decision 139).
+**The end of an encounter** (decision 162): END THE ENCOUNTER on the console opens a page like the others, the party on its top screen; below, one field of EXP per character, filled in by the app, and one of Pokédollars for each; a line under a field says when its EXP reaches a new level, or that the amount is not a whole number; BACK returns to the fight, AWARD AND END closes it. A player then reads on the session screen what their character received, with OK. A fight kept before the app closed that this version cannot play on is said on the hosting screen, with START IT AGAIN and END IT (decision 139).
 
 ## 6. Motion
 
@@ -257,5 +257,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 151 | The game master's console: the battlefield on top, the round below, a Pokémon opened by a tap; targets aimed on the battlefield. |
 | 152 | On the hosting screen, a tap on an encounter shows LAUNCH and PREPARE. |
 | 155, 156 | A round is told step by step on the top screen, with the list of what was said and SKIP below; the text's speed is slow, normal or fast, chosen in the Options. |
+| 162 | The end of an encounter: one EXP field per character and one amount of Pokédollars for each, AWARD AND END; a player reads one sentence with what their character received. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.
