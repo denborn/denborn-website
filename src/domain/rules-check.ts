@@ -20,7 +20,8 @@ export type RulesProblem =
   | { kind: 'unknown-item'; pack: number; item: string }
   | { kind: 'repeated-item'; pack: number; item: string }
 
-export function checkRules(rules: CampaignRules, pack: DataPack): RulesProblem[] {
+/** Only the parts of the rules that name game data are looked at: rules still being set can be checked too. */
+export function checkRules(rules: Pick<CampaignRules, 'species' | 'commonMoves' | 'itemPacks'>, pack: DataPack): RulesProblem[] {
   const problems: RulesProblem[] = []
   for (const species of new Set(rules.species)) {
     if (!(species in pack.species)) problems.push({ kind: 'unknown-species', species })

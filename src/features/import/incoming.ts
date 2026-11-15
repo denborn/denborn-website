@@ -8,6 +8,7 @@ import type { DataPack } from '../../data/types.ts'
 import { openCharacter } from '../../domain/open-character.ts'
 import { decodeCharacterCode, decodeCreationCode } from '../../shared/codec/codes.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
+import { sameValue } from '../../shared/same-value.ts'
 import type { CampaignRules } from '../../shared/schema/rules.ts'
 import { openFile } from '../../storage/files.ts'
 import type { Stored } from '../../storage/library.ts'
@@ -116,18 +117,4 @@ function withoutRules(character: CharacterDocument): unknown {
   const bare: Partial<CharacterDocument> = { ...character }
   delete bare.rules
   return bare
-}
-
-/**
- * Whether two values read from saved documents are alike, whatever the order
- * of their keys. A key left out and a key with nothing in it are alike: a
- * code and a file do not write an absent nature or status the same way.
- */
-function sameValue(one: unknown, other: unknown): boolean {
-  if (one === other) return true
-  if (typeof one !== 'object' || typeof other !== 'object' || one === null || other === null) return false
-  if (Array.isArray(one) !== Array.isArray(other)) return false
-  const left = one as Record<string, unknown>
-  const right = other as Record<string, unknown>
-  return [...new Set([...Object.keys(left), ...Object.keys(right)])].every((key) => sameValue(left[key], right[key]))
 }

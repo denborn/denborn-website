@@ -3,6 +3,7 @@ import type { DataPack } from '../../data/types'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import type { CampaignRules } from '../../shared/schema/rules'
+import { answers } from '../../shared/text/plain'
 import { PokemonIcon, Slot, TextField, TypeLabel } from '../../ui'
 import type { CreationDraft } from './draft'
 
@@ -15,13 +16,6 @@ export interface SpeciesStepProps {
   onChoose: (species: string) => void
 }
 
-/** Letters only, without accents or capitals: "Mélofée" is found by "melo". */
-const plain = (name: string): string =>
-  name
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-
 /** The Pokémon the campaign offers, in Pokédex order, with a field to find one by name. */
 export function SpeciesStep({ pack, rules, draft, language, text, onChoose }: SpeciesStepProps) {
   const [search, setSearch] = useState('')
@@ -29,8 +23,7 @@ export function SpeciesStep({ pack, rules, draft, language, text, onChoose }: Sp
     .map((id) => pack.species[id])
     .filter((species) => species !== undefined)
     .sort((a, b) => a.num - b.num)
-  const wanted = plain(search.trim())
-  const shown = wanted ? offered.filter((species) => plain(species.name[language]).includes(wanted)) : offered
+  const shown = offered.filter((species) => answers(species.name[language], search))
   return (
     <div className="dn-stack">
       <TextField label={text.search} value={search} onChange={setSearch} type="search" autoComplete="off" enterKeyHint="search" />
