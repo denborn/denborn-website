@@ -2067,6 +2067,61 @@
   bottom: 0;
 }
 
+/*
+ * The band that names an Ability when it acts (decision 165). Denborn's own
+ * drawing, after the games' band: it slides in from its Pokémon's side of the
+ * scene, over the foe's head from the right or over the ally's from the left,
+ * where it hides neither Pokémon nor box, and its far end is cut aslant like
+ * the boxes. A long name goes on a second line, as in the games.
+ */
+.dn-ability {
+  --dn-ability-cut: calc(8 * var(--dn-u));
+  position: absolute;
+  z-index: 1;
+  min-width: calc(72 * var(--dn-u));
+  /* Narrow enough to stay clear of the arrow beside the foe's box. */
+  max-width: calc(96 * var(--dn-u));
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding: calc(3 * var(--dn-u)) calc(6 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-text);
+  border-block: calc(1 * var(--dn-u)) solid var(--dn-ability-line);
+  background: var(--dn-ability-fill);
+  animation: dn-ability-in var(--dn-move) var(--dn-ease-out) both;
+}
+
+.dn-ability--foe {
+  --dn-ability-fill: var(--dn-ability-foe);
+  --dn-ability-line: var(--dn-ability-foe-line);
+  --dn-ability-from: 100%;
+  right: 0;
+  top: calc(2 * var(--dn-u));
+  padding-left: calc(14 * var(--dn-u));
+  text-align: right;
+  clip-path: polygon(var(--dn-ability-cut) 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.dn-ability--player {
+  --dn-ability-fill: var(--dn-ability-player);
+  --dn-ability-line: var(--dn-ability-player-line);
+  --dn-ability-from: -100%;
+  left: 0;
+  bottom: calc(112 * var(--dn-u));
+  padding-right: calc(14 * var(--dn-u));
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--dn-ability-cut)) 100%, 0 100%);
+}
+
+@keyframes dn-ability-in {
+  from {
+    transform: translateX(var(--dn-ability-from));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* WAIT hangs from the top left corner as BATTLEFIELD does from the right. Denborn's own (decision 137). */
 .dn-command--corner-left {
   right: auto;

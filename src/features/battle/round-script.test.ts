@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { CombatantSetup, DenbornBattle, RoundAction } from '../../battle/denborn-battle'
 import { bag, enemy, move, player, round, seedNumber, start } from '../../battle/test-kit'
 import type { BagEffect } from '../../game-rules/bag-effects'
-import { type Said, type Telling, roundScript, sentence, standingAfter } from './round-script'
+import { type Said, type Telling, abilityShownAt, roundScript, sentence, standingAfter } from './round-script'
 
 /** A round's log as it leaves the table: each Pokémon named by its id. */
 const told = (battle: DenbornBattle, result: ReturnType<typeof round>) => ({
@@ -344,6 +344,15 @@ describe('which message a line gets', () => {
     expect(keysOf(['|-singleturn|a|Wide Guard', '|-singleturn|z|Wide Guard'], { before }, teams)).toEqual(['start.wideguard.party', 'start.wideguard.foes'])
     // Unnerve is said of the team that faces it.
     expect(keysOf(['|-ability|z|Unnerve'], { before }, teams)).toEqual(['start.unnerve.party'])
+  })
+})
+
+describe('the Ability named on the scene', () => {
+  it('is the one a step shows, stays while what it did is said, and is gone when a move is announced', () => {
+    const { steps } = scriptOf(['|-ability|a|Intimidate|boost', '|-unboost|b|atk|1', '|-unboost|c|atk|1', '|-activate|a|ability: Synchronize', '|move|b|Tackle|a'], {}, having('ability', 'boost.atk.-1', 'move'))
+    const shown = steps.map((_, at) => abilityShownAt(steps, at)?.ability)
+    expect(steps.map((step) => step.said?.key)).toEqual(['ability', 'boost.atk.-1', 'boost.atk.-1', 'ability', 'move'])
+    expect(shown).toEqual(['intimidate', 'intimidate', undefined, 'synchronize', undefined])
   })
 })
 

@@ -66,6 +66,13 @@
   --dn-message-line: rgb(122 2 0 / 0.6);
   --dn-message-line-2: rgb(52 2 0 / 0.6);
 
+  /* --- Ability band (Denborn's own drawing, after the band the games slide in when an Ability acts) --- */
+  /* The party's is in the blues of a slot, the foes' in the reds of a downed one, both let the scene show through. */
+  --dn-ability-player: rgb(0 64 96 / 0.88);
+  --dn-ability-player-line: #88f8f0;
+  --dn-ability-foe: rgb(96 24 16 / 0.88);
+  --dn-ability-foe-line: #f88898;
+
   /* --- Battle scene (Denborn's own: the games paint a backdrop per place) --- */
   --dn-scene-sky: #5a8cd6;
   --dn-scene-sky-2: #bde0f7;

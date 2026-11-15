@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
-import { AgonyBadge, CommandMenu, ExpBar, HpBar, HudBox, MessageBox, MoveButton, Screen, StatusBadge, type StatusId } from '..'
+import { AbilityBand, AgonyBadge, CommandMenu, ExpBar, HpBar, HudBox, MessageBox, MoveButton, Screen, StatusBadge, type StatusId } from '..'
 import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
 const STATUSES: StatusId[] = ['psn', 'tox', 'brn', 'par', 'slp', 'frz']
@@ -145,6 +145,44 @@ function Messages() {
   )
 }
 
+/** The band's words, as the games order them in each language. */
+const bandWords = (locale: 'en' | 'fr', name: string, ability: string): string => (locale === 'fr' ? `${ability} ${/^[aeiouyh]/i.test(name) ? 'd’' : 'de '}${name}` : `${name}’s ${ability}`)
+
+function AbilityBands() {
+  const text = useBattleText()
+  const locale = useLocale()
+  const pack = usePack()
+  const [round, setRound] = useState(0)
+  const foe = pack.species.arcanine?.name[locale] ?? 'A'
+  const ally = pack.species.pikachu?.name[locale] ?? 'B'
+  const abilityName = (id: string): string => pack.abilities[id]?.name[locale] ?? id
+  return (
+    <Phone>
+      <Section title="Ability band">
+        <Note>
+          Denborn’s own drawing, after the band the games slide in when an Ability acts (decisions 165 and 167). It comes in from its Pokémon’s
+          side of the scene: over a foe’s head from the right, in the reds; over an ally’s from the left, in the blues. A long name goes
+          on a second line. It stays while the message band says what the Ability did, then goes. With reduced motion it appears in
+          place. A screen reader gets it once, like a line of the message band. Tap the message to see the bands come in again.
+        </Note>
+        <Screen label="Ability band">
+          <div className="sb-browser" style={{ left: 0, top: 'calc(2 * var(--dn-u))', ['--dn-hud-width' as string]: 'calc(104 * var(--dn-u))' }}>
+            <HudBox side="foe" name={foe} level={36} gender="M" hp={120} maxHp={120} text={text} />
+          </div>
+          <div className="sb-browser" style={{ right: 0, bottom: 'calc(48 * var(--dn-u))', ['--dn-hud-width' as string]: 'calc(104 * var(--dn-u))' }}>
+            <HudBox side="player" name={ally} level={34} gender="F" hp={74} maxHp={96} text={text} />
+          </div>
+          <AbilityBand key={`foe-${round}`} side="foe" text={bandWords(locale, foe, abilityName('intimidate'))} />
+          <AbilityBand key={`ally-${round}`} side="player" text={bandWords(locale, ally, abilityName('lightningrod'))} />
+          <div className="sb-message">
+            <MessageBox text={text.messages.prompt(ally)} onAdvance={() => setRound(round + 1)} advanceLabel={text.next} />
+          </div>
+        </Screen>
+      </Section>
+    </Phone>
+  )
+}
+
 const meta = { title: 'Components/Battle' } satisfies Meta
 export default meta
 
@@ -157,3 +195,5 @@ export const HudMetersBadges: StoryObj<typeof HudAndMeters> = {
 export const CommandsAndMoves: StoryObj = { render: () => <Commands /> }
 
 export const MessageBand: StoryObj = { render: () => <Messages /> }
+
+export const AbilityBandStory: StoryObj = { name: 'Ability Band', render: () => <AbilityBands /> }

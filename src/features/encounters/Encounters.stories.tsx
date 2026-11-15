@@ -70,7 +70,7 @@ export const EnemyPpUps: StoryObj = {
       <Note>
         An enemy’s PP Ups, a row of its page under its moves: each move it knows takes from none to three, and the line under it says the
         PP it then has. A move whose PP cannot be raised says so and takes none. PP Ups stay with their move: taking a move away loses
-        them (decision 3). Awaiting the owner’s approval.
+        them (decision 3). Approved (decision 164).
       </Note>
     </>
   ),

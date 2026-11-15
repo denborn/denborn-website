@@ -570,6 +570,18 @@ function ownSteps([event = '', a = '', b = '', c = '', d = '']: readonly string[
   }
 }
 
+/**
+ * The Ability named on the scene at a step of the playback (decision 165): the
+ * one this step shows, or the one the step before showed, which stays while
+ * what it did is said. A move announced next is another matter: the band is
+ * gone by then.
+ */
+export function abilityShownAt(steps: readonly Step[], at: number): Said | undefined {
+  const shows = (step: Step | undefined): Said | undefined => (step?.said?.key === 'ability' ? step.said : undefined)
+  const now = steps[at]
+  return shows(now) ?? (now?.motion?.attack === undefined ? shows(steps[at - 1]) : undefined)
+}
+
 /** Everyone as they stand once the first `count` steps have been played, from how they stood before the round. */
 export function standingAfter(before: readonly Combatant[], steps: readonly Step[], count: number): Combatant[] {
   const now = new Map(before.map((combatant) => [combatant.id, combatant]))

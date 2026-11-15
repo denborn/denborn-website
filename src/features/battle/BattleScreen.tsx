@@ -5,6 +5,7 @@ import { useLanguage, useMessages } from '../../i18n'
 import type { Intent, PlayerFight } from '../../shared/protocol/battle'
 import type { CharacterDocument } from '../../shared/schema/character'
 import {
+  AbilityBand,
   Battler,
   type BattlerHandle,
   CommandMenu,
@@ -27,7 +28,7 @@ import { TEXT_PACE, useTextSpeed } from '../options/text-speed'
 import { FighterSheet, statusOf } from './FighterSheet'
 import { effectsOf, groundOf } from './effects'
 import { type Fighter, clockText, fightersOf, reaches } from './fighters'
-import { roundScript, sentence, standingAfter } from './round-script'
+import { abilityShownAt, roundScript, sentence, standingAfter } from './round-script'
 import { useCountdown } from './use-countdown'
 import { type Wording, choiceWords, effectWords, moveName as moveNameIn, tellingOf } from './words'
 
@@ -102,7 +103,8 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
     if (!step) return
     const next = setTimeout(() => {
       setTold({ round: fight.last.round, steps: toldSteps + 1 })
-    }, step.said ? pace.saidMs : pace.quietMs)
+      // An Ability's band only has to slide in: the sentence that follows is what is read.
+    }, step.said && step.said.key !== 'ability' ? pace.saidMs : pace.quietMs)
     return () => {
       clearTimeout(next)
     }
@@ -189,13 +191,17 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const effects = effectsOf(fight.field, fighters, inEffect)
   /** Everything said so far of the round being told, in order. */
   const saidSoFar = playing ? script.steps.slice(0, toldSteps + 1).flatMap((earlier) => (earlier.said ? (sentence(earlier.said, telling) ?? []) : [])) : []
+  // An Ability that acts is named by a band on its Pokémon's side, not in the message band (decision 165).
+  const spoken = playing ? script.steps.slice(0, toldSteps + 1).flatMap((earlier) => (earlier.said && earlier.said.key !== 'ability' ? (sentence(earlier.said, telling) ?? []) : [])) : []
+  const acting = playing ? abilityShownAt(script.steps, toldSteps) : undefined
+  const band = acting ? { text: sentence(acting, telling), side: byId(acting.pokemon?.[0])?.side === 'enemies' ? ('foe' as const) : ('player' as const) } : undefined
   const skip = (): void => {
     setTold({ round: fight.last.round, steps: script.steps.length })
   }
 
   const message = ((): string => {
     if (notice) return notice
-    if (playing) return saidSoFar.at(-1) ?? (fight.last.round === 0 ? text.opening : text.round(fight.last.round))
+    if (playing) return spoken.at(-1) ?? (fight.last.round === 0 ? text.opening : text.round(fight.last.round))
     if (fight.outcome) return text.over[fight.outcome]
     if (!mine) return text.watching
     if (askToMe) return (askToMe.kind === 'run' ? text.askedRun : text.askedSwitch)(nameOf(askToMe.from), mine.name)
@@ -663,6 +669,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
             <div className="dn-scene__box dn-scene__box--ally">{browser(allies, ally, 'player')}</div>
           </>
         )}
+        {band?.text && <AbilityBand key={band.text} text={band.text} side={band.side} />}
         <div className="dn-scene__message">
           <MessageBox text={message} lettersPerSecond={pace.lettersPerSecond} {...(playing ? { onAdvance: () => setTold({ round: fight.last.round, steps: toldSteps + 1 }), advanceLabel: battle.next } : {})} />
         </div>

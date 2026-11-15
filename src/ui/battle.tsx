@@ -57,6 +57,22 @@ export function ExpBar({ progress, label }: ExpBarProps) {
   )
 }
 
+export interface AbilityBandProps {
+  /** The Pokémon and its Ability, in the words of the games' band. */
+  text: string
+  /** Whose Ability it is: the band comes in from that side of the scene, the foes' from the right, the party's from the left. */
+  side: 'player' | 'foe'
+}
+
+/** The band that names an Ability when it acts. It is read out once, like a line of the message band. */
+export function AbilityBand({ text, side }: AbilityBandProps) {
+  return (
+    <p className={`dn-ability dn-ability--${side} dn-text-shadow`} role="status">
+      {text}
+    </p>
+  )
+}
+
 export type StatusId = 'psn' | 'tox' | 'brn' | 'par' | 'slp' | 'frz'
 
 export interface StatusBadgeProps {
