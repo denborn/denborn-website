@@ -232,13 +232,15 @@ export interface MessageBoxProps {
   onAdvance?: () => void
   /** Spoken name of the "next" action. */
   advanceLabel?: string
+  /** How many letters appear each second: the player's text speed. 45 when left out. */
+  lettersPerSecond?: number
 }
 
 /**
  * The battle's message band. Text appears letter by letter; a tap, Enter or
  * Space shows it all at once, and once it is all there asks for the next one.
  */
-export function MessageBox({ text, onAdvance, advanceLabel }: MessageBoxProps) {
+export function MessageBox({ text, onAdvance, advanceLabel, lettersPerSecond = LETTERS_PER_SECOND }: MessageBoxProps) {
   const reduced = useReducedMotion()
   // Restart the count whenever the text changes, without an effect.
   const [typed, setTyped] = useState({ text, shown: 0 })
@@ -249,9 +251,9 @@ export function MessageBox({ text, onAdvance, advanceLabel }: MessageBoxProps) {
     if (done) return
     const timer = setInterval(() => {
       setTyped((state) => ({ text, shown: (state.text === text ? state.shown : 0) + 1 }))
-    }, 1000 / LETTERS_PER_SECOND)
+    }, 1000 / lettersPerSecond)
     return () => clearInterval(timer)
-  }, [text, done])
+  }, [text, done, lettersPerSecond])
 
   const advance = (): void => {
     if (!done) setTyped({ text, shown: text.length })

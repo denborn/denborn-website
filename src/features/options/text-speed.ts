@@ -1,0 +1,64 @@
+/**
+ * How fast the battle's text goes, as the games let a player choose
+ * (decision 155): slow, normal or fast. A choice of the device, kept like the
+ * language.
+ */
+import { useSyncExternalStore } from 'react'
+
+export const TEXT_SPEEDS = ['slow', 'normal', 'fast'] as const
+export type TextSpeed = (typeof TEXT_SPEEDS)[number]
+
+export interface TextPace {
+  /** Letters of a message that appear each second. */
+  lettersPerSecond: number
+  /** How long a step that says something stays before the next, in milliseconds. */
+  saidMs: number
+  /** How long a step that only shows a change stays. */
+  quietMs: number
+}
+
+/** Each speed's pace. The figures are Denborn's own; the three speeds are the games'. */
+export const TEXT_PACE: Record<TextSpeed, TextPace> = {
+  slow: { lettersPerSecond: 25, saidMs: 2400, quietMs: 650 },
+  normal: { lettersPerSecond: 45, saidMs: 1600, quietMs: 450 },
+  fast: { lettersPerSecond: 90, saidMs: 1000, quietMs: 300 },
+}
+
+const STORAGE_KEY = 'denborn/text-speed'
+
+/** A stored choice wins; otherwise normal, the games' own default. */
+export function pickTextSpeed(stored: string | null): TextSpeed {
+  return TEXT_SPEEDS.find((speed) => speed === stored) ?? 'normal'
+}
+
+function readStored(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY)
+  } catch {
+    // Storage can be blocked (private mode, site data disabled); the choice then lasts for the visit.
+    return null
+  }
+}
+
+let current: TextSpeed = pickTextSpeed(readStored())
+const listeners = new Set<() => void>()
+
+export function setTextSpeed(speed: TextSpeed): void {
+  if (speed === current) return
+  current = speed
+  try {
+    localStorage.setItem(STORAGE_KEY, speed)
+  } catch {
+    // See readStored.
+  }
+  for (const listener of listeners) listener()
+}
+
+function subscribe(listener: () => void): () => void {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+export function useTextSpeed(): TextSpeed {
+  return useSyncExternalStore(subscribe, () => current)
+}

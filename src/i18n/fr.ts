@@ -45,6 +45,9 @@ export const fr: Messages = {
   },
   options: {
     title: 'Options',
+    textSpeed: 'Vitesse du texte',
+    textSpeedHint: 'La vitesse à laquelle défilent les messages d’un combat.',
+    textSpeeds: { slow: 'LENTE', normal: 'NORMALE', fast: 'RAPIDE' },
   },
   characters: {
     title: 'Personnages',

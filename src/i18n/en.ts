@@ -43,6 +43,10 @@ export const en = {
   },
   options: {
     title: 'Options',
+    /** As in the games' options (decision 155). */
+    textSpeed: 'Text speed',
+    textSpeedHint: 'How fast a fight’s messages go by.',
+    textSpeeds: { slow: 'SLOW', normal: 'NORMAL', fast: 'FAST' },
   },
   characters: {
     title: 'Characters',

@@ -146,7 +146,9 @@ The sheet on the board is a mock: the real one is designed with the character sc
 
 **The game master's console** (decision 151) is a page like a campaign's, not two DS screens: the battlefield stays on its top screen, and the round as it stands scrolls below it (the timer, each enemy and each player's Pokémon as a row saying what it has locked, the order of everyone). A tap on a row or on a tile opens that Pokémon alone, with DONE to come back. Whatever takes a target is aimed on the battlefield above, where the question is then written and only what can be picked is lit; CANCEL takes its place. A locked row is drawn confirmed; an enemy still to choose carries TO CHOOSE, a player who is away AWAY.
 
-Not designed yet, and not to be improvised: the round played back step by step, the names of what is in effect, and the end of a fight. They come with their steps, on this system.
+**A round told step by step** (decisions 91, 155 and 156): once everyone has locked, the top screen says the round one sentence at a time, in the games' own words (decision 154). Each step brings the Pokémon it is about onto the scene, the one acting first; the one acting lunges, the one hit recoils, and its HP bar moves then. The touch screen lists what was said so far, the newest last, with SKIP, which goes straight to the round's result and the commands; a tap on the message goes to the next step. Text goes at the speed chosen in the Options: slow, normal or fast, as in the games (25, 45 or 90 letters a second; a sentence stays 2.4, 1.6 or 1 second; the figures are Denborn's own). With reduced motion nothing slides or lunges and each sentence shows whole. The game master's console lists the last round's sentences under the order.
+
+Not designed yet, and not to be improvised: the names of what is in effect, and the end of a fight. They come with their steps, on this system.
 
 ## 6. Motion
 
@@ -252,5 +254,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 149 | The party's order is a column down the left of the ball, with a tick on who has locked; a tap opens the party's list, which takes the commands' place once the player has locked. |
 | 151 | The game master's console: the battlefield on top, the round below, a Pokémon opened by a tap; targets aimed on the battlefield. |
 | 152 | On the hosting screen, a tap on an encounter shows LAUNCH and PREPARE. |
+| 155, 156 | A round is told step by step on the top screen, with the list of what was said and SKIP below; the text's speed is slow, normal or fast, chosen in the Options. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

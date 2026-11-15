@@ -21,6 +21,7 @@ import {
   Screen,
   StatusBadge,
 } from '../../ui'
+import { TEXT_PACE, useTextSpeed } from '../options/text-speed'
 import { FighterSheet, statusOf } from './FighterSheet'
 import { type Fighter, clockText, fightersOf, reaches } from './fighters'
 import { roundScript, sentence, standingAfter } from './round-script'
@@ -61,9 +62,6 @@ type View =
   | { at: 'sheet'; id: string }
 
 const HOME: View = { at: 'home' }
-/** How long a step of a round stays on screen: one that says something, and one that only shows a change. */
-const SAID_MS = 1600
-const QUIET_MS = 450
 /** Under this much time, the clock turns red. */
 const LOW_TIME_MS = 10_000
 
@@ -86,6 +84,8 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const text = battle.choosing
   const left = useCountdown(fight.timer)
   const battleText = useBattleText()
+  /** The text speed the player chose in the options, as in the games (decision 155). */
+  const pace = TEXT_PACE[useTextSpeed()]
 
   // The round that was just played is told step by step before its result shows (decision 91). A fight that
   // is met in its course is shown as it stands; one that begins tells what happened as the Pokémon entered.
@@ -98,11 +98,11 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
     if (!step) return
     const next = setTimeout(() => {
       setTold({ round: fight.last.round, steps: toldSteps + 1 })
-    }, step.said ? SAID_MS : QUIET_MS)
+    }, step.said ? pace.saidMs : pace.quietMs)
     return () => {
       clearTimeout(next)
     }
-  }, [step, toldSteps, fight.last.round])
+  }, [step, toldSteps, fight.last.round, pace])
   const foeSprite = useRef<BattlerHandle>(null)
   const allySprite = useRef<BattlerHandle>(null)
 
@@ -641,7 +641,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
           </>
         )}
         <div className="dn-scene__message">
-          <MessageBox text={message} {...(playing ? { onAdvance: () => setTold({ round: fight.last.round, steps: toldSteps + 1 }), advanceLabel: battle.next } : {})} />
+          <MessageBox text={message} lettersPerSecond={pace.lettersPerSecond} {...(playing ? { onAdvance: () => setTold({ round: fight.last.round, steps: toldSteps + 1 }), advanceLabel: battle.next } : {})} />
         </div>
       </Screen>
       <Screen kind={touch.kind} label={battle.commands.fight}>

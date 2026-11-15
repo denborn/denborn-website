@@ -20,6 +20,11 @@ async function table(gm: Page): Promise<{ player: Page; code: string }> {
   return { player, code }
 }
 
+/** The battle's message band says this, once it has typed it out whole. */
+async function said(page: Page, text: string): Promise<void> {
+  await expect(page.locator('.dn-message > [aria-hidden="true"]').first()).toHaveText(text)
+}
+
 /** The player joins with the code and asks to come in with Volt. */
 async function ask(player: Page, code: string): Promise<void> {
   await player.goto('/')
@@ -158,7 +163,7 @@ test('an encounter is launched from the session, and a round is played between t
   // The launch fetches the battle engine, then the game master's screen is the fight's console and the player's is the fight.
   await gm.getByRole('button', { name: 'LAUNCH' }).click()
   await expect(gm.getByRole('heading', { name: 'The quarry · Round 1' })).toBeVisible({ timeout: 30_000 })
-  await expect(player.getByText('What will Volt do?')).toBeVisible()
+  await said(player, 'What will Volt do?')
   const enemy = gm.getByRole('button', { name: /^A · Pikachu/ })
   await expect(enemy).toContainText('TO CHOOSE')
   const whole = await enemy.innerText()
@@ -167,7 +172,7 @@ test('an encounter is launched from the session, and a round is played between t
   await player.getByRole('button', { name: 'FIGHT' }).click()
   await player.getByRole('button', { name: /Thunder Shock/ }).click()
   await player.getByRole('group', { name: 'FOES' }).getByRole('button').first().click()
-  await expect(player.getByText('Volt is ready. Waiting for the others…')).toBeVisible()
+  await said(player, 'Volt is ready. Waiting for the others…')
   await expect(gm.getByText('Thunder Shock on Pikachu')).toBeVisible()
 
   // The game master gives the enemy its move, aimed on the battlefield above: the last lock plays the round.
@@ -182,7 +187,7 @@ test('an encounter is launched from the session, and a round is played between t
   // The player is told the round step by step, and may pass it to choose again.
   await expect(player.getByRole('listitem').filter({ hasText: 'used Thunder Shock!' }).first()).toBeVisible()
   await player.getByRole('button', { name: 'SKIP' }).click()
-  await expect(player.getByText('What will Volt do?')).toBeVisible()
+  await said(player, 'What will Volt do?')
 
   // The session's own screen is one tap away, and leads back to the fight.
   await gm.getByRole('button', { name: 'THE SESSION' }).click()

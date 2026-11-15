@@ -4,6 +4,7 @@ import { LANGUAGES, setLanguage, useLanguage, useMessages } from '../../i18n'
 import { probeRelay } from '../../network/relay-probe'
 import type { OfflineState } from '../../pwa/use-offline-status'
 import { OptionButton, Screen, StepHeader } from '../../ui'
+import { TEXT_SPEEDS, setTextSpeed, useTextSpeed } from './text-speed'
 
 type RelayCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; ms: number } | { state: 'failed' }
 type PackState = { state: 'loading' } | { state: 'ok'; version: string; species: number; moves: number } | { state: 'failed' }
@@ -18,6 +19,7 @@ export interface OptionsProps {
 export function Options({ offline, onBack }: OptionsProps) {
   const t = useMessages()
   const language = useLanguage()
+  const textSpeed = useTextSpeed()
   const [relay, setRelay] = useState<RelayCheck>({ state: 'idle' })
   const [engine, setEngine] = useState<EngineCheck>({ state: 'idle' })
   const [pack, setPack] = useState<PackState>({ state: 'loading' })
@@ -78,6 +80,18 @@ export function Options({ offline, onBack }: OptionsProps) {
               {LANGUAGES.map((code) => (
                 <OptionButton key={code} role="radio" aria-checked={language === code} onClick={() => setLanguage(code)}>
                   {t.language[code]}
+                </OptionButton>
+              ))}
+            </div>
+          </div>
+
+          <div role="radiogroup" aria-label={t.options.textSpeed} className="dn-entry">
+            <span className="dn-label">{t.options.textSpeed}</span>
+            <p className="dn-note">{t.options.textSpeedHint}</p>
+            <div className="dn-row">
+              {TEXT_SPEEDS.map((speed) => (
+                <OptionButton key={speed} role="radio" aria-checked={textSpeed === speed} onClick={() => setTextSpeed(speed)}>
+                  {t.options.textSpeeds[speed]}
                 </OptionButton>
               ))}
             </div>
