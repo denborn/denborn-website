@@ -6,6 +6,7 @@
 import { create } from 'zustand'
 import type { Invitation, SpeciesIndex } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
+import type { CampaignRules } from '../shared/schema/rules'
 import { browserStorage } from '../storage/browser'
 import { type Stored, type WriteResult, memoryStorage, openLibrary } from '../storage/library'
 
@@ -22,6 +23,8 @@ interface LibraryState {
   /** The campaigns opened on this device, each with the newest rules it was opened with. */
   invitations: (species: SpeciesIndex) => Invitation[]
   saveInvitation: (invitation: Invitation, species: SpeciesIndex) => WriteResult
+  /** The rules of one version of a campaign, when this device was given them. */
+  rulesOf: (campaignId: string, version: number, species: SpeciesIndex) => CampaignRules | undefined
 }
 
 export const useLibrary = create<LibraryState>((set) => {
@@ -41,5 +44,6 @@ export const useLibrary = create<LibraryState>((set) => {
       return [...newest.values()]
     },
     saveInvitation: (invitation, species) => written(library.saveInvitation(invitation, species)),
+    rulesOf: (campaignId, version, species) => library.rulesOf(campaignId, version, species),
   }
 })

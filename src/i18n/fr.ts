@@ -74,6 +74,14 @@ export const fr: Messages = {
   },
   sheet: {
     tabs: { info: 'INFOS', stats: 'STATS', moves: 'CAPACITÉS', bag: 'SAC', share: 'PARTAGE' },
+    title: 'Fiche de personnage',
+    problems: {
+      missing: 'Ce personnage n’est pas sur cet appareil.',
+      unreadable: 'Ce personnage est conservé sous une forme que cette version de l’application ne sait pas lire. Son fichier peut toujours être enregistré.',
+      newer: 'Ce personnage a été enregistré par une version plus récente de l’application. Mettez l’application à jour pour voir sa fiche. Son fichier peut toujours être enregistré.',
+      rulesUnknown: 'Les règles de sa campagne ne sont pas sur cet appareil. Rouvrez le lien de création de la campagne. Son fichier peut toujours être enregistré.',
+      invalid: 'Ce personnage ne respecte pas les règles de sa campagne telles que cette version de l’application les lit\u00a0: sa fiche ne peut pas être affichée. Son fichier peut toujours être enregistré.',
+    },
     tabsLabel: 'Parties de la fiche',
     campaign: 'Campagne',
     species: 'Pokémon',
@@ -109,9 +117,6 @@ export const fr: Messages = {
     qr: 'Son code QR contient lui aussi tout le personnage.',
     tooLarge: 'Ce personnage transporte trop de choses pour un code QR. Utilisez son fichier.',
     otherData: 'Ce personnage a été enregistré avec d’autres données de jeu que celles de cette version de l’application. Vérifiez-le avant de jouer.',
-    invalid: 'Ce personnage ne respecte plus ses règles\u00a0: sa fiche ne peut pas être affichée. Son fichier peut toujours être enregistré.',
-    missing: 'Ce personnage n’est pas sur cet appareil.',
-    rulesUnknown: 'Les règles de sa campagne ne sont pas sur cet appareil. Rouvrez le lien de création de la campagne.',
   },
   saving: {
     full: 'Il n’y a plus de place sur cet appareil pour le conserver.',

@@ -7,6 +7,8 @@ import { maxPp } from '../../game-rules/pp'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { Note, Phone, usePack } from '../../ui/stories/board'
 import { CharacterSheet } from './CharacterSheet'
+import { SheetUnavailable } from './SheetUnavailable'
+import type { SheetProblem } from './open-sheet'
 
 interface Args {
   condition: 'standing' | 'downed' | 'dead'
@@ -56,3 +58,22 @@ const meta = {
 export default meta
 
 export const FiveParts: StoryObj<typeof meta> = {}
+
+const PROBLEMS: SheetProblem[] = ['missing', 'unreadable', 'newer', 'rulesUnknown', 'invalid']
+
+/** In the sheet's place when there is none to show: each reason, one under the other. */
+export const NoSheet: StoryObj<typeof meta> = {
+  render: () => (
+    <>
+      {PROBLEMS.map((problem) => (
+        <Phone key={problem}>
+          <SheetUnavailable problem={problem} onBack={() => undefined} onSaveFile={problem === 'missing' ? undefined : () => undefined} />
+        </Phone>
+      ))}
+      <Note>
+        A kept character goes through the same checks as one from outside before its sheet is drawn. When it does not pass, or cannot be
+        read, the page says why, and what is kept can still leave as a file.
+      </Note>
+    </>
+  ),
+}

@@ -10,11 +10,14 @@ import { type LinkProblem, NewCharacter } from '../features/characters/NewCharac
 import { CreationFlow } from '../features/creation/CreationFlow'
 import { Home } from '../features/home/Home'
 import { Options } from '../features/options/Options'
+import { CharacterSheet } from '../features/sheet/CharacterSheet'
+import { SheetUnavailable } from '../features/sheet/SheetUnavailable'
+import { sheetToShow } from '../features/sheet/open-sheet'
 import { useMessages } from '../i18n'
 import { decodeCreationCode } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
 import { saveToDevice } from '../storage/browser'
-import { characterFile } from '../storage/files'
+import { characterFile, storedCharacterFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
 import { OptionButton, Panel, Screen, StepHeader } from '../ui'
@@ -39,7 +42,44 @@ export function CharactersPage() {
   const navigate = useNavigate()
   const library = useLibrary()
   usePageTitle(useMessages().characters.title)
-  return <CharacterList pack={usePack()} entries={library.characters()} kept={library.kept} onBack={() => void navigate('/')} onNew={() => void navigate('/characters/new')} />
+  return (
+    <CharacterList
+      pack={usePack()}
+      entries={library.characters()}
+      kept={library.kept}
+      onBack={() => void navigate('/')}
+      onNew={() => void navigate('/characters/new')}
+      onOpen={(id) => void navigate(`/characters/${id}`)}
+    />
+  )
+}
+
+export function CharacterPage() {
+  const navigate = useNavigate()
+  const pack = usePack()
+  const library = useLibrary()
+  const messages = useMessages()
+  const { id } = useParams()
+  const entry = library.characters().find((stored) => stored.id === id)
+  const shown = sheetToShow(entry, (campaign) => library.rulesOf(campaign.id, campaign.rulesVersion, pack.species), pack)
+  usePageTitle(shown.show === 'sheet' ? shown.character.nickname : messages.sheet.title)
+  const back = (): void => void navigate('/characters')
+
+  if (shown.show === 'problem') {
+    // Whatever is kept under that id can still leave as a file, exactly as it is stored.
+    return <SheetUnavailable problem={shown.problem} onBack={back} onSaveFile={entry ? () => saveToDevice(storedCharacterFile(entry)) : undefined} />
+  }
+  return (
+    <CharacterSheet
+      pack={pack}
+      character={shown.character}
+      numbers={shown.numbers}
+      origin={window.location.origin}
+      notice={shown.otherGameData ? messages.sheet.otherData : undefined}
+      onBack={back}
+      onSaveFile={() => saveToDevice(characterFile(shown.character, shown.rules))}
+    />
+  )
 }
 
 export function NewCharacterPage() {

@@ -33,6 +33,15 @@ export function characterFile(character: CharacterDocument, rules: CampaignRules
   return { name: `denborn-${fileSlug(character.nickname) || character.id}.json`, text: JSON.stringify(document, null, 2) }
 }
 
+/**
+ * A kept character exactly as it is stored: the way out for one this app
+ * cannot read, or no longer accepts, so that nothing kept is ever stuck here.
+ */
+export function storedCharacterFile(entry: { id: string; raw: string; read: ReadResult<CharacterDocument> }): FileToSave {
+  const name = entry.read.ok ? fileSlug(entry.read.value.nickname) : ''
+  return { name: `denborn-${name || entry.id}.json`, text: entry.raw }
+}
+
 export function campaignFile(campaign: CampaignDocument): FileToSave {
   return { name: `denborn-campaign-${fileSlug(campaign.name) || campaign.id}.json`, text: JSON.stringify(campaign, null, 2) }
 }

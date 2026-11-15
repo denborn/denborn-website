@@ -8,7 +8,7 @@ import { decodeCreationCode } from '../shared/codec/codes'
 import { OptionButton, Screen } from '../ui'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CharactersPage, CreateCharacterPage, HomePage, NewCharacterPage, OptionsPage } from './pages'
+import { CharacterPage, CharactersPage, CreateCharacterPage, HomePage, NewCharacterPage, OptionsPage } from './pages'
 
 /** Shown while the game data loads. */
 function Loading() {
@@ -126,6 +126,7 @@ const router = createBrowserRouter([
       { path: 'characters', element: <CharactersPage /> },
       { path: 'characters/new', element: <NewCharacterPage /> },
       { path: 'characters/new/:campaignId', element: <CreateCharacterPage /> },
+      { path: 'characters/:id', element: <CharacterPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },

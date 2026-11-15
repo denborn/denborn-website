@@ -231,6 +231,8 @@ Each row is the owner's answer to a question asked that day.
 | 100 | The home | "Yes, as shown" (2026-11-14, on the board): the app's name over three Pokémon, and three ways in: Characters for a player, Campaigns for the game master, Options. Joining a live session is added with the relay. |
 | 101 | The steps of character creation | "Yes, these seven", in this order: 1 the Pokémon; 2 its name, gender, nature and Ability; 3 its roleplay attributes; 4 its IVs and EVs; 5 its moves; 6 its item pack; 7 a last look, then the character is made. |
 | 102 | The layout of menus and forms | "Yes, the lower screen scrolls": the top DS screen stays in place and shows what is being worked on; the lower screen keeps the DS look but is as long as its content, and scrolls. The battle keeps its two DS screens. |
+| 103 | The character sheet | "Yes, five tabs" (2026-11-15, on the board): the Pokémon with its battle box, HP and types on the top screen; below, INFO, STATS, MOVES, BAG and SHARE (INFOS, STATS, CAPACITÉS, SAC, PARTAGE), holding what decision 98 lists. It only shows. |
+| 104 | A dead character on its sheet | "Yes, as shown": its sprite still, its HP at 0 and a plate that says DEAD / MORT. |
 
 ---
 
@@ -282,7 +284,7 @@ Raised while building the battle adapter (milestone 1). Each is what the adapter
 
 **Wording of the first screens (2026-11-14).** The home and character creation brought ordinary interface wording in both languages (CHARACTERS / PERSONNAGES, Choose a Pokémon / Choisir un Pokémon, Nickname / Surnom, Gender / Sexe, Who is it? / Qui est-ce ?, the hints and error lines), and with the other five steps: the six attributes' French names (Force, Dextérité, Endurance, Perception, Charisme, Intelligence), IVs and EVs / IV et EV, item pack / lot d'objets, Held item / Objet tenu, A last look / Un dernier regard, CREATE / CRÉER. The pages around it added: Characters / Personnages, NEW / NOUVEAU, New character / Nouveau personnage, Creation link / Lien de création, OPEN / OUVRIR, the reasons a link cannot be opened, and the lines about a device that cannot keep a character. Game terms are the games' own (Nature, Talent, Talent Caché, the natures' and stats' names from the data pack). All of it is in `src/i18n/` (`home`, `creation`) and open to correction.
 
-**The character sheet, on the board and awaiting approval (2026-11-15).** Built from decision 98 (what a sheet shows) and the page layout of decision 102; nothing of it is in the app yet. Mine, and the owner's to correct: five tabs (INFO, STATS, MOVES, BAG, SHARE / INFOS, STATS, CAPACITÉS, SAC, PARTAGE) rather than one long page; the Pokémon with its battle box, HP and types on the top screen; a dead Pokémon shown still, at 0 HP, with a plate that says DEAD / MORT; a downed one with its Agony badge in the HP bar's place, as in battle (decision 83); each move with its power and accuracy (Power, Accuracy / Puissance, Précision, the games' words; three dashes where a move has none, as in the games); points not placed yet shown as a line ("IV points left to place: 12"), with no way to place them here, since a sheet changes only in the game master's session (decision 13). The rest of its wording is ordinary (Campaign / Campagne, Holds / Tient, Money / Argent, SAVE ITS FILE / ENREGISTRER SON FICHIER, the lines about its file and its QR code) and is in `src/i18n/` (`sheet`).
+**Wording and details of the character sheet (2026-11-15).** The owner approved the sheet's layout and a dead character's look on the board (decisions 103 and 104). These smaller things were on that board but not ruled one by one, and stay open to correction: each move shows its power and accuracy (Power, Accuracy / Puissance, Précision, the games' words; three dashes where a move has none, as in the games); points not placed yet show as a line ("IV points left to place: 12") with no way to place them there, since a sheet changes only in the game master's session (decision 13); and its ordinary wording (Campaign / Campagne, Holds / Tient, Money / Argent, SAVE ITS FILE / ENREGISTRER SON FICHIER, the lines about its file and its QR code, the lines shown when a kept character cannot be read or no longer follows its rules), in `src/i18n/` (`sheet`).
 
 **Raised by the saved documents (2026-11-14), kept and to be confirmed.** None was needed to ask before building; each is one line to change.
 
@@ -585,3 +587,15 @@ Browser tests, against the production build served by the real Worker (9, all pa
 | The four earlier ones (offline cache, engine on demand, relay, language) | Unchanged, now from the options page |
 
 Not checked: a real phone; a screen reader; the installed app on iOS.
+
+**With the character sheet in the app (2026-11-15).** A row of the character list opens the sheet at its own address (`/characters/<id>`). The kept character goes through `openCharacter` first, like one from outside: the browser's storage is not trusted. Three more browser tests (12 in all, passing):
+
+| Journey | What it proves |
+|---|---|
+| Make a character, open it from the list, read its tabs, save its file, see its QR code, reload on the sheet's address | The sheet shows what was made; the file opens as that character with its rules; the address alone is enough to come back |
+| Write too many IV points straight into the browser's storage, then open the character | No sheet is drawn for a character that breaks its rules; what is kept still leaves as a file, untouched |
+| Open the address of a character the device does not keep | The page says so and offers no file |
+
+The main script grew from 487 kB (154 kB compressed) to 575 kB (183 kB compressed): the sheet brought the QR code drawing and the writing of character codes into it, which until now only the board used. The offline cache holds the same 409 files (19.1 MB). Nothing is split off yet; sizes are set against a budget in milestone 8.
+
+The sheet's QR code holds a link (`<site>/#DNC1…`) that the app does not read yet: opening a character from a link, a scan or a file is the next step.

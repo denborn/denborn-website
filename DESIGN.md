@@ -180,7 +180,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 - **Motion**: everything in section 6's right-hand column.
 - **Language**: components receive their words; none is written in a component.
 
-## 9. Ruled by the owner on the board (2026-11-14)
+## 9. Ruled by the owner on the board (2026-11-14 and 15)
 
 | Decision | Ruling |
 |---|---|
@@ -200,5 +200,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 100 | The home: the app's name over three Pokémon; Characters, Campaigns, Options. |
 | 101 | Character creation in seven steps: Pokémon; name, gender, nature and Ability; roleplay attributes; IVs and EVs; moves; item pack; a last look. |
 | 102 | Menus and forms: the top DS screen stays, the lower one is as long as its content and scrolls. |
+| 103 | The character sheet: the Pokémon, its battle box and types on the top screen; five tabs below (INFO, STATS, MOVES, BAG, SHARE). |
+| 104 | A dead character on its sheet: sprite still, HP at 0, a plate that says DEAD / MORT. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

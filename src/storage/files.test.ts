@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { newcomer, testRules } from '../domain/test-pack'
 import type { CampaignDocument } from '../shared/schema/campaign'
-import { MAX_FILE_LENGTH, campaignFile, characterFile, fileSlug, openFile } from './files'
+import { MAX_FILE_LENGTH, campaignFile, characterFile, fileSlug, openFile, storedCharacterFile } from './files'
 
 const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 4, dataPackVersion: 'test-pack', name: 'Les Égarés', rulesHistory: [testRules()] }
 
@@ -15,6 +15,17 @@ describe('a character file', () => {
     expect(characterFile(newcomer({ nickname: "Éclair-2 d'Été." }), testRules()).name).toBe('denborn-eclair-2-d-ete.json')
     // A name with nothing a file name can keep falls back on the id.
     expect(characterFile(newcomer({ nickname: "'.'" }), testRules()).name).toBe('denborn-character-0001.json')
+  })
+})
+
+describe('the file of a kept character, as it is stored', () => {
+  it('is the stored text untouched, named after the character when it can be read', () => {
+    const raw = JSON.stringify({ ...newcomer({ nickname: 'Volt' }), somethingNewer: true })
+    expect(storedCharacterFile({ id: 'character-0001', raw, read: { ok: true, value: newcomer({ nickname: 'Volt' }) } })).toEqual({ name: 'denborn-volt.json', text: raw })
+  })
+
+  it('is named after its id when the entry cannot be read', () => {
+    expect(storedCharacterFile({ id: 'character-0001', raw: 'not json', read: { ok: false, reason: 'not-this-kind' } })).toEqual({ name: 'denborn-character-0001.json', text: 'not json' })
   })
 })
 

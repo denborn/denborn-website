@@ -16,11 +16,12 @@ export function Panel({ tone = 'dark', children }: PanelProps) {
 export interface SlotProps extends ButtonProps {
   /** `down` for a downed Pokémon, `ok` once a choice is locked. */
   state?: 'normal' | 'down' | 'ok'
-  selected?: boolean
+  /** For a row that is a choice: whether it is the one chosen. Left out for a row that opens something. */
+  selected?: boolean | undefined
 }
 
-/** A row that can be chosen, in the manner of the party screen. */
-export function Slot({ state = 'normal', selected = false, children, ...rest }: SlotProps) {
+/** A row that can be chosen or that opens something, in the manner of the party screen. */
+export function Slot({ state = 'normal', selected, children, ...rest }: SlotProps) {
   const modifier = state === 'normal' ? '' : ` dn-slot--${state}`
   return (
     <button type="button" className={`dn-slot${modifier}`} aria-pressed={selected} {...rest}>

@@ -72,6 +72,14 @@ export const en = {
   },
   sheet: {
     tabs: { info: 'INFO', stats: 'STATS', moves: 'MOVES', bag: 'BAG', share: 'SHARE' },
+    title: 'Character sheet',
+    problems: {
+      missing: 'This character is not on this device.',
+      unreadable: 'This character is kept in a form this version of the app cannot read. Its file can still be saved.',
+      newer: 'This character was saved by a newer version of the app. Update the app to see its sheet. Its file can still be saved.',
+      rulesUnknown: 'The rules of its campaign are not on this device. Open the campaign’s creation link again. Its file can still be saved.',
+      invalid: 'This character does not follow its campaign’s rules as this version of the app reads them, so its sheet cannot be shown. Its file can still be saved.',
+    },
     tabsLabel: 'Parts of the sheet',
     campaign: 'Campaign',
     species: 'Pokémon',
@@ -107,9 +115,6 @@ export const en = {
     qr: 'Its QR code holds the whole character too.',
     tooLarge: 'This character carries too much for a QR code. Use its file.',
     otherData: 'This character was saved with other game data than this version of the app uses. Check it before you play.',
-    invalid: 'This character no longer follows its rules, so its sheet cannot be shown. Its file can still be saved.',
-    missing: 'This character is not on this device.',
-    rulesUnknown: 'The rules of its campaign are not on this device. Open the campaign’s creation link again.',
   },
   saving: {
     full: 'There is no room left on this device to keep it.',
