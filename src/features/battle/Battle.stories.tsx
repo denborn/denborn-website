@@ -178,7 +178,7 @@ function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
           {again}
         </div>
         <Note>
-          The game master’s console, on the left, beside one player’s phone (Volt). The battlefield stays on the console’s top screen;
+          The game master’s console (approved, decision 151), on the left, beside one player’s phone (Volt). The battlefield stays on the console’s top screen;
           below it, the round as it stands: the timer (off until turned on, decision 150), each enemy and what it has locked, each
           player’s Pokémon and what it has locked, and the order of everyone. A tap on a Pokémon, in the list or on the battlefield,
           opens it. An enemy is given a move (aimed on the battlefield above when it takes a target), WAIT or an item of the enemies’
