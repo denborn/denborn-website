@@ -3,14 +3,38 @@ import { readFileSync } from 'node:fs'
 import { type Page, expect } from '@playwright/test'
 import type { DataPack } from '../../src/data/types.ts'
 import { sampleRules } from '../../src/domain/samples.ts'
+import { type DraftChoice, choose, emptyDraft, toCharacter } from '../../src/features/creation/draft.ts'
 import { encodeCreationCode } from '../../src/shared/codec/codes.ts'
+import type { CharacterDocument } from '../../src/shared/schema/character.ts'
 
 // The game data the build made: the link below is written with it, as a game master's app would.
 const pack = JSON.parse(readFileSync(new URL('../../src/data/generated/pack.json', import.meta.url), 'utf8')) as DataPack
-const invitation = { campaign: { id: 'e2eCampaign00001', name: 'Night Shift' }, dataPackVersion: pack.version, rules: { ...sampleRules(pack, 2, 2, 4), startingLevel: 5 } }
 
-/** The creation code of the campaign "Night Shift", whose characters start at level 5. */
+/** The campaign "Night Shift", whose characters start at level 5. */
+export const invitation = { campaign: { id: 'e2eCampaign00001', name: 'Night Shift' }, dataPackVersion: pack.version, rules: { ...sampleRules(pack, 2, 2, 4), startingLevel: 5 } }
+
+/** The creation code of that campaign. */
 export const code = encodeCreationCode(invitation, pack.species)
+
+/**
+ * A Pikachu of that campaign as the seven steps would make it, without going
+ * through them: for a character that comes from another device.
+ */
+export function pikachu(nickname: string, id: string): CharacterDocument {
+  const context = { pack, rules: invitation.rules }
+  const choices: DraftChoice[] = [
+    { choose: 'species', species: 'pikachu' },
+    { choose: 'nickname', nickname },
+    { choose: 'gender', gender: 'F' },
+    { choose: 'nature', nature: 'jolly' },
+    { choose: 'ability', ability: 'static' },
+    { choose: 'move', move: 'thundershock' },
+    { choose: 'pack', pack: 0 },
+  ]
+  const character = toCharacter(choices.reduce((draft, choice) => choose(draft, choice, context), emptyDraft), invitation, pack, id)
+  if (!character) throw new Error('The steps of creation no longer make this character: update the choices above.')
+  return character
+}
 
 /** Goes through the seven steps with the fewest choices that make a character. */
 export async function createPikachu(page: Page, nickname: string): Promise<void> {

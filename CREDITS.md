@@ -59,3 +59,5 @@ DotGothic16, Pixelify Sans and Tiny5 (all SIL Open Font License) were shown besi
 ## Software
 
 The libraries the app is built with are listed in `package.json`, each under its own licence.
+
+One of them ships a compiled engine inside the app: QR codes are read, in browsers that have no reader of their own, by [ZXing-C++](https://github.com/zxing-cpp/zxing-cpp) (Apache-2.0) compiled to WebAssembly by [zxing-wasm](https://github.com/Sec-ant/zxing-wasm) (MIT), through [barcode-detector](https://github.com/Sec-ant/barcode-detector) (MIT).

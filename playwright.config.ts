@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { CAMERA_PICTURE } from './tests/e2e/camera.ts'
 
 const PORT = 4173
 const LOCAL_URL = `http://localhost:${PORT}`
@@ -21,7 +22,20 @@ export default defineConfig({
     locale: 'en-US',
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'phone', use: { ...devices['Pixel 7'] } }],
+  // Writes the picture the pretend camera plays.
+  globalSetup: './tests/e2e/global-setup.ts',
+  projects: [
+    { name: 'phone', testIgnore: /scan\.spec\.ts$/, use: { ...devices['Pixel 7'] } },
+    {
+      // The same phone with a camera: Chromium plays a video file in the place of one, and grants its use unasked.
+      name: 'phone-camera',
+      testMatch: /scan\.spec\.ts$/,
+      use: {
+        ...devices['Pixel 7'],
+        launchOptions: { args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-video-capture=${CAMERA_PICTURE}`] },
+      },
+    },
+  ],
   ...(REMOTE_URL === undefined && {
     webServer: {
       // Vite is started directly, not through pnpm: a wrapper process would be killed

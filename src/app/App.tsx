@@ -8,7 +8,7 @@ import { decodeCreationCode } from '../shared/codec/codes'
 import { OptionButton, Screen } from '../ui'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CharacterPage, CharactersPage, CreateCharacterPage, HomePage, NewCharacterPage, OptionsPage } from './pages'
+import { CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage } from './pages'
 
 /** Shown while the game data loads. */
 function Loading() {
@@ -56,10 +56,12 @@ class LoadBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 }
 
 /**
- * A creation link carries its code after a "#". On arrival, and whenever the
- * address changes to one, the campaign is kept on this device and its
- * creation opens. The code is then taken out of the address, so that a reload
- * or a bookmark does not open it again.
+ * A link to the app carries its code after a "#": a creation link, or a
+ * character's own. On arrival, and whenever the address changes to one, a
+ * creation link's campaign is kept on this device and its creation opens; a
+ * character's link opens the import screen, which shows the character before
+ * anything is kept. The code is then taken out of the address, so that a
+ * reload or a bookmark does not open it again.
  */
 function IncomingLink() {
   const pack = usePack()
@@ -69,6 +71,10 @@ function IncomingLink() {
   useEffect(() => {
     const take = (): void => {
       const code = window.location.hash.slice(1)
+      if (/^dnc\d/i.test(code)) {
+        void navigate('/characters/import', { replace: true, state: { code } })
+        return
+      }
       if (!/^dnr\d/i.test(code)) return
       const decoded = decodeCreationCode(code, pack.species)
       if (decoded.ok) {
@@ -126,6 +132,7 @@ const router = createBrowserRouter([
       { path: 'characters', element: <CharactersPage /> },
       { path: 'characters/new', element: <NewCharacterPage /> },
       { path: 'characters/new/:campaignId', element: <CreateCharacterPage /> },
+      { path: 'characters/import', element: <ImportCharacterPage /> },
       { path: 'characters/:id', element: <CharacterPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

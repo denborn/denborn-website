@@ -9,6 +9,9 @@ import { CharacterList } from '../features/characters/CharacterList'
 import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
 import { CreationFlow } from '../features/creation/CreationFlow'
 import { Home } from '../features/home/Home'
+import { ImportCharacter } from '../features/import/ImportCharacter'
+import { QrCamera } from '../features/import/QrCamera'
+import { type Device, readIncomingCode, readIncomingFile } from '../features/import/incoming'
 import { Options } from '../features/options/Options'
 import { CharacterSheet } from '../features/sheet/CharacterSheet'
 import { PaperSheet } from '../features/sheet/PaperSheet'
@@ -17,7 +20,7 @@ import { sheetToShow } from '../features/sheet/open-sheet'
 import { useLanguage, useMessages } from '../i18n'
 import { decodeCreationCode } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
-import { saveToDevice } from '../storage/browser'
+import { saveToDevice, textOfPickedFile } from '../storage/browser'
 import { characterFile, storedCharacterFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
@@ -50,7 +53,39 @@ export function CharactersPage() {
       kept={library.kept}
       onBack={() => void navigate('/')}
       onNew={() => void navigate('/characters/new')}
+      onImport={() => void navigate('/characters/import')}
       onOpen={(id) => void navigate(`/characters/${id}`)}
+    />
+  )
+}
+
+export function ImportCharacterPage() {
+  const navigate = useNavigate()
+  const pack = usePack()
+  const library = useLibrary()
+  const location = useLocation()
+  // A character's link opened from outside the app sends the visitor here with its code.
+  const arrivedWith = (location.state as { code?: string } | null)?.code
+  usePageTitle(useMessages().import.title)
+  const device: Device = {
+    pack,
+    kept: library.characters(),
+    rulesOf: (campaign) => library.rulesOf(campaign.id, campaign.rulesVersion, pack.species),
+  }
+  return (
+    <ImportCharacter
+      // Each arrival starts the screen over, so that a second link opened while it is up is read too.
+      key={location.key}
+      pack={pack}
+      arrivedWith={arrivedWith}
+      readFile={(text) => readIncomingFile(text, device)}
+      readCode={(text) => readIncomingCode(text, device)}
+      textOfFile={textOfPickedFile}
+      camera={(props) => <QrCamera {...props} />}
+      // Kept with the rules it was checked under, like a character made here.
+      onKeep={(incoming) => library.saveCharacter({ ...incoming.character, rules: incoming.rules })}
+      onOpen={(id) => void navigate(`/characters/${id}`)}
+      onBack={() => void navigate('/characters')}
     />
   )
 }

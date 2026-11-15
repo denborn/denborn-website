@@ -11,6 +11,8 @@ export interface CharacterListProps {
   kept: boolean
   onBack: () => void
   onNew: () => void
+  /** Opens the screen that takes in a character from its file, link or QR code. */
+  onImport: () => void
   /** Opens the sheet of one of them, by the id it is kept under. */
   onOpen: (id: string) => void
 }
@@ -19,7 +21,7 @@ export interface CharacterListProps {
 const FACES = 5
 
 /** The characters kept on this device: they stand on the top screen and are listed below. */
-export function CharacterList({ pack, entries, kept, onBack, onNew, onOpen }: CharacterListProps) {
+export function CharacterList({ pack, entries, kept, onBack, onNew, onImport, onOpen }: CharacterListProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.characters
@@ -76,6 +78,7 @@ export function CharacterList({ pack, entries, kept, onBack, onNew, onOpen }: Ch
         </div>
         <div className="dn-foot">
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
+          <OptionButton onClick={onImport}>{messages.import.entry}</OptionButton>
           <OptionButton primary onClick={onNew}>
             {text.new}
           </OptionButton>

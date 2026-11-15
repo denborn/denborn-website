@@ -217,5 +217,8 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 104 | A dead character on its sheet: sprite still, HP at 0, a plate that says DEAD / MORT. |
 | 105 | The sheet on paper: one page, black on white; head, identity and attributes, combat stats with the QR code, moves, items. |
 | 106 | On paper, an empty box beside the HP and each move's PP, to pencil in what changes at the table. |
+| 107 | A character coming in that is already here: both copies shown, which is more recent, REPLACE or KEEP THE ONE HERE. |
+| 108 | The import screen: three ways in (file, link or code, QR code scanned with the camera on the top screen); what was read is shown before it is kept. |
+| 109 | IMPORT sits in the foot of the Characters list, between BACK and NEW. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.
