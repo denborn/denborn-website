@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { evBudget, ivBudget, spreadTotal } from '../../game-rules/budgets'
 import { LINE_MAX } from '../../game-rules/party'
+import { PP_UPS_MAX, maxPp } from '../../game-rules/pp'
 import { MOB_CLASSES, MOB_CLASS_BASE, moneyFor } from '../../game-rules/rewards'
 import { type Language, useLanguage, useMessages } from '../../i18n'
 import type { Messages } from '../../i18n/en'
@@ -17,10 +18,10 @@ import { Preview } from '../creation/Preview'
 import { SpeciesStep } from '../creation/SpeciesStep'
 import { TrainingStep } from '../creation/TrainingStep'
 import { type CreationDraft, type DraftChoice, choose, identityProblems } from '../creation/draft'
-import { type EncounterDraft, type EnemyDraft, type EnemyState, NEW_ENCOUNTER, draftOfEncounter, encounterOf, encounterState, enemyContext, hasChanges, moved, newEnemy } from './encounter-draft'
+import { type EncounterDraft, type EnemyDraft, type EnemyState, NEW_ENCOUNTER, changedEnemy, draftOfEncounter, encounterOf, encounterState, enemyContext, hasChanges, moved, newEnemy } from './encounter-draft'
 
 /** What of an enemy can be opened by itself. */
-export const ENEMY_FIELDS = ['species', 'level', 'identity', 'training', 'moves', 'held', 'mobClass', 'atZero'] as const
+export const ENEMY_FIELDS = ['species', 'level', 'identity', 'training', 'moves', 'ppUps', 'held', 'mobClass', 'atZero'] as const
 export type EnemyField = (typeof ENEMY_FIELDS)[number]
 
 /** Where the game master is in the encounter: its page, its name, its Bag, one enemy, or one thing of one enemy. */
@@ -89,7 +90,7 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
     onUnsaved?.(changed)
   }, [changed, onUnsaved])
 
-  const setEnemy = (id: string, changes: Partial<EnemyDraft>): void => setDraft({ ...draft, enemies: draft.enemies.map((enemy) => (enemy.id === id ? { ...enemy, ...changes } : enemy)) })
+  const setEnemy = (id: string, changes: Partial<EnemyDraft>): void => setDraft({ ...draft, enemies: draft.enemies.map((enemy) => (enemy.id === id ? changedEnemy(enemy, changes) : enemy)) })
 
   const save = (): void => {
     const made = encounterOf(draft, encounter?.id ?? newId(), rules)
@@ -246,6 +247,7 @@ function fieldTitle(field: EnemyField, text: Messages['encounters']): string {
     identity: text.enemy.identity,
     training: text.enemy.training,
     moves: text.enemy.moves,
+    ppUps: text.enemy.ppUps,
     held: text.enemy.held,
     mobClass: text.enemy.mobClass,
     atZero: text.enemy.atZero,
@@ -302,6 +304,7 @@ function EnemyPage({ enemy, state, pack, rules, language, messages, onOpen }: En
   const wrong = (kinds: readonly string[]): boolean => (state?.problems ?? []).some((problem) => kinds.includes(problem.kind))
   const identityGap = gaps.includes('gender') || gaps.includes('nature') || gaps.includes('ability')
   const species = build.species ? pack.species[build.species] : undefined
+  const ppUpsGiven = Object.values(enemy.ppUps).reduce((sum, ups) => sum + ups, 0)
   const rows: { field: EnemyField; value: string; pending?: boolean }[] = [
     { field: 'species', value: species?.name[language] ?? text.toChoose, pending: !species },
     { field: 'level', value: String(enemy.level) },
@@ -320,6 +323,7 @@ function EnemyPage({ enemy, state, pack, rules, language, messages, onOpen }: En
       value: gaps.includes('moves') ? text.toChoose : wrong(['move-not-eligible', 'unknown-move', 'repeated-move']) ? text.toFix : text.enemy.movesCount(build.moves.length),
       pending: gaps.includes('moves') || wrong(['move-not-eligible', 'unknown-move', 'repeated-move']),
     },
+    { field: 'ppUps', value: wrong(['pp-ups-not-allowed']) ? text.toFix : ppUpsGiven === 0 ? text.enemy.ppUpsNone : text.enemy.ppUpsCount(ppUpsGiven), pending: wrong(['pp-ups-not-allowed']) },
     { field: 'held', value: wrong(['held-item']) ? text.toFix : build.heldItem ? (pack.items[build.heldItem]?.name[language] ?? build.heldItem) : text.enemy.nothing, pending: wrong(['held-item']) },
     { field: 'mobClass', value: text.enemy.classes[enemy.class] },
     { field: 'atZero', value: enemy.agony ? text.enemy.agonizes.name : text.enemy.faints.name },
@@ -367,6 +371,25 @@ function EnemyFieldScreen({ field, enemy, pack, rules, language, messages, onCha
       return <TrainingStep pack={pack} draft={build} level={enemy.level} language={language} text={creation} onChoose={send} />
     case 'moves':
       return <MovesStep pack={pack} context={context} draft={build} language={language} text={creation} categoryText={messages.battle.category} onToggle={(move) => send({ choose: 'move', move })} />
+    case 'ppUps':
+      return (
+        <>
+          <p className="dn-note">{build.moves.length === 0 ? text.ppUpsNoMoves : text.ppUpsHint}</p>
+          {build.moves.map((id) => {
+            const move = pack.moves[id]
+            const name = move?.name[language] ?? id
+            const ups = enemy.ppUps[id] ?? 0
+            // A move whose PP cannot be raised takes none; one that was given some anyway can only lose them.
+            const most = move?.fixedPp ? ups : PP_UPS_MAX
+            return (
+              <div key={id} className="dn-stack">
+                {most > 0 && <NumberField label={name} value={ups} min={0} max={most} onChange={(given) => onChange({ ppUps: { ...enemy.ppUps, [id]: given } })} lowerLabel={text.lowerPpUps(name)} raiseLabel={text.raisePpUps(name)} />}
+                {move && <p className="dn-note">{move.fixedPp ? text.ppFixed(name, move.pp) : text.ppWith(move.pp, maxPp(move.pp, ups, false))}</p>}
+              </div>
+            )
+          })}
+        </>
+      )
     case 'held':
       return <HeldItem pack={pack} held={build.heldItem} language={language} text={text} onChange={(heldItem) => setBuild({ heldItem })} />
     case 'mobClass':

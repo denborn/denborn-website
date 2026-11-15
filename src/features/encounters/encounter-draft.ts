@@ -28,6 +28,8 @@ export interface EnemyDraft {
   agony: boolean
   /** Its species, name, gender, nature, Ability, IVs, EVs, moves and held item, as a character being created has them. */
   build: CreationDraft
+  /** The PP Ups its moves were given, by move: only moves it knows, and only those given some. */
+  ppUps: Readonly<Record<string, number>>
 }
 
 export interface EncounterDraft {
@@ -46,7 +48,16 @@ export function enemyContext(rules: CampaignRules, pack: DataPack, level: number
 
 /** An enemy just added: at the level characters start at, a minion that faints, with everything else to choose. */
 export function newEnemy(id: string, rules: CampaignRules): EnemyDraft {
-  return { id, level: rules.startingLevel, class: 'minion', agony: false, build: emptyDraft }
+  return { id, level: rules.startingLevel, class: 'minion', agony: false, build: emptyDraft, ppUps: {} }
+}
+
+/**
+ * An enemy with changes made to it. PP Ups stay with their move: those of a
+ * move it no longer knows are lost (decision 3).
+ */
+export function changedEnemy(enemy: EnemyDraft, changes: Partial<EnemyDraft>): EnemyDraft {
+  const next = { ...enemy, ...changes }
+  return { ...next, ppUps: Object.fromEntries(Object.entries(next.ppUps).filter(([move, ups]) => ups > 0 && next.build.moves.includes(move))) }
 }
 
 /** The enemy a draft makes; nothing while its species, gender, Ability or moves are still to choose. */
@@ -65,7 +76,7 @@ export function enemyOf(draft: EnemyDraft, rules: CampaignRules): Enemy | undefi
     ability: build.ability,
     ivs: build.ivs,
     evs: build.evs,
-    moves: build.moves.map((id) => ({ id, ppUps: 0 })),
+    moves: build.moves.map((id) => ({ id, ppUps: draft.ppUps[id] ?? 0 })),
     ...(build.heldItem ? { heldItem: build.heldItem } : {}),
     agony: draft.agony,
     class: draft.class,
@@ -86,7 +97,8 @@ export function draftOfEnemy(enemy: Enemy): EnemyDraft {
     ...(enemy.nature ? { nature: enemy.nature } : {}),
     ...(enemy.heldItem ? { heldItem: enemy.heldItem } : {}),
   }
-  return { id: enemy.id, level: enemy.level, class: enemy.class, agony: enemy.agony, build }
+  const ppUps = Object.fromEntries(enemy.moves.filter((slot) => slot.ppUps > 0).map((slot) => [slot.id, slot.ppUps]))
+  return { id: enemy.id, level: enemy.level, class: enemy.class, agony: enemy.agony, build, ppUps }
 }
 
 export function draftOfEncounter(encounter: Encounter): EncounterDraft {

@@ -7,10 +7,10 @@ import { EncounterEditor, type EncounterView } from './EncounterEditor'
 import { EncounterList } from './EncounterList'
 import { sampleFord, sampleQuarry } from './samples'
 
-function Editor({ prepared }: { prepared: boolean }) {
+function Editor({ prepared, opened = { at: 'hub' } }: { prepared: boolean; opened?: EncounterView }) {
   const pack = usePack()
   const rules = sampleRules(pack, 2, 2, 4)
-  const [view, setView] = useState<EncounterView>({ at: 'hub' })
+  const [view, setView] = useState<EncounterView>(opened)
   const [encounter, setEncounter] = useState<Encounter | undefined>(() => (prepared ? sampleQuarry(pack, rules) : undefined))
   let made = 0
   return (
@@ -57,6 +57,20 @@ export const Prepared: StoryObj = {
         plus what only an enemy has: its class (decision 133: a label for the game master, which sets what it pays) and what happens to it
         at 0 HP (it faints, or agonizes like a character). MOVE LEFT and MOVE RIGHT change its place on the line. The Pokédollars are
         worked out as you build (decision 134); EXP waits for the party.
+      </Note>
+    </>
+  ),
+}
+
+/** The PP Ups of an enemy's moves. */
+export const EnemyPpUps: StoryObj = {
+  render: () => (
+    <>
+      <Editor prepared opened={{ at: 'enemy', id: 'enemy-onix-0001', field: 'ppUps' }} />
+      <Note>
+        An enemy’s PP Ups, a row of its page under its moves: each move it knows takes from none to three, and the line under it says the
+        PP it then has. A move whose PP cannot be raised says so and takes none. PP Ups stay with their move: taking a move away loses
+        them (decision 3). Awaiting the owner’s approval.
       </Note>
     </>
   ),

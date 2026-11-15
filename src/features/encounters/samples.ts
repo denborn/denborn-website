@@ -21,7 +21,7 @@ export function sampleEnemy(pack: DataPack, rules: CampaignRules, id: string, sp
       .map((move): DraftChoice => ({ choose: 'move', move })),
   ]
   for (const choice of choices) build = choose(build, choice, context)
-  const enemy = enemyOf({ id, level, class: mobClass, agony, build }, rules)
+  const enemy = enemyOf({ id, level, class: mobClass, agony, build, ppUps: {} }, rules)
   if (!enemy) throw new Error(`The board's ${species} could not be built`)
   return enemy
 }

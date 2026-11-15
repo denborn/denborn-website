@@ -27,7 +27,7 @@ export function sampleHero(pack: DataPack, rules: CampaignRules, id: string, spe
     ...known(movesOffered(build, context), wanted).map((move): DraftChoice => ({ choose: 'move', move })),
   ]
   for (const choice of choices) build = choose(build, choice, context)
-  const made = enemyOf({ id, level, class: 'minion', agony: false, build }, rules)
+  const made = enemyOf({ id, level, class: 'minion', agony: false, build, ppUps: {} }, rules)
   if (!made) throw new Error(`The board's ${species} could not be built`)
 
   const base = sampleCharacter(pack, level, nickname, 1, 0)

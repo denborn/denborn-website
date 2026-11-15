@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { testPack, testRules } from '../../domain/test-pack'
 import type { CampaignDocument } from '../../shared/schema/campaign'
 import { type CreationDraft, choose, emptyDraft } from '../creation/draft'
-import { type EncounterDraft, type EnemyDraft, NEW_ENCOUNTER, draftOfEncounter, encounterOf, encounterState, enemyContext, enemyOf, enemyState, hasChanges, moved, newEnemy, withEncounter, withoutEncounter } from './encounter-draft'
+import { type EncounterDraft, type EnemyDraft, NEW_ENCOUNTER, changedEnemy, draftOfEncounter, draftOfEnemy, encounterOf, encounterState, enemyContext, enemyOf, enemyState, hasChanges, moved, newEnemy, withEncounter, withoutEncounter } from './encounter-draft'
 
 const rules = testRules()
 
@@ -36,6 +36,19 @@ describe('an enemy being built', () => {
   it('goes by its species’ name when no name was typed, and keeps a typed one tidy', () => {
     expect(enemyOf(golem('enemy-0001'), rules)).not.toHaveProperty('nickname')
     expect(enemyOf(golem('enemy-0001', { build: { ...golemBuild, nickname: '  Old   Stone ' } }), rules)?.nickname).toBe('Old Stone')
+  })
+
+  it('keeps the PP Ups its moves were given, and loses those of a move it no longer knows (decision 3)', () => {
+    const two = changedEnemy(golem('enemy-0001'), { build: { ...golemBuild, moves: ['tackle', 'megabolt'] }, ppUps: { tackle: 2, megabolt: 3 } })
+    expect(enemyOf(two, rules)?.moves).toEqual([{ id: 'tackle', ppUps: 2 }, { id: 'megabolt', ppUps: 3 }])
+    // Saved and opened again, it is the same enemy.
+    const saved = enemyOf(two, rules)
+    expect(saved && draftOfEnemy(saved)).toEqual(two)
+    const one = changedEnemy(two, { build: { ...two.build, moves: ['megabolt'] } })
+    expect(one.ppUps).toEqual({ megabolt: 3 })
+    // Knowing the move again does not bring its PP Ups back, and a move given none is not written down.
+    expect(changedEnemy(one, { build: { ...one.build, moves: ['megabolt', 'tackle'] } }).ppUps).toEqual({ megabolt: 3 })
+    expect(changedEnemy(one, { ppUps: { megabolt: 0 } }).ppUps).toEqual({})
   })
 
   it('says what its build breaks once its level was lowered under what it spent', () => {
