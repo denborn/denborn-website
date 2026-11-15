@@ -14,6 +14,7 @@ This file lists where everything that is not ours comes from. It is updated when
 | Species, moves, Abilities, items, learnsets | Pokémon Showdown's data, through `@pkmn/dex` and `@pkmn/data` | MIT (code); the game facts belong to the games |
 | Bag item list, French names, base EXP | [PokéAPI](https://pokeapi.co/)'s data tables ([PokeAPI/pokeapi](https://github.com/PokeAPI/pokeapi), commit `f841170`) | BSD 3-Clause (the repository); the game facts belong to the games |
 | French descriptions of moves, Abilities and items, and both descriptions of items Showdown lacks | The games' own texts, as collected by PokéAPI | © Nintendo, Creatures Inc., GAME FREAK inc. Downloaded when the app is built; never stored in this repository |
+| The ordinary battle messages, in English and French ("X used Y!", "It's super effective!") | The text of Pokémon Scarlet and Violet (© Nintendo, Creatures Inc., GAME FREAK inc.), as kept line by line in every language by [Poké Corpus](https://github.com/abcboy101/poke-corpus) (abcboy101 and contributors; the tool is GPL-3.0). Read at build time from a pinned version; only the ids of the lines used are in this repository (`data-sources/battle-messages.json`) | The games' text belongs to its owners |
 | What each Bag item does | The project's own table (`data-sources/bag-effects.json`), with values checked against [Serebii](https://www.serebii.net/itemdex/) and [PokémonDB](https://pokemondb.net/item) | Ours; the values are the games' |
 
 ## Artwork shown in the app

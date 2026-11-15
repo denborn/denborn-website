@@ -1,0 +1,12 @@
+{
+  "commit": "1df697e384e7d3ef5994c011151e6820f9fd839e",
+  "committedAt": "2026-11-01T11:17:34Z",
+  "files": {
+    "en_common.txt": "478aeb2a1611aab8cea56897e0b9fb2f25527072a42e7055e3d60c7eb6b34155",
+    "fr_common.txt": "c7ac392615c0dcdaabd9bd1de05307933299a3ffd6d22a63acbf6238edf4ab91",
+    "qid_common.txt": "e8c38e08e5c26ec4a8e519524731032b0a04cfb1e229bc3f39ad588d6815d6f3"
+  },
+  "licence": "The tool is GPL-3.0. The texts are those of Pokémon Scarlet and Violet (© Nintendo, Creatures Inc., GAME FREAK inc.): read at build time, never committed.",
+  "path": "corpus/ScarletViolet",
+  "repository": "abcboy101/poke-corpus"
+}

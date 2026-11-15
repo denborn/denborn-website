@@ -622,6 +622,9 @@ export const en = {
     choosing: {
       wait: 'WAIT',
       round: (round: number) => `Round ${round}`,
+      /** While a round is played back. */
+      skip: 'SKIP',
+      opening: 'The fight begins',
       /** The party's order (decision 135). */
       order: 'ORDER',
       orderLabel: (names: string) => `The party's order this round: ${names}`,
@@ -669,6 +672,8 @@ export const en = {
     },
     /** The game master's console during a fight (milestone 6). */
     console: {
+      /** The last round's messages, as a list. */
+      played: (round: number) => (round === 0 ? 'As the fight began' : `Round ${round}, as it went`),
       timerOff: 'No timer: players take the time they need.',
       timerOn: 'TURN THE TIMER ON',
       timerStop: 'NO TIMER',

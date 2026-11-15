@@ -153,6 +153,7 @@ describe('locking a round', () => {
       turnOrder: (locked) => engine.turnOrder(locked),
       run: (id, position) => { engine.run(id, position) },
       exchangeSpeed: (first, second) => { engine.exchangeSpeed(first, second) },
+      whoIs: (identity) => engine.whoIs(identity),
       resolveRound: () => { throw new BattleRuleError('engine-refused', 'Refused for the test', 'ann') },
     })
     const game = duel({ wrap: refusing })

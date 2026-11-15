@@ -219,8 +219,11 @@ function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
         to 149): WAIT in the top left corner; the party’s ORDER down the left of the ball (a tap opens the party’s list, which is also
         what a player sees once locked); the timer on the right (set <code>timer</code> below); a target chosen on the battlefield plan;
         the Bag’s list, then its target; RUN and SWITCH asking an ally, who answers on their own phone; a Pokémon’s sheet from the
-        battlefield. Not here yet: the round is not played back step by step (the screens jump to its result), and the battlefield names
-        no terrain, weather or effect. Both come with the next step.
+        battlefield. <strong>New and to be approved</strong>: once everyone has locked, the round is told step by step on the top screen,
+        in the games’ own words in both languages (decision 154): the scene follows who acts and who is hit, HP bars move as each hit
+        lands, and the touch screen lists what was said so far, with SKIP to go straight to the next choices; a tap on the message goes to
+        the next step. Not said yet: what items, Abilities, terrains and screens do when they trigger (their effects still play). The
+        battlefield names no terrain, weather or effect yet.
       </Note>
     </>
   )

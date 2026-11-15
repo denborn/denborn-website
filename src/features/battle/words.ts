@@ -2,7 +2,9 @@ import type { DataPack } from '../../data/types'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import type { MoveChoice } from '../../battle/contract'
+import type { BattleText } from '../../data/battle-text'
 import type { Choice } from './fight'
+import type { Telling } from './round-script'
 
 export interface Wording {
   pack: DataPack
@@ -36,5 +38,26 @@ export function choiceWords(choice: Choice, wording: Wording): string {
       return text.action.bag(wording.pack.items[choice.item]?.name[wording.language] ?? choice.item, wording.nameOf(choice.target))
     case 'move':
       return moveWords(choice, wording)
+  }
+}
+
+/** How a round's steps are put into words: the games' own sentences, Denborn's own for what the games do not have (decisions 86 and 154). */
+export function tellingOf(wording: Wording, battleText: BattleText): Telling {
+  const own = wording.messages.battle.messages
+  return {
+    official: (key) => battleText.messages[key]?.[wording.language],
+    own: {
+      downed: own.downed,
+      agonizing: own.agonizing,
+      hitWhileDown: own.hitWhileDown,
+      died: own.died,
+      revived: own.revived,
+      bagUsed: (user = '', target = '', item = '') => own.bagUsed(user, item, target),
+      bagBlocked: own.bagBlocked,
+      bagNoEffect: own.bagNoEffect,
+    },
+    nameOf: wording.nameOf,
+    moveName: (id) => moveName(id, wording),
+    itemName: (id) => wording.pack.items[id]?.name[wording.language] ?? id,
   }
 }

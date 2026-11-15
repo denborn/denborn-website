@@ -12,6 +12,7 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { buildBattleText, ensureBattleText } from './lib/battle-text.ts'
 import { buildDataPack } from './lib/build.ts'
 import { crossCheck } from './lib/cross-check.ts'
 import { type Fingerprint, SECTIONS, changes, fingerprintOf } from './lib/fingerprint.ts'
@@ -19,12 +20,16 @@ import { ROOT, readJson, stableJson, writeJson } from './lib/pinned.ts'
 
 const FINGERPRINT = join(ROOT, 'data-sources/pack-fingerprint.json')
 const OUT = join(ROOT, 'src/data/generated/pack.json')
+/** The games' battle messages: beside the pack, not in it, so that a change of wording is not a change of game data. */
+const BATTLE_TEXT = join(ROOT, 'src/data/generated/battle-text.json')
 const REPORT = join(ROOT, 'data-sources/reports/data-pack.md')
 
 const accept = process.argv.includes('--accept')
 const report = process.argv.includes('--report')
 
 const { pack, problems, notes, lock } = await buildDataPack()
+const { battleText, problems: textProblems } = await buildBattleText(await ensureBattleText())
+problems.push(...textProblems)
 if (problems.length) {
   console.error(`The data pack cannot be built. ${problems.length} problem(s):`)
   for (const problem of problems) console.error(`  - ${problem}`)
@@ -53,6 +58,7 @@ if (accept) {
 
 await mkdir(join(ROOT, 'src/data/generated'), { recursive: true })
 await writeFile(OUT, stableJson(pack, 0))
+await writeFile(BATTLE_TEXT, stableJson(battleText, 0))
 
 const count = (section: (typeof SECTIONS)[number]) => Object.keys(pack[section]).length
 console.log(

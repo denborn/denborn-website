@@ -32,6 +32,8 @@ export interface FightEngine {
   combatants(): CombatantView[]
   request(id: string): ActionRequest
   checkAction(id: string, action: RoundAction, extras?: readonly MoveChoice[]): void
+  /** The combatant a Pokémon named in the engine's log refers to, such as "p1a: P2". */
+  whoIs(identity: string): string | undefined
   turnOrder(locked: Readonly<Record<string, RoundAction | undefined>>): string[]
   run(id: string, position: number): void
   exchangeSpeed(first: string, second: string): void
@@ -79,8 +81,11 @@ export interface Timer {
 export interface PlayedRound {
   /** The round that was played; 0 for the Pokémon entering. */
   round: number
+  /** The engine's lines, in order, with each Pokémon named by its combatant id in the place of the engine's own name for it. */
   log: string[]
   events: DenbornEvent[]
+  /** Everyone as they stood when the round began: where its playback starts from. */
+  before: CombatantView[]
 }
 
 export interface Fight {
@@ -187,7 +192,7 @@ export function openFight(start: FightStart, context: FightContext): Fight {
       timer: newRoundTimer(start.timerSeconds, false),
       bags: start.bags,
       enemyBag: start.enemyBag,
-      last: { round: 0, log: start.opening.log, events: start.opening.events },
+      last: { round: 0, log: named(start.opening.log, engine), events: start.opening.events, before: engine.combatants() },
       outcome: outcomeOf(engine),
     },
     context,
@@ -416,6 +421,7 @@ function played(fight: Fight, context: FightContext): FightStep {
     if (entry.extra.length > 0) extraMoves[id] = [...entry.extra]
   }
 
+  const before = engine.combatants()
   let result: RoundResult
   try {
     result = engine.resolveRound({ actions, extraMoves })
@@ -433,7 +439,7 @@ function played(fight: Fight, context: FightContext): FightStep {
     else bags = { ...bags, [event.user]: oneLess(bags[event.user] ?? [], event.item) }
   }
 
-  const last: PlayedRound = { round: fight.round, log: result.log, events: result.events }
+  const last: PlayedRound = { round: fight.round, log: named(result.log, engine), events: result.events, before }
   const next: Fight = {
     ...fight,
     round: engine.round,
@@ -447,6 +453,11 @@ function played(fight: Fight, context: FightContext): FightStep {
     outcome: outcomeOf(engine),
   }
   return { fight: next, played: last }
+}
+
+/** The engine names a Pokémon by its side, slot and a short key ("p1a: P2"): the log that leaves the table names it by its combatant id. */
+function named(log: readonly string[], engine: FightEngine): string[] {
+  return log.map((line) => line.replace(/p[12][a-f]?: [PE][1-6]/g, (identity) => engine.whoIs(identity) ?? identity))
 }
 
 function outcomeOf(engine: FightEngine): Outcome | undefined {

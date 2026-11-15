@@ -1,13 +1,15 @@
 import { type ReactNode, useState } from 'react'
 import type { MoveChoice } from '../../battle/contract'
 import type { DataPack } from '../../data/types'
+import { useBattleText } from '../../data/use-battle-text'
 import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { FieldPlan, type FieldTile, ItemIconImage, NumberField, OptionButton, PokemonIcon, Screen, Slot, StepHeader, TypeLabel } from '../../ui'
 import type { Choice, FightCommand, TableView } from './fight'
 import { type Fighter, clockText, fightersOf } from './fighters'
+import { roundScript, sentence } from './round-script'
 import { useCountdown } from './use-countdown'
-import { type Wording, choiceWords, moveName, moveWords } from './words'
+import { type Wording, choiceWords, moveName, moveWords, tellingOf } from './words'
 
 export interface GmConsoleProps {
   pack: DataPack
@@ -52,6 +54,7 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
   const text = battle.console
   const choosing = battle.choosing
   const left = useCountdown(table.timer)
+  const battleText = useBattleText()
 
   // What is open, the extra moves being lined up and the last refusal belong to the round they were made in.
   const [kept, setKept] = useState<{ round: number; open?: string; picking?: Picking; addingExtra: boolean; extras: Record<string, MoveChoice[]>; refused: boolean }>({ round: table.round, addingExtra: false, extras: {}, refused: false })
@@ -312,6 +315,9 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
   }
 
   const timer = table.timer
+  /** The last round, in the words the players were told it with. */
+  const telling = tellingOf(wording, battleText)
+  const played = roundScript(table.last).steps.flatMap((step) => (step.said ? (sentence(step.said, telling) ?? []) : []))
   const order = table.order.flatMap((id) => byId(id) ?? []).map((fighter, index) => `${index + 1} ${fighter.name}`)
 
   return (
@@ -375,6 +381,18 @@ export function GmConsole({ pack, table, party, away, onCommand, children }: GmC
               <span className="dn-label">{text.party}</span>
               {allies.map(row)}
               <p className="dn-note">{text.order(order.join(', '))}</p>
+              {played.length > 0 && (
+                <>
+                  <span className="dn-label">{text.played(table.last.round)}</span>
+                  <ol className="dn-list">
+                    {played.map((line, index) => (
+                      <li key={index} className="dn-note">
+                        {line}
+                      </li>
+                    ))}
+                  </ol>
+                </>
+              )}
               {table.ready && (
                 <>
                   <p className="dn-note">{text.playHint}</p>

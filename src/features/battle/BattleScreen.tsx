@@ -1,10 +1,12 @@
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import type { DataPack } from '../../data/types'
+import { useBattleText } from '../../data/use-battle-text'
 import { useLanguage, useMessages } from '../../i18n'
 import type { Intent, PlayerFight } from '../../shared/protocol/battle'
 import type { CharacterDocument } from '../../shared/schema/character'
 import {
   Battler,
+  type BattlerHandle,
   CommandMenu,
   CornerButton,
   FieldPlan,
@@ -21,8 +23,9 @@ import {
 } from '../../ui'
 import { FighterSheet, statusOf } from './FighterSheet'
 import { type Fighter, clockText, fightersOf, reaches } from './fighters'
+import { roundScript, sentence, standingAfter } from './round-script'
 import { useCountdown } from './use-countdown'
-import { type Wording, choiceWords, moveName as moveNameIn } from './words'
+import { type Wording, choiceWords, moveName as moveNameIn, tellingOf } from './words'
 
 export interface BattleScreenProps {
   pack: DataPack
@@ -58,6 +61,9 @@ type View =
   | { at: 'sheet'; id: string }
 
 const HOME: View = { at: 'home' }
+/** How long a step of a round stays on screen: one that says something, and one that only shows a change. */
+const SAID_MS = 1600
+const QUIET_MS = 450
 /** Under this much time, the clock turns red. */
 const LOW_TIME_MS = 10_000
 
@@ -79,6 +85,26 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const words = battle.field
   const text = battle.choosing
   const left = useCountdown(fight.timer)
+  const battleText = useBattleText()
+
+  // The round that was just played is told step by step before its result shows (decision 91). A fight that
+  // is met in its course is shown as it stands; one that begins tells what happened as the Pokémon entered.
+  const script = useMemo(() => roundScript(fight.last), [fight.last])
+  const [told, setTold] = useState(() => ({ round: fight.last.round, steps: fight.last.round === 0 ? 0 : Number.MAX_SAFE_INTEGER }))
+  const toldSteps = told.round === fight.last.round ? told.steps : 0
+  const playing = toldSteps < script.steps.length
+  const step = playing ? script.steps[toldSteps] : undefined
+  useEffect(() => {
+    if (!step) return
+    const next = setTimeout(() => {
+      setTold({ round: fight.last.round, steps: toldSteps + 1 })
+    }, step.said ? SAID_MS : QUIET_MS)
+    return () => {
+      clearTimeout(next)
+    }
+  }, [step, toldSteps, fight.last.round])
+  const foeSprite = useRef<BattlerHandle>(null)
+  const allySprite = useRef<BattlerHandle>(null)
 
   // What the player opened lasts for the round it was opened in.
   const [opened, setOpened] = useState<{ round: number; view: View }>({ round: fight.round, view: HOME })
@@ -94,7 +120,8 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const [waiting, setWaiting] = useState<{ fight: PlayerFight; answer: BattleScreenProps['answer'] }>()
   const pending = notice !== undefined || (waiting !== undefined && waiting.fight === fight && waiting.answer === answer)
 
-  const fighters = fightersOf(fight, party, pack, language)
+  // While the round is told, everyone stands as the steps told so far leave them.
+  const fighters = fightersOf(playing ? { ...fight, combatants: standingAfter(fight.last.before, script.steps, toldSteps + 1) } : fight, party, pack, language)
   const allies = fighters.filter((fighter) => fighter.side === 'players')
   const foes = fighters.filter((fighter) => fighter.side === 'enemies')
   const byId = (id: string | undefined): Fighter | undefined => fighters.find((fighter) => fighter.id === id)
@@ -119,8 +146,27 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
     const asked = line.find((fighter) => fighter.id === wanted && fighter.state !== 'gone')
     return asked ?? fallback ?? line.find((fighter) => fighter.state !== 'gone')
   }
-  const foe = onScene(foes, scene.foe, mine ? foes.find((other) => other.state !== 'gone' && reaches(mine, other, fighters)) : undefined)
-  const ally = onScene(allies, scene.ally, mine?.state === 'gone' ? undefined : mine)
+  // While the round is told, the scene follows the action: the last Pokémon of each line that a step was about.
+  const lastShown = (side: Fighter['side']): string | undefined =>
+    playing
+      ? script.steps
+          .slice(0, toldSteps + 1)
+          .flatMap((earlier) => earlier.show)
+          .findLast((id) => byId(id)?.side === side)
+      : undefined
+  const foe = onScene(foes, lastShown('enemies') ?? scene.foe, mine ? foes.find((other) => other.state !== 'gone' && reaches(mine, other, fighters)) : undefined)
+  const ally = onScene(allies, lastShown('players') ?? scene.ally, mine?.state === 'gone' ? undefined : mine)
+  const foeId = foe?.id
+  const allyId = ally?.id
+  // The sprites play what the step says happened: the one acting lunges, the one hit recoils.
+  useEffect(() => {
+    const motion = step?.motion
+    if (!motion) return
+    for (const [id, sprite] of [[foeId, foeSprite.current], [allyId, allySprite.current]] as const) {
+      if (id !== undefined && motion.attack === id) void sprite?.attack()
+      if (id !== undefined && motion.hit === id) void sprite?.hit()
+    }
+  }, [step, foeId, allyId])
   const bring = (fighter: Fighter): void => {
     const now = fighter.side === 'enemies' ? foe : ally
     const from = now && fighter.position < now.position ? 'left' : 'right'
@@ -130,8 +176,17 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const askToMe = view.at === 'home' ? fight.asks.find((ask) => ask.to === me) : undefined
   const myAsk = (kind: 'run' | 'switch') => fight.asks.find((ask) => ask.kind === kind && ask.from === me)
 
+  const wording: Wording = { pack, language, messages, nameOf }
+  const telling = tellingOf(wording, battleText)
+  /** Everything said so far of the round being told, in order. */
+  const saidSoFar = playing ? script.steps.slice(0, toldSteps + 1).flatMap((earlier) => (earlier.said ? (sentence(earlier.said, telling) ?? []) : [])) : []
+  const skip = (): void => {
+    setTold({ round: fight.last.round, steps: script.steps.length })
+  }
+
   const message = ((): string => {
     if (notice) return notice
+    if (playing) return saidSoFar.at(-1) ?? (fight.last.round === 0 ? text.opening : text.round(fight.last.round))
     if (fight.outcome) return text.over[fight.outcome]
     if (!mine) return text.watching
     if (askToMe) return (askToMe.kind === 'run' ? text.askedRun : text.askedSwitch)(nameOf(askToMe.from), mine.name)
@@ -228,7 +283,6 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const timerWords = fight.timer.seconds === undefined ? undefined : `${text.timer(clockText(Math.ceil(left / 10_000) * 10_000))}${fight.timer.running || fight.timer.expired ? '' : `, ${text.timerStopped}`}`
   const timerClass = `dn-timer${left <= LOW_TIME_MS ? ' dn-timer--low' : ''}`
 
-  const wording: Wording = { pack, language, messages, nameOf }
   const moveName = (id: string): string => moveNameIn(id, wording)
   const actionText = (entry: Locked): string => {
     const said = choiceWords(entry.choice, wording)
@@ -291,6 +345,28 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   }
 
   const touch = ((): { kind: 'touch' | 'menu'; content: ReactNode } => {
+    // While the round is told: what was said so far, and the way to pass it.
+    if (playing) {
+      return {
+        kind: 'menu',
+        content: (
+          <div className="dn-roster">
+            <p className="dn-roster__title">{fight.last.round === 0 ? text.opening : text.round(fight.last.round)}</p>
+            <ol className="dn-roster__list dn-roster__list--told" aria-live="off">
+              {saidSoFar.map((line, index) => (
+                <li key={index}>{line}</li>
+              ))}
+            </ol>
+            <div className="dn-roster__foot">
+              <span />
+              <OptionButton primary onClick={skip}>
+                {text.skip}
+              </OptionButton>
+            </div>
+          </div>
+        ),
+      }
+    }
     if (askToMe) {
       const reply = (accept: boolean): void => {
         intend({ do: 'answer', kind: askToMe.kind, from: askToMe.from, accept })
@@ -551,7 +627,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         {foe && (
           <>
             <div className="dn-scene__spot dn-scene__spot--foe">
-              {foe.species && <Battler key={foe.id} species={foe.species} name={foe.name} side="foe" female={foe.gender === 'F'} pose={foe.state} scale={0.9} enterFrom={scene.foeFrom} />}
+              {foe.species && <Battler key={foe.id} ref={foeSprite} species={foe.species} name={foe.name} side="foe" female={foe.gender === 'F'} pose={foe.state} scale={0.9} enterFrom={scene.foeFrom} />}
             </div>
             <div className="dn-scene__box dn-scene__box--foe">{browser(foes, foe, 'foe')}</div>
           </>
@@ -559,13 +635,13 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         {ally && (
           <>
             <div className="dn-scene__spot dn-scene__spot--ally">
-              {ally.species && <Battler key={ally.id} species={ally.species} name={ally.name} side="player" female={ally.gender === 'F'} pose={ally.state} scale={1.1} enterFrom={scene.allyFrom} />}
+              {ally.species && <Battler key={ally.id} ref={allySprite} species={ally.species} name={ally.name} side="player" female={ally.gender === 'F'} pose={ally.state} scale={1.1} enterFrom={scene.allyFrom} />}
             </div>
             <div className="dn-scene__box dn-scene__box--ally">{browser(allies, ally, 'player')}</div>
           </>
         )}
         <div className="dn-scene__message">
-          <MessageBox text={message} />
+          <MessageBox text={message} {...(playing ? { onAdvance: () => setTold({ round: fight.last.round, steps: toldSteps + 1 }), advanceLabel: battle.next } : {})} />
         </div>
       </Screen>
       <Screen kind={touch.kind} label={battle.commands.fight}>

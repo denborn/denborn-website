@@ -602,6 +602,8 @@ export const fr: Messages = {
     choosing: {
       wait: 'ATTENDRE',
       round: (round) => `Tour ${round}`,
+      skip: 'PASSER',
+      opening: 'Le combat commence',
       order: 'ORDRE',
       orderLabel: (names) => `Ordre de l’équipe pour ce tour\u00a0: ${names}`,
       timer: (clock) => `Temps restant\u00a0: ${clock}`,
@@ -646,6 +648,7 @@ export const fr: Messages = {
     },
     /** The game master's console during a fight (milestone 6). */
     console: {
+      played: (round) => (round === 0 ? 'Au début du combat' : `Le tour ${round}, tel qu’il s’est déroulé`),
       timerOff: 'Pas de chrono\u00a0: les joueurs prennent le temps qu’il leur faut.',
       timerOn: 'LANCER LE CHRONO',
       timerStop: 'SANS CHRONO',

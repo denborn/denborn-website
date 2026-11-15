@@ -101,6 +101,8 @@ const playedRound = z.object({
   round: whole(0, 100_000),
   log: z.array(z.string().max(600)).max(3000),
   events: z.array(denbornEvent).max(600),
+  /** Everyone as they stood when the round began. */
+  before: z.array(combatant).max(2 * LINE_MAX),
 })
 
 /** The fight as every player of the party is shown it (features/battle/fight.ts, FightView). */

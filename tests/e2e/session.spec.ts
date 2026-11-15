@@ -175,9 +175,14 @@ test('an encounter is launched from the session, and a round is played between t
   await gm.getByRole('button', { name: /^Thunder Shock/ }).click()
   await gm.getByRole('group', { name: 'PARTY' }).getByRole('button').first().click()
   await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
-  await expect(player.getByText('What will Volt do?')).toBeVisible()
-  // The enemy was hit: its line no longer reads as it did.
+  // The enemy was hit: its line no longer reads as it did, and the console lists what the round said, in the games' own words.
   await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).not.toHaveText(whole)
+  await expect(gm.getByText('Round 1, as it went')).toBeVisible()
+  await expect(gm.getByText('Volt used Thunder Shock!')).toBeVisible()
+  // The player is told the round step by step, and may pass it to choose again.
+  await expect(player.getByRole('listitem').filter({ hasText: 'used Thunder Shock!' }).first()).toBeVisible()
+  await player.getByRole('button', { name: 'SKIP' }).click()
+  await expect(player.getByText('What will Volt do?')).toBeVisible()
 
   // The session's own screen is one tap away, and leads back to the fight.
   await gm.getByRole('button', { name: 'THE SESSION' }).click()

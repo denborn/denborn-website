@@ -2350,3 +2350,11 @@ button.dn-roster__row:active:not(:disabled) {
 .dn-card__back {
   justify-self: end;
 }
+
+/* What a round said so far, line under line, the newest last. */
+.dn-roster__list--told {
+  align-content: end;
+  gap: calc(1 * var(--dn-u));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-text);
+}
