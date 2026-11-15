@@ -5,13 +5,16 @@
  * kept. The screen is told the session and the state of the line each time
  * either changes.
  */
+import { BattleRuleError, type BattleSetup, type RoundResult } from '../../battle/contract.ts'
 import type { DataPack } from '../../data/types.ts'
 import { type RelayLink, type RelayLinkOptions, openRelayLink, roomUrl } from '../../network/relay-link.ts'
 import { CLOSED } from '../../shared/protocol/relay.ts'
 import { encodeMessage } from '../../shared/protocol/session.ts'
 import type { CampaignDocument } from '../../shared/schema/campaign.ts'
 import type { Hosting } from '../../storage/session-keys.ts'
-import { type HostEvent, type HostSession, hostStep, openSession } from './host.ts'
+import { seedFrom } from '../battle/fight-setup.ts'
+import type { FightCommand, FightEngine, TableView } from '../battle/fight.ts'
+import { type FightTable, type HostEvent, type HostSession, type HostStep, type LaunchRefusal, hostStep, launchFor, openSession, tableOf } from './host.ts'
 
 /** How the game master's line to the relay stands: on its way, there, dropped and coming back, or over and why. */
 export type HostLine = 'connecting' | 'up' | 'down' | 'replaced' | 'notHost' | 'update' | 'ended'
@@ -19,6 +22,18 @@ export type HostLine = 'connecting' | 'up' | 'down' | 'replaced' | 'notHost' | '
 export interface HostView {
   session: HostSession
   line: HostLine
+  /** The fight as the game master is shown it, while one is on. */
+  table?: TableView
+}
+
+/** A battle the engine has started: what the fight drives, and what happened as the Pokémon entered. */
+export type StartedBattle = FightEngine & { opening: RoundResult }
+
+export interface LaunchOptions {
+  /** How long players get each round; nothing for no timer. */
+  timerSeconds?: number
+  /** The characters who take part, when not the whole party. */
+  only?: readonly string[]
 }
 
 export interface HostRunOptions {
@@ -35,6 +50,12 @@ export interface HostRunOptions {
   onMembers: (members: Hosting['members']) => void
   /** Opens the line. The real one by default; a test passes its own. */
   open?: (options: RelayLinkOptions) => RelayLink
+  /** Starts a battle. By default the real engine, which is downloaded then: only a game master who launches a fight needs it. */
+  startBattle?: (setup: BattleSetup) => Promise<StartedBattle>
+  /** Random bytes, for the seed of a fight. The browser's own by default. */
+  random?: (length: number) => Uint8Array
+  /** The clock, in milliseconds. */
+  now?: () => number
 }
 
 export interface HostRun {
@@ -44,6 +65,14 @@ export interface HostRun {
   remove(peer: string): void
   /** Takes in the campaign as the device now keeps it, after another screen changed it while the session went on. */
   refresh(campaign: CampaignDocument): void
+  /**
+   * Launches an encounter of the campaign for the party (decision 143): the
+   * fight is on, and told to the players, once this settles with nothing.
+   * Otherwise it settles with why there is no fight.
+   */
+  launch(encounterId: string, options?: LaunchOptions): Promise<LaunchRefusal | 'engine' | undefined>
+  /** The game master's own command in the fight. Gives back why it changed nothing, when it did not. */
+  command(command: FightCommand): string | undefined
   /** Ends the session for everyone: the code stops working. */
   end(): void
   /** Leaves the hosting without ending it: players wait, and the session can be taken up again. */
@@ -60,19 +89,45 @@ function lineAfter(code: number, comingBack: boolean): HostLine {
   return 'update'
 }
 
+async function startRealBattle(setup: BattleSetup): Promise<StartedBattle> {
+  const { DenbornBattle } = await import('../../battle/denborn-battle.ts')
+  return DenbornBattle.start(setup)
+}
+
 export function runHost(options: HostRunOptions): HostRun {
+  const now = options.now ?? Date.now
+  const random = options.random ?? ((length: number) => crypto.getRandomValues(new Uint8Array(length)))
   let session = openSession(options.campaign, options.hosting.members)
   let line: HostLine = 'connecting'
+  /** The engine playing the fight, while one is on. */
+  let engine: StartedBattle | undefined
+  /** Wakes the session when the fight's timer runs out. */
+  let alarm: ReturnType<typeof setTimeout> | undefined
 
-  const apply = (event: HostEvent): void => {
+  const table = (): FightTable | undefined => (engine ? { engine, now: now() } : undefined)
+  const view = (): HostView => {
+    const shown = tableOf(session, options.pack, table())
+    return { session, line, ...(shown ? { table: shown } : {}) }
+  }
+
+  const apply = (event: HostEvent): HostStep => {
     const before = session
-    const step = hostStep(session, event, options.pack)
+    const step = hostStep(session, event, options.pack, table())
     session = step.session
     for (const { to, message } of step.send) link.send({ t: 'send', to, body: encodeMessage(message) })
     // The copies of the characters are this session's to write; the rest of the campaign belongs to other screens.
     if (event.on !== 'campaign' && session.campaign.characters !== before.campaign.characters) options.onCharacters(session.campaign.characters)
     if (JSON.stringify(membersOf(session)) !== JSON.stringify(membersOf(before))) options.onMembers(membersOf(session))
-    options.onChange({ session, line })
+    watchTimer()
+    options.onChange(view())
+    return step
+  }
+
+  /** The session hears nothing while everyone thinks: when the timer is running, the clock itself is made an event. */
+  const watchTimer = (): void => {
+    clearTimeout(alarm)
+    const deadline = session.fight?.timer.deadline
+    if (deadline !== undefined) alarm = setTimeout(() => apply({ on: 'clock' }), Math.max(0, deadline - now()))
   }
 
   const link = (options.open ?? openRelayLink)({
@@ -83,7 +138,7 @@ export function runHost(options: HostRunOptions): HostRun {
     onFrame: (frame) => {
       if (frame.t === 'hosting') {
         line = 'up'
-        options.onChange({ session, line })
+        options.onChange(view())
       } else if (frame.t === 'peer') {
         apply({ on: 'peer', peer: frame.peer, present: frame.present })
       } else if (frame.t === 'msg' && frame.from !== undefined) {
@@ -97,18 +152,40 @@ export function runHost(options: HostRunOptions): HostRun {
   })
 
   return {
-    view: () => ({ session, line }),
-    approve: (peer, keep) => apply({ on: 'approve', peer, keep }),
-    decline: (peer) => apply({ on: 'decline', peer }),
-    remove: (peer) => apply({ on: 'remove', peer }),
-    refresh: (campaign) => apply({ on: 'campaign', campaign }),
+    view,
+    approve: (peer, keep) => void apply({ on: 'approve', peer, keep }),
+    decline: (peer) => void apply({ on: 'decline', peer }),
+    remove: (peer) => void apply({ on: 'remove', peer }),
+    refresh: (campaign) => void apply({ on: 'campaign', campaign }),
+    launch: async (encounterId, launch = {}) => {
+      const made = launchFor(session, encounterId, seedFrom(random(8)), launch.only)
+      if (!made.ok) return made.problem
+      let started: StartedBattle
+      try {
+        started = await (options.startBattle ?? startRealBattle)(made.setup)
+      } catch (error) {
+        // The engine refused the battle itself: a Pokémon it does not know, a line it cannot hold.
+        if (error instanceof BattleRuleError) return 'engine'
+        throw error
+      }
+      // The session went on while the engine was fetched: another launch may have got there first.
+      if (session.fight) return 'fight-on'
+      engine = started
+      apply({ on: 'launched', start: { ...made.start, timerSeconds: launch.timerSeconds, opening: started.opening } })
+      return undefined
+    },
+    command: (command) => apply({ on: 'fight', command }).refused,
     end: () => {
       // Said to the relay when it can be heard; either way this device hosts that room no more.
       link.send({ t: 'end' })
       link.close()
       line = 'ended'
       apply({ on: 'offline' })
+      clearTimeout(alarm)
     },
-    stop: () => link.close(),
+    stop: () => {
+      clearTimeout(alarm)
+      link.close()
+    },
   }
 }

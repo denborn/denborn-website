@@ -3,6 +3,7 @@ import { BattleRuleError, type CombatantSetup, type DenbornBattle } from '../../
 import { enemy, player, start } from '../../battle/test-kit'
 import type { BagEffect } from '../../game-rules/bag-effects'
 import type { ItemStack } from '../../shared/schema/common'
+import type { Enemy } from '../../shared/schema/encounter'
 import { type Author, type Choice, type FightCommand, type FightContext, type FightEngine, type FightStep, fightStep, isReady, openFight, partyView, tableView } from './fight'
 
 // Made up for the tests: real items get their effects from the data pack.
@@ -12,6 +13,7 @@ interface TableOptions {
   timerSeconds?: number
   bags?: Record<string, ItemStack[]>
   enemyBag?: ItemStack[]
+  sheets?: Enemy[]
   /** Stands in for the engine, to see what the table does when the engine refuses. */
   wrap?: (engine: DenbornBattle) => FightEngine
 }
@@ -24,7 +26,7 @@ function table(players: CombatantSetup[], enemies: CombatantSetup[], options: Ta
   let now = 0
   const context = (): FightContext => ({ engine, bagEffect: (item) => EFFECTS[item], absent, now })
   let fight = openFight(
-    { encounter: { id: 'encounter-0001', name: 'Test' }, bags: options.bags ?? {}, enemyBag: options.enemyBag ?? [], timerSeconds: options.timerSeconds, opening: battle.opening },
+    { encounter: { id: 'encounter-0001', name: 'Test' }, enemies: options.sheets ?? [], bags: options.bags ?? {}, enemyBag: options.enemyBag ?? [], timerSeconds: options.timerSeconds, opening: battle.opening },
     context(),
   )
   const say = (author: Author, command: FightCommand): FightStep => {
@@ -156,7 +158,7 @@ describe('locking a round', () => {
     const game = duel({ wrap: refusing })
     game.locks('ann', splash)
     const step = game.gmLocks('foe', splash)
-    expect(step).toMatchObject({ refused: 'engine-refused', unlocked: ['ann'] })
+    expect(step).toMatchObject({ refused: 'engine-refused', fight: { takenBack: ['ann'] } })
     expect(step.played).toBeUndefined()
     expect(Object.keys(game.fight().locked)).toEqual(['foe'])
     expect(game.fight().round).toBe(1)
@@ -280,9 +282,13 @@ describe('Run: trading places', () => {
     expect(game.say({ player: 'cat' }, { do: 'answer', who: 'cat', kind: 'run', from: 'ann', accept: true }).refused).toBe('no-such-ask')
     const step = game.say({ player: 'bob' }, { do: 'answer', who: 'bob', kind: 'run', from: 'ann', accept: true })
     // Bob now stands at the end of the line; Cat did not move.
-    expect(step.unlocked).toEqual(['bob'])
+    expect(step.fight.takenBack).toEqual(['bob'])
     expect(Object.keys(game.fight().locked)).toEqual(['cat'])
     expect(game.locks('ann', tackle('foe')).refused).toBeUndefined()
+    // Told until Bob locks again, or the round is played.
+    expect(game.party().takenBack).toEqual(['bob'])
+    game.locks('bob', splash)
+    expect(game.fight().takenBack).toEqual([])
   })
 
   it('needs nobody\'s leave for a dead ally\'s slot, is refused with a downed ally, and is not for a downed Pokémon', () => {
@@ -370,7 +376,7 @@ describe('the timer (decisions 14 and 15)', () => {
     game.at(60)
     // The game master moves the target to the end of its line: the player cannot choose again.
     const step = game.say('gm', { do: 'run', who: 'near', with: 'edge' })
-    expect(step.unlocked).toEqual(['ann'])
+    expect(step.fight.takenBack).toEqual(['ann'])
     expect(game.fight().locked.ann).toEqual({ choice: { do: 'struggle' }, extra: [], by: 'timer' })
   })
 
@@ -433,7 +439,7 @@ describe('what each side is shown', () => {
     const game = table(
       [player('ann', 'Machamp', ['tackle']), player('bob', 'Snorlax', ['tackle'])],
       [enemy('foe', 'Chansey', ['tackle'])],
-      { bags: { ann: [{ item: 'medicine', quantity: 1 }], bob: [] }, enemyBag: [{ item: 'medicine', quantity: 3 }] },
+      { bags: { ann: [{ item: 'medicine', quantity: 1 }], bob: [] }, enemyBag: [{ item: 'medicine', quantity: 3 }], sheets: [{ id: 'foe', species: 'chansey', class: 'boss' } as Enemy] },
     )
     game.locks('ann', tackle('foe'))
     game.gmLocks('foe', tackle('ann'))
@@ -446,6 +452,9 @@ describe('what each side is shown', () => {
     expect(seen.order).toEqual(['ann', 'bob'])
     expect(seen.asks).toEqual([{ kind: 'switch', from: 'bob', to: 'ann' }])
     expect(seen).not.toHaveProperty('enemyBag')
+    expect(seen).not.toHaveProperty('classes')
+    // Their sheets, without the game master's label (decision 133).
+    expect(seen.enemies).toEqual([{ id: 'foe', species: 'chansey' }])
     expect(JSON.stringify(seen)).not.toContain('"foe":{"choice"')
 
     // The game master is shown everything.
@@ -453,6 +462,7 @@ describe('what each side is shown', () => {
     expect(Object.keys(all.locked)).toEqual(['ann', 'foe'])
     expect(all.order).toEqual(['ann', 'foe', 'bob'])
     expect(all.enemyBag).toEqual([{ item: 'medicine', quantity: 3 }])
+    expect(all.classes).toEqual({ foe: 'boss' })
     expect(all.ready).toBe(false)
   })
 })

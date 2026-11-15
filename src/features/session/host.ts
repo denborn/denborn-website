@@ -7,13 +7,17 @@
  * the campaign's own rules before the game master even sees the request, and
  * the copy a member is given back is the one that counts from then on.
  */
+import type { BattleSetup } from '../../battle/contract.ts'
 import type { DataPack } from '../../data/types.ts'
 import { openCharacter } from '../../domain/open-character.ts'
 import { PARTY_MAX } from '../../game-rules/party.ts'
+import type { Intent } from '../../shared/protocol/battle.ts'
 import { type HostMessage, type Party, type Refusal, decodeGuestMessage } from '../../shared/protocol/session.ts'
 import { sameValue } from '../../shared/same-value.ts'
 import type { CampaignDocument } from '../../shared/schema/campaign.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
+import { type LaunchProblem, fightSetup } from '../battle/fight-setup.ts'
+import { type Fight, type FightCommand, type FightContext, type FightEngine, type FightStart, type TableView, fightStep, openFight, partyView, tableView } from '../battle/fight.ts'
 import type { Standing } from '../import/standing.ts'
 
 /** A player asking to come in, waiting for the game master's answer. */
@@ -43,6 +47,17 @@ export interface HostSession {
   revision: number
   requests: readonly JoinRequest[]
   party: readonly Member[]
+  /** The fight being played, once an encounter was launched (decision 143). */
+  fight?: Fight | undefined
+  /** The last intents carried out for each player's device: one that arrives twice is not carried out twice. */
+  intents?: Readonly<Record<string, readonly string[]>>
+}
+
+/** What a fight in progress needs beside the session: the engine that plays it, and the game master's clock. */
+export interface FightTable {
+  engine: FightEngine
+  /** In milliseconds. */
+  now: number
 }
 
 export type HostEvent =
@@ -59,12 +74,23 @@ export type HostEvent =
   | { on: 'offline' }
   /** The campaign as the device now keeps it: its rules or its encounters were changed on another screen while the session went on. */
   | { on: 'campaign'; campaign: CampaignDocument }
+  /** The game master launched an encounter, and the engine has let the Pokémon in. */
+  | { on: 'launched'; start: FightStart }
+  /** The game master's own command in the fight. */
+  | { on: 'fight'; command: FightCommand }
+  /** Time passed: the fight's timer is looked at. */
+  | { on: 'clock' }
 
 export interface HostStep {
   session: HostSession
   /** What to send, and to which players. */
   send: { to: string[]; message: HostMessage }[]
+  /** Why the game master's own command in the fight changed nothing. */
+  refused?: string
 }
+
+/** How many of a device's last intents are remembered, to tell one that arrives twice. */
+const INTENTS_REMEMBERED = 30
 
 /**
  * A session as it starts or is taken up again: with the members the game
@@ -109,7 +135,57 @@ function changed(session: HostSession, extra: HostStep['send'] = []): HostStep {
   return { session: next, send: [...extra, ...tellParty(next)] }
 }
 
-export function hostStep(session: HostSession, event: HostEvent, pack: DataPack): HostStep {
+/**
+ * The session after an event. `table` is handed in while a fight is on: the
+ * session is plain data, and the engine that plays the fight is not.
+ */
+export function hostStep(session: HostSession, event: HostEvent, pack: DataPack, table?: FightTable): HostStep {
+  return withFightTold(session, stepped(session, event, pack, table), pack, table)
+}
+
+function contextOf(session: HostSession, pack: DataPack, table: FightTable): FightContext {
+  const there = new Set(session.party.filter((member) => member.present).map((member) => member.character.id))
+  // Away: any Pokémon of the players' line whose player is not there, whether their device dropped or they left the session.
+  const absent = new Set(
+    table.engine
+      .combatants()
+      .filter((combatant) => combatant.side === 'players' && !there.has(combatant.id))
+      .map((combatant) => combatant.id),
+  )
+  return { engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, absent, now: table.now }
+}
+
+/** The fight as the game master is shown it, when one is on. */
+export function tableOf(session: HostSession, pack: DataPack, table: FightTable | undefined): TableView | undefined {
+  return session.fight && table ? tableView(session.fight, contextOf(session, pack, table)) : undefined
+}
+
+/**
+ * Tells the players the fight. It goes with the party whenever the party is
+ * told, so that the two are never seen apart; between two changes of the
+ * party it is told by itself, to every member who is there.
+ */
+function withFightTold(before: HostSession, step: HostStep, pack: DataPack, table: FightTable | undefined): HostStep {
+  const toldParty = new Set(step.send.filter((entry) => entry.message.t === 'party').flatMap((entry) => entry.to))
+  const others = step.session.party.filter((member) => member.present && !toldParty.has(member.peer)).map((member) => member.peer)
+
+  if (!step.session.fight) {
+    // The fight was closed: those not told the party just now are told there is none.
+    if (!before.fight || others.length === 0) return step
+    return { ...step, send: [...step.send, { to: others, message: { t: 'fight', fight: null } }] }
+  }
+  if (!table) throw new Error('A fight is on, and the engine that plays it was not handed in')
+
+  // Who is there may have changed, and time has passed: the timer stops, starts or runs out accordingly.
+  const settled = fightStep(step.session.fight, 'gm', { do: 'clock' }, contextOf(step.session, pack, table)).fight
+  const session = settled === step.session.fight ? step.session : { ...step.session, fight: settled }
+  const fight = partyView(settled, contextOf(session, pack, table))
+  const send = step.send.map((entry) => (entry.message.t === 'party' ? { ...entry, message: { ...entry.message, fight } } : entry))
+  if (settled !== before.fight && others.length > 0) send.push({ to: others, message: { t: 'fight', fight } })
+  return { ...step, session, send }
+}
+
+function stepped(session: HostSession, event: HostEvent, pack: DataPack, table: FightTable | undefined): HostStep {
   switch (event.on) {
     case 'peer': {
       if (event.present) return { session, send: [] }
@@ -126,7 +202,19 @@ export function hostStep(session: HostSession, event: HostEvent, pack: DataPack)
       // Requests and presences were true of a line that is gone: every device says its piece again when it is back.
       return { session: { ...session, requests: [], party: session.party.map((member) => ({ ...member, present: false })) }, send: [] }
     case 'message':
-      return heard(session, event.from, event.body, pack)
+      return heard(session, event.from, event.body, pack, table)
+    case 'launched': {
+      if (session.fight || !table) return { session, send: [] }
+      return { session: { ...session, fight: openFight(event.start, contextOf(session, pack, table)), intents: {} }, send: [] }
+    }
+    case 'fight': {
+      if (!session.fight || !table) return { session, send: [], refused: 'no-fight' }
+      const step = fightStep(session.fight, 'gm', event.command, contextOf(session, pack, table))
+      return { session: { ...session, fight: step.fight }, send: [], ...(step.refused ? { refused: step.refused } : {}) }
+    }
+    case 'clock':
+      // The timer is looked at after every event, this one included.
+      return { session, send: [] }
     case 'approve': {
       const request = session.requests.find((entry) => entry.peer === event.peer)
       if (!request || session.party.length >= PARTY_MAX) return { session, send: [] }
@@ -155,11 +243,49 @@ export function hostStep(session: HostSession, event: HostEvent, pack: DataPack)
   }
 }
 
-function heard(session: HostSession, peer: string, body: unknown, pack: DataPack): HostStep {
+/** A player's intent, as the command it is for the Pokémon of their own character. */
+function commandOf(intent: Intent, who: string): FightCommand {
+  switch (intent.do) {
+    case 'lock':
+      return { do: 'lock', who, choice: intent.choice }
+    case 'unlock':
+      return { do: 'unlock', who }
+    case 'run':
+    case 'switch':
+      return { do: intent.do, who, with: intent.with }
+    case 'answer':
+      return { do: 'answer', who, kind: intent.kind, from: intent.from, accept: intent.accept }
+    case 'withdraw':
+      return { do: 'withdraw', who, kind: intent.kind }
+  }
+}
+
+/** A member's intent in the fight: carried out for their own Pokémon, once, and answered either way. */
+function intended(session: HostSession, peer: string, message: { id: string; round: number; intent: Intent }, pack: DataPack, table: FightTable | undefined): HostStep {
+  const member = session.party.find((entry) => entry.peer === peer)
+  // Only a member has a Pokémon to speak for.
+  if (!member) return { session, send: [] }
+  const answer = (refused?: string): HostStep['send'] => [{ to: [peer], message: { t: 'intentAnswer', id: message.id, ...(refused ? { refused } : {}) } }]
+  if (!session.fight || !table) return { session, send: answer('no-fight') }
+  const carriedOut = session.intents?.[peer] ?? []
+  // Sent twice, as a device does when it is not sure the first was heard: said again, not done again.
+  if (carriedOut.includes(message.id)) return { session, send: answer() }
+  // Made for a round that has been played since: it is not carried out in the next.
+  if (message.round !== session.fight.round) return { session, send: answer('stale') }
+
+  const step = fightStep(session.fight, { player: member.character.id }, commandOf(message.intent, member.character.id), contextOf(session, pack, table))
+  if (step.refused) return { session: { ...session, fight: step.fight }, send: answer(step.refused) }
+  const intents = { ...session.intents, [peer]: [...carriedOut, message.id].slice(-INTENTS_REMEMBERED) }
+  return { session: { ...session, fight: step.fight, intents }, send: answer() }
+}
+
+function heard(session: HostSession, peer: string, body: unknown, pack: DataPack, table: FightTable | undefined): HostStep {
   const decoded = decodeGuestMessage(body)
   // What cannot be read is not answered, except to say that the two apps are of different versions.
   if (!decoded.ok) return decoded.reason === 'version' ? refuse(session, peer, 'version') : { session, send: [] }
   const message = decoded.message
+
+  if (message.t === 'intent') return intended(session, peer, message, pack, table)
 
   if (message.t === 'hello') {
     // What a creation link of the campaign would hold, as it stands now.
@@ -198,5 +324,42 @@ function heard(session: HostSession, peer: string, body: unknown, pack: DataPack
   return {
     session: { ...session, requests: [...session.requests.filter((entry) => entry.peer !== peer), request] },
     send: [{ to: [peer], message: { t: 'waiting' } }],
+  }
+}
+
+export type LaunchRefusal = LaunchProblem | 'no-encounter' | 'fight-on'
+
+export type SessionLaunch =
+  | {
+      ok: true
+      /** What the engine is asked to play. */
+      setup: BattleSetup
+      /** What the fight starts with, beside what the engine says as the Pokémon enter. */
+      start: Omit<FightStart, 'opening' | 'timerSeconds'>
+    }
+  | { ok: false; problem: LaunchRefusal }
+
+/**
+ * The fight an encounter of the campaign makes with the party as it stands:
+ * every member's character, or those of `only`, in the party's order. A
+ * member who is away fights too: the game master chooses for them (decision 16).
+ */
+export function launchFor(session: HostSession, encounterId: string, seed: string, only?: readonly string[]): SessionLaunch {
+  if (session.fight) return { ok: false, problem: 'fight-on' }
+  const encounter = session.campaign.encounters.find((kept) => kept.id === encounterId)
+  if (!encounter) return { ok: false, problem: 'no-encounter' }
+  const characters = session.party.map((member) => member.character).filter((character) => !only || only.includes(character.id))
+  const launch = fightSetup(encounter, characters, seed)
+  if (!launch.ok) return launch
+  const fighting = characters.filter((character) => launch.fighting.includes(character.id))
+  return {
+    ok: true,
+    setup: launch.setup,
+    start: {
+      encounter: { id: encounter.id, name: encounter.name },
+      enemies: encounter.enemies,
+      bags: Object.fromEntries(fighting.map((character) => [character.id, character.bag])),
+      enemyBag: encounter.bag,
+    },
   }
 }

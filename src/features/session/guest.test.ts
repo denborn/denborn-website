@@ -96,6 +96,16 @@ describe('a player in a session', () => {
     expect(later.state).toMatchObject({ at: 'in', party: { revision: 3 } })
   })
 
+  it('takes what a game master who started the session over says as news, whatever its number', () => {
+    // Told the party's fifth state, then the game master's app reloads: the session counts from the beginning again.
+    const before = play(inSession(), says({ t: 'party', party: party({ revision: 5 }) }), { on: 'host', present: false }, { on: 'host', present: true })
+    const after = play(before.state, says({ t: 'party', party: party({ revision: 1, members: [{ character: newcomer(), present: false }] }) }))
+    expect(after.state).toMatchObject({ at: 'in', party: { revision: 1, members: [{ present: false }] } })
+    // From then on, an older state arriving late is ignored again.
+    const later = play(after.state, says({ t: 'party', party: party({ revision: 4 }) }), says({ t: 'party', party: party({ revision: 3 }) }))
+    expect(later.state).toMatchObject({ party: { revision: 4 } })
+  })
+
   it('stays in while the game master is away, and asks again when they are back', () => {
     const away = play(inSession(), { on: 'host', present: false })
     expect(away.state).toMatchObject({ at: 'in', hostThere: false })

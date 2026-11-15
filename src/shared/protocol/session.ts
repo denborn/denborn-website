@@ -14,8 +14,10 @@ import { PARTY_MAX } from '../../game-rules/party.ts'
 import { invitation } from '../codec/codes.ts'
 import { characterDocument } from '../schema/character.ts'
 import { documentId, whole } from '../schema/common.ts'
+import { intent, intentRefusal, playerFight } from './battle.ts'
 
-export const SESSION_VERSION = 1
+/** 2: the fight (milestone 6). A device that speaks 1 would never be shown one, so the two are told to update. */
+export const SESSION_VERSION = 2
 
 /** From a player to the game master. */
 export const guestMessage = z.discriminatedUnion('t', [
@@ -25,6 +27,13 @@ export const guestMessage = z.discriminatedUnion('t', [
   z.object({ t: z.literal('ask'), dataPackVersion: z.string().min(1).max(80), character: characterDocument }),
   /** Leaves the session, or takes a request back. */
   z.object({ t: z.literal('leave') }),
+  /**
+   * What a member asks for their own Pokémon in the fight. `id` tells this
+   * intent from every other the device sent: one that arrives twice is
+   * carried out once. `round` is the round it was made for: late, it is not
+   * carried out in the next.
+   */
+  z.object({ t: z.literal('intent'), id: documentId, round: whole(1, 100_000), intent }),
 ])
 
 export type GuestMessage = z.infer<typeof guestMessage>
@@ -79,10 +88,18 @@ export const hostMessage = z.discriminatedUnion('t', [
   /** The request is in front of the game master. */
   z.object({ t: z.literal('waiting') }),
   z.object({ t: z.literal('refused'), reason: z.enum(REFUSALS) }),
-  /** The player is in: the state of the party, sent again whenever it changes. */
-  z.object({ t: z.literal('party'), party }),
+  /**
+   * The player is in: the state of the party, sent again whenever it changes,
+   * with the fight being played when one is on. A party told without a fight
+   * means none is on.
+   */
+  z.object({ t: z.literal('party'), party, fight: playerFight.optional() }),
   /** The game master took the player out of the session (decision 123). */
   z.object({ t: z.literal('removed') }),
+  /** The fight as it now stands, between two changes of the party; nothing once it is over and closed. */
+  z.object({ t: z.literal('fight'), fight: playerFight.nullable() }),
+  /** What became of an intent: carried out, or why not. */
+  z.object({ t: z.literal('intentAnswer'), id: documentId, refused: intentRefusal.optional() }),
 ])
 
 export type HostMessage = z.infer<typeof hostMessage>

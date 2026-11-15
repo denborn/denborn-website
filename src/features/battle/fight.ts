@@ -20,7 +20,9 @@ import {
   type RoundResult,
 } from '../../battle/contract'
 import type { BagEffect, BagUse } from '../../game-rules/bag-effects'
+import type { MobClass } from '../../game-rules/rewards'
 import type { ItemStack } from '../../shared/schema/common'
+import type { Enemy } from '../../shared/schema/encounter'
 
 /** The battle, as far as the table drives it. `DenbornBattle` is the one that plays. */
 export interface FightEngine {
@@ -49,7 +51,7 @@ export type Choice =
 export interface Locked {
   choice: Choice
   /** An enemy's extra moves for the round, in the order the game master entered them (decision 61). */
-  extra: readonly MoveChoice[]
+  extra: MoveChoice[]
   /** Who locked it: the Pokémon's own side, the game master for an absent player, or the timer. */
   by: 'self' | 'gm' | 'timer'
 }
@@ -77,15 +79,19 @@ export interface Timer {
 export interface PlayedRound {
   /** The round that was played; 0 for the Pokémon entering. */
   round: number
-  log: readonly string[]
-  events: readonly DenbornEvent[]
+  log: string[]
+  events: DenbornEvent[]
 }
 
 export interface Fight {
   encounter: { id: string; name: string }
+  /** The enemies' sheets, as the encounter has them. */
+  enemies: readonly Enemy[]
   /** The round being chosen. */
   round: number
   locked: Readonly<Record<string, Locked>>
+  /** The Pokémon whose locked action was taken back this round and who have not locked again: a swap put their target out of reach. */
+  takenBack: readonly string[]
   asks: readonly Ask[]
   timer: Timer
   /** What is left in each character's bag, by character. */
@@ -155,12 +161,11 @@ export interface FightStep {
   refused?: Refusal | (string & {})
   /** The round the command set off, when it was the last lock. */
   played?: PlayedRound
-  /** The Pokémon whose locked action was taken back because a swap put its target out of reach. */
-  unlocked: string[]
 }
 
 export interface FightStart {
   encounter: { id: string; name: string }
+  enemies: readonly Enemy[]
   bags: Readonly<Record<string, readonly ItemStack[]>>
   enemyBag: readonly ItemStack[]
   timerSeconds: number | undefined
@@ -174,8 +179,10 @@ export function openFight(start: FightStart, context: FightContext): Fight {
   return settled(
     {
       encounter: start.encounter,
+      enemies: start.enemies,
       round: engine.round,
       locked: {},
+      takenBack: [],
       asks: [],
       timer: newRoundTimer(start.timerSeconds, false),
       bags: start.bags,
@@ -201,8 +208,8 @@ export function isReady(fight: Fight, context: FightContext): boolean {
 // Commands
 // ---------------------------------------------------------------------------
 
-const refusal = (fight: Fight, refused: NonNullable<FightStep['refused']>): FightStep => ({ fight, refused, unlocked: [] })
-const done = (fight: Fight, unlocked: string[] = []): FightStep => ({ fight, unlocked })
+const refusal = (fight: Fight, refused: NonNullable<FightStep['refused']>): FightStep => ({ fight, refused })
+const done = (fight: Fight): FightStep => ({ fight })
 
 /** Tries something the engine may refuse: gives the code of its refusal, or nothing when it went through. */
 function engineRefusal(attempt: () => void): string | undefined {
@@ -282,8 +289,8 @@ function lock(fight: Fight, author: Author, who: CombatantView, choice: Choice, 
     context.engine.checkAction(who.id, action, extra)
   })
   if (refused) return refusal(fight, refused)
-  const entry: Locked = { choice, extra, by: author === 'gm' && who.side === 'players' ? 'gm' : 'self' }
-  const next = { ...fight, locked: { ...fight.locked, [who.id]: entry } }
+  const entry: Locked = { choice, extra: [...extra], by: author === 'gm' && who.side === 'players' ? 'gm' : 'self' }
+  const next = { ...fight, locked: { ...fight.locked, [who.id]: entry }, takenBack: fight.takenBack.filter((id) => id !== who.id) }
   return isReady(next, context) ? played(next, context) : done(next)
 }
 
@@ -333,7 +340,7 @@ function stillInReach(fight: Fight, context: FightContext): FightStep {
   const { engine } = context
   const sides = new Map(engine.combatants().map((combatant) => [combatant.id, combatant.side]))
   const locked: Record<string, Locked> = {}
-  const unlocked: string[] = []
+  const takenBack = new Set(fight.takenBack)
   for (const [id, entry] of Object.entries(fight.locked)) {
     const action = actionOf(entry.choice, context)
     const holds =
@@ -344,11 +351,11 @@ function stillInReach(fight: Fight, context: FightContext): FightStep {
     if (holds) {
       locked[id] = entry
     } else {
-      unlocked.push(id)
+      takenBack.add(id)
       if (fight.timer.expired && sides.get(id) === 'players') locked[id] = TIMED_OUT
     }
   }
-  return done({ ...fight, locked }, unlocked)
+  return done({ ...fight, locked, takenBack: [...takenBack] })
 }
 
 // ---------------------------------------------------------------------------
@@ -415,7 +422,7 @@ function played(fight: Fight, context: FightContext): FightStep {
   } catch (error) {
     // The engine plays nothing when it refuses a round: the Pokémon it names chooses again.
     if (!(error instanceof BattleRuleError) || error.combatant === undefined) throw error
-    return { fight: { ...fight, locked: without(fight.locked, error.combatant) }, refused: error.code, unlocked: [error.combatant] }
+    return { fight: { ...fight, locked: without(fight.locked, error.combatant), takenBack: [...new Set([...fight.takenBack, error.combatant])] }, refused: error.code }
   }
 
   // An item leaves the Bag only when it was used: one that could not be, or whose user was stopped, stays (decision 21).
@@ -431,6 +438,7 @@ function played(fight: Fight, context: FightContext): FightStep {
     ...fight,
     round: engine.round,
     locked: {},
+    takenBack: [],
     asks: [],
     timer: newRoundTimer(fight.timer.seconds, fight.timer.paused),
     bags,
@@ -438,7 +446,7 @@ function played(fight: Fight, context: FightContext): FightStep {
     last,
     outcome: outcomeOf(engine),
   }
-  return { fight: next, played: last, unlocked: [] }
+  return { fight: next, played: last }
 }
 
 function outcomeOf(engine: FightEngine): Outcome | undefined {
@@ -518,19 +526,25 @@ function awaitsAbsent(fight: Fight, context: FightContext): boolean {
 // What each side is shown
 // ---------------------------------------------------------------------------
 
+/** An enemy's sheet as players see it: everything but its class, which is the game master's own label (decision 133). */
+export type EnemySheet = Omit<Enemy, 'class'>
+
 export interface FightView {
   encounter: { id: string; name: string }
   round: number
   outcome: Outcome | undefined
   /** Everyone on both lines. Players see everything of the enemies (decision 17). */
   combatants: CombatantView[]
+  enemies: EnemySheet[]
   /** What each Pokémon may lock, by its id. */
   requests: Record<string, ActionRequest>
   locked: Record<string, Locked>
+  /** The Pokémon whose locked action was taken back and who have to choose again. */
+  takenBack: string[]
   asks: Ask[]
   /** The Pokémon in the order they would act if the round were played now (decision 135). */
   order: string[]
-  bags: Record<string, readonly ItemStack[]>
+  bags: Record<string, ItemStack[]>
   timer: {
     seconds: number | undefined
     /** Counting down right now. */
@@ -544,7 +558,9 @@ export interface FightView {
 
 /** What only the game master is shown, on top of everything else. */
 export interface TableView extends FightView {
-  enemyBag: readonly ItemStack[]
+  /** Each enemy's class, by its id. */
+  classes: Record<string, MobClass>
+  enemyBag: ItemStack[]
   /** Everyone who has a choice has locked. */
   ready: boolean
 }
@@ -561,11 +577,13 @@ export function tableView(fight: Fight, context: FightContext): TableView {
     round: fight.round,
     outcome: fight.outcome,
     combatants,
+    enemies: fight.enemies.map(sheetOf),
     requests: Object.fromEntries(combatants.map((combatant) => [combatant.id, engine.request(combatant.id)])),
     locked: { ...fight.locked },
+    takenBack: [...fight.takenBack],
     asks: [...fight.asks],
     order: engine.turnOrder(actions),
-    bags: { ...fight.bags },
+    bags: Object.fromEntries(Object.entries(fight.bags).map(([id, bag]) => [id, [...bag]])),
     timer: {
       seconds: timer.seconds,
       running: timer.deadline !== undefined,
@@ -573,9 +591,16 @@ export function tableView(fight: Fight, context: FightContext): TableView {
       expired: timer.expired,
     },
     last: fight.last,
-    enemyBag: fight.enemyBag,
+    classes: Object.fromEntries(fight.enemies.map((enemy) => [enemy.id, enemy.class])),
+    enemyBag: [...fight.enemyBag],
     ready: isReady(fight, context),
   }
+}
+
+function sheetOf(enemy: Enemy): EnemySheet {
+  const sheet: Partial<Enemy> = { ...enemy }
+  delete sheet.class
+  return sheet as EnemySheet
 }
 
 /**
@@ -592,8 +617,10 @@ export function partyView(fight: Fight, context: FightContext): FightView {
     round: table.round,
     outcome: table.outcome,
     combatants: table.combatants,
+    enemies: table.enemies,
     requests: ofParty(table.requests),
     locked: ofParty(table.locked),
+    takenBack: table.takenBack.filter((id) => party.has(id)),
     asks: table.asks.filter((ask) => party.has(ask.from)),
     order: table.order.filter((id) => party.has(id)),
     bags: table.bags,

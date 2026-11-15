@@ -11,11 +11,12 @@ import { maxHpOf } from './character-check.ts'
 
 const named = (id: string) => ({ en: id, fr: id })
 
-function species(id: string, num: number, part: Pick<SpeciesData, 'genders' | 'abilities' | 'baseStats' | 'learnset'>): SpeciesData {
+/** A species for a test's own pack: only what the checks read is asked for. */
+export function species(id: string, num: number, part: Pick<SpeciesData, 'genders' | 'abilities' | 'baseStats' | 'learnset'>): SpeciesData {
   return { id, num, name: named(id), types: ['Normal'], baseExp: 50, tags: [], earlierStages: [], evolutions: [], sprite: null, femaleSprite: false, ...part }
 }
 
-function move(id: string, pp: number, part: Partial<Pick<MoveData, 'fixedPp' | 'supplement'>> = {}): MoveData {
+export function move(id: string, pp: number, part: Partial<Pick<MoveData, 'fixedPp' | 'supplement'>> = {}): MoveData {
   return { id, name: named(id), description: named(id), type: 'Normal', category: 'Physical', power: 40, accuracy: 100, pp, fixedPp: false, priority: 0, target: 'normal', supplement: false, ...part }
 }
 

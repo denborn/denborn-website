@@ -5,8 +5,10 @@
  * kept when the game master's side gives one back.
  */
 import { type RelayLink, type RelayLinkOptions, openRelayLink, roomUrl } from '../../network/relay-link.ts'
+import type { Intent } from '../../shared/protocol/battle.ts'
 import { encodeMessage } from '../../shared/protocol/session.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
+import { newId } from '../../storage/ids.ts'
 import { GUEST_START, type GuestEvent, type GuestState, guestStep } from './guest.ts'
 
 export interface GuestRunOptions {
@@ -25,6 +27,8 @@ export interface GuestRunOptions {
   onKeep: (character: CharacterDocument) => void
   /** Opens the line. The real one by default; a test passes its own. */
   open?: (options: RelayLinkOptions) => RelayLink
+  /** Makes the id that tells one intent from every other. */
+  newId?: () => string
 }
 
 export interface GuestRun {
@@ -33,6 +37,12 @@ export interface GuestRun {
   choose(character: CharacterDocument): void
   /** Leaves the session, or takes a request back. */
   leave(): void
+  /**
+   * Asks something for the player's Pokémon in the fight, and gives the id
+   * its answer will carry. Nothing is taken for done before that answer: the
+   * fight shown is the one the game master's side tells.
+   */
+  intend(intent: Intent): string
   /** Closes the line without leaving: a member stays a member, and the game master sees it away. */
   stop(): void
 }
@@ -75,6 +85,11 @@ export function runGuest(options: GuestRunOptions): GuestRun {
       apply({ on: 'chosen' })
     },
     leave: () => apply({ on: 'leave' }),
+    intend: (intent) => {
+      const id = (options.newId ?? newId)()
+      apply({ on: 'intend', id, intent })
+      return id
+    },
     stop: () => link.close(),
   }
 }
