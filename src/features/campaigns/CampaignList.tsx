@@ -1,0 +1,65 @@
+import { useMessages } from '../../i18n'
+import type { CampaignDocument } from '../../shared/schema/campaign'
+import type { Stored } from '../../storage/library'
+import { OptionButton, Screen, Slot, StepHeader } from '../../ui'
+
+export interface CampaignListProps {
+  entries: readonly Stored<CampaignDocument>[]
+  onBack: () => void
+  onNew: () => void
+  /** Opens the page of one of them, by the id it is kept under. */
+  onOpen: (id: string) => void
+}
+
+/** The campaigns this device keeps as their game master. */
+export function CampaignList({ entries, onBack, onNew, onOpen }: CampaignListProps) {
+  const messages = useMessages()
+  const text = messages.campaigns
+  return (
+    <div className="dn-page">
+      <div className="dn-page__top">
+        <Screen kind="scene" label={text.title}>
+          <div className="dn-lineup">
+            <p className="dn-note dn-text-outline">{text.hint}</p>
+          </div>
+        </Screen>
+      </div>
+      <Screen kind="menu" label={text.title} tall>
+        <StepHeader title={text.title} />
+        <div className="dn-stack">
+          {entries.length === 0 && <p className="dn-note">{text.empty}</p>}
+          <ul className="dn-list">
+            {entries.map((entry) => {
+              const campaign = entry.read.ok ? entry.read.value : undefined
+              const rules = campaign?.rulesHistory.at(-1)
+              // One that cannot be read is listed, never dropped; it opens nothing until campaigns can be exported as stored.
+              if (!campaign || !rules) {
+                return (
+                  <li key={entry.id} className="dn-slot dn-slot--down">
+                    <span className="dn-slot__main dn-text-shadow">{text.unreadable}</span>
+                  </li>
+                )
+              }
+              return (
+                <li key={entry.id}>
+                  <Slot onClick={() => onOpen(entry.id)}>
+                    <span className="dn-slot__text">
+                      <span className="dn-text-shadow">{campaign.name}</span>
+                      <span className="dn-note">{text.entry(rules.version, rules.species.length)}</span>
+                    </span>
+                  </Slot>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+        <div className="dn-foot">
+          <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
+          <OptionButton primary onClick={onNew}>
+            {text.new}
+          </OptionButton>
+        </div>
+      </Screen>
+    </div>
+  )
+}

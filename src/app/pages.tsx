@@ -3,8 +3,10 @@
  * and to what the device keeps. The screens themselves know neither.
  */
 import { useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { useBeforeUnload, useBlocker, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { usePack } from '../data/use-pack'
+import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
+import { CampaignList } from '../features/campaigns/CampaignList'
 import { CharacterList } from '../features/characters/CharacterList'
 import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
 import { CreationFlow } from '../features/creation/CreationFlow'
@@ -22,10 +24,11 @@ import { useLanguage, useMessages } from '../i18n'
 import { decodeCreationCode } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
 import { saveToDevice, textOfPickedFile } from '../storage/browser'
-import { characterFile, storedCharacterFile } from '../storage/files'
+import { campaignFile, characterFile, storedCharacterFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
 import { OptionButton, Panel, Screen, StepHeader } from '../ui'
+import { copyText } from './clipboard'
 import { useLibrary } from './library-store'
 import { useOffline } from './offline'
 import { usePageTitle } from './page-title'
@@ -33,8 +36,84 @@ import { usePageTitle } from './page-title'
 export function HomePage() {
   const navigate = useNavigate()
   usePageTitle(undefined)
-  // Campaigns join the list when the game master's screens exist.
-  return <Home pack={usePack()} entries={['characters', 'options']} onOpen={(entry) => void navigate(`/${entry}`)} />
+  return <Home pack={usePack()} entries={['characters', 'campaigns', 'options']} onOpen={(entry) => void navigate(`/${entry}`)} />
+}
+
+export function CampaignsPage() {
+  const navigate = useNavigate()
+  const library = useLibrary()
+  usePageTitle(useMessages().campaigns.title)
+  return <CampaignList entries={library.campaigns()} onBack={() => void navigate('/')} onNew={() => void navigate('/campaigns/new')} onOpen={(id) => void navigate(`/campaigns/${id}`)} />
+}
+
+const isRule = (value: string | null): value is RuleId => RULE_IDS.some((id) => id === value)
+
+/** A campaign's page: a new campaign at /campaigns/new, a kept one at /campaigns/<id>. The rule that is open is in the address, so that Back closes it. */
+export function CampaignPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const pack = usePack()
+  const library = useLibrary()
+  const messages = useMessages()
+  const { id } = useParams()
+  const [search, setSearch] = useSearchParams()
+  const [unsaved, setUnsaved] = useState(false)
+  // Leaving the page with changes not saved asks first. Moving a campaign just saved to its own address is not leaving.
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => unsaved && currentLocation.pathname !== nextLocation.pathname && !(nextLocation.state as { justSaved?: true } | null)?.justSaved,
+  )
+  // Closing the tab or reloading with changes not saved asks too, in the browser's own words.
+  useBeforeUnload((event) => {
+    if (unsaved) event.preventDefault()
+  })
+  const entry = id === undefined ? undefined : library.campaigns().find((stored) => stored.id === id)
+  const campaign = entry?.read.ok ? entry.read.value : undefined
+  const asked = search.get('rule')
+  usePageTitle(campaign?.name ?? messages.campaigns.newTitle)
+
+  if (id !== undefined && !campaign) {
+    return (
+      <div className="dn-page">
+        <Screen kind="menu" label={messages.campaigns.title} tall>
+          <StepHeader title={messages.campaigns.title} />
+          <div className="dn-stack">
+            <p className="dn-note dn-note--error">{entry ? messages.campaigns.unreadable : messages.campaigns.missing}</p>
+          </div>
+          <div className="dn-foot">
+            <OptionButton onClick={() => void navigate('/campaigns')}>{messages.nav.back}</OptionButton>
+          </div>
+        </Screen>
+      </div>
+    )
+  }
+
+  return (
+    <CampaignEditor
+      // Another campaign is another page: its rules being set are not carried over.
+      key={id ?? 'new'}
+      pack={pack}
+      campaign={campaign}
+      rule={isRule(asked) ? asked : undefined}
+      onRule={(rule) => {
+        if (rule) setSearch({ rule })
+        // Closing a rule goes back to the page it was opened from, when there is one in this visit's history.
+        else if (location.key !== 'default') void navigate(-1)
+        else setSearch({}, { replace: true })
+      }}
+      newId={newId}
+      onSave={(made) => {
+        const kept = library.saveCampaign(made)
+        if (kept.ok && id === undefined) void navigate(`/campaigns/${made.id}`, { replace: true, state: { justSaved: true } })
+        return kept
+      }}
+      origin={window.location.origin}
+      onCopy={copyText}
+      onSaveFile={(kept) => saveToDevice(campaignFile(kept))}
+      onBack={() => void navigate('/campaigns')}
+      onUnsaved={setUnsaved}
+      leaving={blocker.state === 'blocked' ? { stay: () => blocker.reset(), leave: () => blocker.proceed() } : undefined}
+    />
+  )
 }
 
 export function OptionsPage() {

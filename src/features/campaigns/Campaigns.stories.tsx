@@ -4,6 +4,7 @@ import { sampleRules } from '../../domain/samples'
 import type { CampaignDocument } from '../../shared/schema/campaign'
 import { Note, Phone, usePack } from '../../ui/stories/board'
 import { CampaignEditor, type RuleId } from './CampaignEditor'
+import { CampaignList } from './CampaignList'
 
 interface Args {
   /** A campaign already saved, or one being set for the first time. */
@@ -71,6 +72,35 @@ export const SavedCampaign: Story = {
         A saved campaign. Under its rules: the creation link as a QR code and as text, a button to copy it, and the campaign’s file. Change
         a rule and the link gives way to “Changes not saved yet” until the rules are saved again, which makes the next version.
       </Note>
+    </>
+  ),
+}
+
+function Campaigns() {
+  const pack = usePack()
+  const kept = (id: string, name: string, version: number, species: number): CampaignDocument => ({
+    kind: 'denborn.campaign',
+    schemaVersion: 1,
+    id,
+    revision: version,
+    dataPackVersion: pack.version,
+    name,
+    rulesHistory: [{ ...sampleRules(pack, 2, 2, 4, species), version }],
+  })
+  const entries = [kept('Hn4wB9cE2yU6sJ5d', 'Les Égarés de Denborn', 3, 151), kept('q8Zr3vX1mK7pL0aT', 'Night Shift', 1, 47)].map((campaign) => ({ id: campaign.id, read: { ok: true as const, value: campaign }, raw: '' }))
+  return (
+    <Phone>
+      <CampaignList entries={[...entries, { id: 'broken', read: { ok: false, reason: 'not-this-kind' }, raw: '' }]} onBack={() => undefined} onNew={() => undefined} onOpen={() => undefined} />
+    </Phone>
+  )
+}
+
+/** The campaigns a device keeps as their game master: the way in from the home's Campaigns. */
+export const List: Story = {
+  render: () => (
+    <>
+      <Campaigns />
+      <Note>The list of campaigns, built like the list of characters: a row opens the campaign’s page, NEW starts one.</Note>
     </>
   ),
 }

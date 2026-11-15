@@ -151,6 +151,7 @@ export const en = {
     newTitle: 'New campaign',
     entry: (version: number, species: number) => `Rules version ${version} · ${species} Pokémon`,
     unreadable: 'A campaign that cannot be read',
+    missing: 'This campaign is not on this device.',
     rules: {
       name: 'Name',
       species: 'Pokémon',
@@ -216,6 +217,7 @@ export const en = {
       noneShown: 'No Pokémon passes these filters.',
     },
     unsaved: 'Changes not saved yet.',
+    leave: { question: 'The changes are not saved yet. Leave without saving them?', stay: 'STAY', leave: 'LEAVE' },
     save: 'SAVE THE RULES',
     version: (version: number) => `Rules version ${version}`,
     link: 'Creation link',

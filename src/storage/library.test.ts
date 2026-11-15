@@ -100,6 +100,14 @@ describe('the invitations opened on a device', () => {
     expect(library.invitations(testPack.species).map((entry) => entry.ok && entry.value.rules.version)).toEqual([1, 2])
   })
 
+  it('come from the campaign itself on the device that keeps it, any version of its history', () => {
+    const library = openLibrary(memory())
+    library.saveCampaign({ kind: 'denborn.campaign', schemaVersion: 1, id: 'campaign-0001', revision: 1, dataPackVersion: 'test-pack', name: 'Test', rulesHistory: [testRules(), testRules({ version: 2, startingLevel: 30 })] })
+    expect(library.rulesOf('campaign-0001', 1, testPack.species)?.startingLevel).toBe(5)
+    expect(library.rulesOf('campaign-0001', 2, testPack.species)?.startingLevel).toBe(30)
+    expect(library.rulesOf('campaign-0001', 3, testPack.species)).toBeUndefined()
+  })
+
   it('give nothing for a campaign or a version never opened here', () => {
     const library = openLibrary(memory())
     library.saveInvitation(invite(1), testPack.species)

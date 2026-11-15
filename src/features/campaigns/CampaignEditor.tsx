@@ -31,6 +31,10 @@ export interface CampaignEditorProps {
   onCopy: (text: string) => Promise<boolean>
   onSaveFile: (campaign: CampaignDocument) => void
   onBack: () => void
+  /** Told whenever the page starts or stops holding changes not saved yet. */
+  onUnsaved?: (unsaved: boolean) => void
+  /** Given while the game master is leaving with changes not saved: the two answers to "leave without saving?". */
+  leaving?: { stay: () => void; leave: () => void } | undefined
 }
 
 const NAME_MAX = 60
@@ -44,7 +48,7 @@ const MOVE_ACCESS = ['level-up', 'level-up-tm-tutor-egg'] as const
  * of its rules when one changed. Once saved, its creation link and QR code
  * stand under the rules.
  */
-export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onBack }: CampaignEditorProps) {
+export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onBack, onUnsaved, leaving }: CampaignEditorProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.campaigns
@@ -66,6 +70,10 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
     heading.current?.focus()
     window.scrollTo(0, 0)
   }, [rule])
+
+  useEffect(() => {
+    onUnsaved?.(changed)
+  }, [changed, onUnsaved])
 
   const save = (): void => {
     const made = campaignFrom(draft, campaign, pack, newId)
@@ -186,7 +194,21 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
       </div>
       <Screen kind="menu" label={title} tall>
         <StepHeader title={title} headingRef={heading} />
-        {rule ? (
+        {leaving ? (
+          <>
+            <div className="dn-stack">
+              <p className="dn-note dn-note--error" role="alert">
+                {text.leave.question}
+              </p>
+            </div>
+            <div className="dn-foot">
+              <OptionButton primary onClick={leaving.stay}>
+                {text.leave.stay}
+              </OptionButton>
+              <OptionButton onClick={leaving.leave}>{text.leave.leave}</OptionButton>
+            </div>
+          </>
+        ) : rule ? (
           <>
             {openRule(rule)}
             <div className="dn-foot">

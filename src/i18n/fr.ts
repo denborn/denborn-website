@@ -150,6 +150,7 @@ export const fr: Messages = {
     newTitle: 'Nouvelle campagne',
     entry: (version, species) => `Règles version ${version} · ${species} Pokémon`,
     unreadable: 'Une campagne illisible',
+    missing: 'Cette campagne n’est pas sur cet appareil.',
     rules: {
       name: 'Nom',
       species: 'Pokémon',
@@ -215,6 +216,7 @@ export const fr: Messages = {
       noneShown: 'Aucun Pokémon ne passe ces filtres.',
     },
     unsaved: 'Modifications pas encore enregistrées.',
+    leave: { question: 'Les modifications ne sont pas encore enregistrées. Partir sans les enregistrer\u00a0?', stay: 'RESTER', leave: 'PARTIR' },
     save: 'ENREGISTRER LES RÈGLES',
     version: (version) => `Règles version ${version}`,
     link: 'Lien de création',

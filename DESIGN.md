@@ -222,5 +222,8 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 109 | IMPORT sits in the foot of the Characters list, between BACK and NEW. |
 | 110 | Removing a character is confirmed on a screen of its own, which offers its file first. |
 | 111 | The way to remove a character is at the end of its sheet's SHARE tab. |
+| 112 | The species picker's filters: stage of evolution, base stat total, Legendary and Mythical, type. |
+| 113, 115 | A campaign's page: one row per rule, each opening its rule alone; the creation link and its QR code under the rules once saved. |
+| 114 | Starting level 5 and 3000 Pokédollars are shown before the game master sets them. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

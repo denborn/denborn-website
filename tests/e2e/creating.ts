@@ -36,8 +36,8 @@ export function pikachu(nickname: string, id: string): CharacterDocument {
   return character
 }
 
-/** Goes through the seven steps with the fewest choices that make a character. */
-export async function createPikachu(page: Page, nickname: string): Promise<void> {
+/** Goes through the seven steps with the fewest choices that make a character, taking the item pack named. */
+export async function createPikachu(page: Page, nickname: string, itemPack = 'Sac d’aventurier 1'): Promise<void> {
   const next = page.getByRole('button', { name: 'NEXT', exact: true })
   await expect(page.getByRole('heading', { name: 'Choose a Pokémon' })).toBeVisible()
   await expect(next).toBeDisabled()
@@ -62,7 +62,7 @@ export async function createPikachu(page: Page, nickname: string): Promise<void>
   await next.click()
 
   await expect(next).toBeDisabled()
-  await page.getByRole('button', { name: /^Sac d’aventurier 1/ }).click()
+  await page.getByRole('button', { name: new RegExp(`^${itemPack}`) }).click()
   await next.click()
 
   await expect(page.getByRole('heading', { name: 'A last look' })).toBeVisible()

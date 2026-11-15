@@ -70,7 +70,7 @@ export interface Library {
   /** The invitations opened on this device, newest rules version of each campaign last. */
   invitations(species: SpeciesIndex): CodeResult<Invitation>[]
   saveInvitation(invitation: Invitation, species: SpeciesIndex): WriteResult
-  /** The rules of one version of a campaign, when an invitation for it was opened here. */
+  /** The rules of one version of a campaign: from the campaign itself when this device keeps it, otherwise from an invitation opened here. */
   rulesOf(campaignId: string, version: number, species: SpeciesIndex): CampaignRules | undefined
 }
 
@@ -121,6 +121,10 @@ export function openLibrary(storage: KeyValue): Library {
     saveInvitation: (invitation, species) =>
       write(`${INVITATIONS}${invitation.campaign.id}/${String(invitation.rules.version).padStart(4, '0')}`, encodeCreationCode(invitation, species)),
     rulesOf: (campaignId, version, species) => {
+      // A game master's own campaign is the source of its rules: its history comes before any link opened here.
+      const own = list(CAMPAIGNS, readCampaign).find((entry) => entry.id === campaignId)
+      const kept = own?.read.ok ? own.read.value.rulesHistory.find((rules) => rules.version === version) : undefined
+      if (kept) return kept
       const code = storage.getItem(`${INVITATIONS}${campaignId}/${String(version).padStart(4, '0')}`)
       const decoded = code === null ? undefined : decodeCreationCode(code, species)
       return decoded?.ok ? decoded.value.rules : undefined
