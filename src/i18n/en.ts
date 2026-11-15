@@ -617,6 +617,12 @@ export const en = {
       turnsLeft: (turns: number) => (turns === 1 ? '1 turn left' : `${turns} turns left`),
       /** Whom an effect touches. */
       scope: { field: 'Whole field', foes: "Foes' side", party: 'Your side' },
+      /** What the screens do here, in Denborn's own words: its fights run on the Doubles rules, where they cut by a third, not by half (decisions 67 and 157). */
+      ownEffects: {
+        reflect: 'Damage from physical moves is cut by a third for five turns.',
+        lightscreen: 'Damage from special moves is cut by a third for five turns.',
+        auroraveil: 'Damage from physical and special moves is cut by a third for five turns.',
+      },
       /** The two stats that only exist in battle. */
       accuracy: 'Accuracy',
       evasion: 'Evasiveness',

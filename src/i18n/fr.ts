@@ -598,6 +598,11 @@ export const fr: Messages = {
       noEffects: 'Aucun effet en cours.',
       turnsLeft: (turns) => (turns === 1 ? '1 tour restant' : `${turns} tours restants`),
       scope: { field: 'Tout le terrain', foes: 'Côté ennemi', party: 'Votre côté' },
+      ownEffects: {
+        reflect: 'Pendant cinq tours, les dégâts des capacités physiques subies sont réduits d’un tiers.',
+        lightscreen: 'Pendant cinq tours, les dégâts des capacités spéciales subies sont réduits d’un tiers.',
+        auroraveil: 'Pendant cinq tours, les dégâts des capacités physiques et spéciales subies sont réduits d’un tiers.',
+      },
       accuracy: 'Précision',
       evasion: 'Esquive',
       changed: 'sous effets',

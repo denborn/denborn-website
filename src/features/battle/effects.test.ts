@@ -8,6 +8,7 @@ const state = (name: string) => ({ name: { en: name, fr: `${name} (fr)` }, text:
 const words: EffectWords = {
   language: 'en',
   states: { raindance: state('Rain'), electricterrain: state('Electric Terrain'), room: state('Room'), wall: state('Wall'), thorns: state('Thorns'), seeded: state('Seeded') },
+  own: {},
   statName: (stat) => stat.toUpperCase(),
   turnsLeft: (turns) => `${turns} left`,
   scope: { field: 'Field', foes: 'Foes', party: 'Party' },
@@ -52,6 +53,12 @@ describe('everything in effect', () => {
     const field: FieldView = { ...empty, rooms: [{ id: 'bookkeeping' }], pokemon: { foe: [{ id: 'bookkeeping' }, { id: 'seeded' }], gone: [{ id: 'seeded' }] } }
     const listed = effectsOf(field, [fighter('foe', 'enemies', 0), fighter('gone', 'enemies', 1, { atk: 1 }, 'gone')], words)
     expect(listed.map((effect) => effect.name)).toEqual(['Seeded'])
+  })
+
+  it('says what an effect does in Denborn\'s own words where it has some', () => {
+    const field: FieldView = { ...empty, sides: { players: [{ id: 'wall' }, { id: 'thorns' }], enemies: [] } }
+    const listed = effectsOf(field, [], { ...words, own: { wall: 'Here, a wall cuts by a third.' } })
+    expect(listed.map((effect) => effect.description)).toEqual(['Here, a wall cuts by a third.', 'Thorns does this.'])
   })
 
   it('speaks the language asked for', () => {

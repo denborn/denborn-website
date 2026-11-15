@@ -51,6 +51,7 @@ export function effectWords(wording: Wording, battleText: BattleText): EffectWor
   return {
     language: wording.language,
     states: battleText.states,
+    own: field.ownEffects,
     statName: (stat) => (stat === 'accuracy' ? field.accuracy : stat === 'evasion' ? field.evasion : isStat(stat) ? wording.pack.statNames[stat][wording.language] : stat),
     turnsLeft: field.turnsLeft,
     scope: field.scope,

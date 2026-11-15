@@ -25,6 +25,8 @@ const COLOUR: Record<string, string> = {
 export interface EffectWords {
   language: 'en' | 'fr'
   states: BattleText['states']
+  /** Denborn's own words for what an effect does, where its fights differ from what the games say (decision 157). */
+  own: Readonly<Record<string, string>>
   /** A stat's name, for a stat change. */
   statName: (stat: string) => string
   turnsLeft: (turns: number) => string
@@ -63,7 +65,7 @@ export function effectsOf(field: FieldView, fighters: readonly Fighter[], words:
         scopeText: who?.scopeText ?? words.scope[scope],
         ...(who ? { letter: who.letter } : {}),
         ...(effect.turns === undefined ? {} : { lasting: words.turnsLeft(effect.turns) }),
-        description: state.text[words.language],
+        description: words.own[effect.id] ?? state.text[words.language],
       },
     ]
   }
