@@ -23,6 +23,36 @@ function play(state: GuestState, ...events: GuestEvent[]) {
 
 const inSession = (): GuestState => play(GUEST_START, { on: 'joined', host: true }, says({ t: 'party', party: party() })).state
 
+describe('a player who has not chosen a character yet', () => {
+  const nobody: Mine = { character: undefined, dataPackVersion: 'test-pack' }
+  const playing = (state: GuestState, who: Mine, ...events: GuestEvent[]) => {
+    const sent: { t: string }[] = []
+    for (const event of events) {
+      const step = guestStep(state, event, who)
+      state = step.state
+      sent.push(...step.send)
+    }
+    return { state, sent }
+  }
+
+  it('asks which campaign is played, and is shown it to choose among its characters', () => {
+    const met = playing(GUEST_START, nobody, { on: 'joined', host: true })
+    expect(met).toEqual({ state: { at: 'meeting' }, sent: [{ t: 'hello' }] })
+    const told = playing(met.state, nobody, says({ t: 'about', campaign: { id: 'campaign-0001', name: 'Test' } }))
+    expect(told.state).toEqual({ at: 'choosing', campaign: { id: 'campaign-0001', name: 'Test' } })
+  })
+
+  it('asks to come in as soon as the character is chosen', () => {
+    const choosing: GuestState = { at: 'choosing', campaign: { id: 'campaign-0001', name: 'Test' } }
+    expect(playing(choosing, mine, { on: 'chosen' })).toMatchObject({ state: { at: 'asking' }, sent: [{ t: 'ask', character: { id: 'character-0001' } }] })
+  })
+
+  it('greets again when the game master comes back before a character was chosen', () => {
+    const back = playing({ at: 'choosing', campaign: { id: 'campaign-0001', name: 'Test' } }, nobody, { on: 'host', present: false }, { on: 'host', present: true })
+    expect(back).toEqual({ state: { at: 'meeting' }, sent: [{ t: 'hello' }] })
+  })
+})
+
 describe('a player reaching a session', () => {
   it('asks with its character as soon as the game master is there, without the rules it keeps with it', () => {
     const { state, sent } = play(GUEST_START, { on: 'joined', host: true })

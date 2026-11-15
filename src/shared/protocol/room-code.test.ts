@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ROOM_CODE_ALPHABET, isValidRoomCode, makeRoomCode, normalizeRoomCode } from './room-code'
+import { ROOM_CODE_ALPHABET, isValidRoomCode, joinCodeIn, joinLink, makeRoomCode, normalizeRoomCode } from './room-code'
 
 /** Deterministic byte source so failures reproduce. */
 function bytes(seed: number): Uint8Array {
@@ -52,5 +52,23 @@ describe('room codes', () => {
   it('normalizes what a player types before validation', () => {
     const code = codes[0] ?? ''
     expect(normalizeRoomCode(`  ${code.toLowerCase()} `)).toBe(code)
+  })
+})
+
+describe('a join link', () => {
+  const code = makeRoomCode(bytes(7))
+
+  it('gives its code back, as the code alone does, however it was typed', () => {
+    expect(joinCodeIn(joinLink(code, 'https://denborn.example'))).toBe(code)
+    expect(joinCodeIn(`  ${code.toLowerCase()} `)).toBe(code)
+    expect(joinCodeIn(joinLink(code, 'https://denborn.example').toLowerCase())).toBe(code)
+  })
+
+  it('holds no code when the code is mistyped or the text is something else', () => {
+    const wrong = code.slice(0, -1) + (code.endsWith('2') ? '3' : '2')
+    expect(joinCodeIn(wrong)).toBeUndefined()
+    expect(joinCodeIn(joinLink(wrong, 'https://denborn.example'))).toBeUndefined()
+    expect(joinCodeIn('hello')).toBeUndefined()
+    expect(joinCodeIn('')).toBeUndefined()
   })
 })

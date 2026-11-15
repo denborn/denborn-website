@@ -3,9 +3,11 @@
  * come in, waiting, being in, and every way of being out. Pure: the screen
  * shows the state and sends events; the connection carries what `send` lists.
  *
- * The player's device decides nothing. It asks with its character each time
- * it reaches the game master, first time or back from a dropped connection,
- * and keeps the copy of its character the game master's side gives back.
+ * The player's device decides nothing. It first asks which campaign is played,
+ * so that the player chooses among their characters made for it. Then it asks
+ * with that character each time it reaches the game master, first time or
+ * back from a dropped connection, and keeps the copy of its character the
+ * game master's side gives back.
  */
 import { CLOSED } from '../../shared/protocol/relay.ts'
 import { type GuestMessage, type Party, type Refusal, decodeHostMessage } from '../../shared/protocol/session.ts'
@@ -34,6 +36,10 @@ export type GuestState =
   | { at: 'reaching' }
   /** In the room; the game master is not there to ask. */
   | { at: 'hostAway' }
+  /** Asked which campaign is played; no answer yet. */
+  | { at: 'meeting' }
+  /** The campaign is known: the player chooses a character made for it. */
+  | { at: 'choosing'; campaign: { id: string; name: string } }
   /** Asked; no answer yet. */
   | { at: 'asking' }
   /** The request is in front of the game master. */
@@ -51,6 +57,8 @@ export type GuestEvent =
   | { on: 'message'; body: unknown }
   /** The connection closed, with the code it closed with. */
   | { on: 'closed'; code: number }
+  /** The player chose the character to bring: it is now what the device brings. */
+  | { on: 'chosen' }
   /** The player leaves. */
   | { on: 'leave' }
 
@@ -61,9 +69,9 @@ export interface GuestStep {
   keep?: CharacterDocument
 }
 
-/** What the device brings: its character, and the version of the game data its app carries. */
+/** What the device brings: its character, once the player chose one, and the version of the game data its app carries. */
 export interface Mine {
-  character: CharacterDocument
+  character: CharacterDocument | undefined
   dataPackVersion: string
 }
 
@@ -76,7 +84,12 @@ function bare(character: CharacterDocument): CharacterDocument {
   return copy
 }
 
-const ask = (mine: Mine): GuestMessage => ({ t: 'ask', dataPackVersion: mine.dataPackVersion, character: bare(mine.character) })
+/** What the device says when it reaches the game master: its request once a character is chosen, a greeting before. */
+function reaching(state: GuestState, mine: Mine): GuestStep {
+  if (!mine.character) return { state: { at: 'meeting' }, send: [{ t: 'hello' }] }
+  const ask: GuestMessage = { t: 'ask', dataPackVersion: mine.dataPackVersion, character: bare(mine.character) }
+  return { state: state.at === 'in' ? { ...state, linked: true, hostThere: true } : { at: 'asking' }, send: [ask] }
+}
 
 const stay = (state: GuestState): GuestStep => ({ state, send: [] })
 const out = (reason: Out): GuestStep => ({ state: { at: 'out', ...reason }, send: [] })
@@ -99,13 +112,18 @@ export function guestStep(state: GuestState, event: GuestEvent, mine: Mine): Gue
     case 'host': {
       const hostThere = event.on === 'joined' ? event.host : event.present
       if (!hostThere) return stay(state.at === 'in' ? { ...state, linked: true, hostThere: false } : { at: 'hostAway' })
-      // The game master is there: ask, the first time and every time either side comes back.
-      return { state: state.at === 'in' ? { ...state, linked: true, hostThere: true } : { at: 'asking' }, send: [ask(mine)] }
+      // The game master is there: speak, the first time and every time either side comes back.
+      return reaching(state, mine)
     }
+    case 'chosen':
+      // Asked at once when the game master is there to hear; otherwise as soon as they are.
+      return state.at === 'choosing' ? reaching(state, mine) : stay(state)
     case 'message': {
       const decoded = decodeHostMessage(event.body)
       if (!decoded.ok) return decoded.reason === 'version' ? out({ why: 'update' }) : stay(state)
       const message = decoded.message
+      // Only a device that has not chosen yet needs to know the campaign.
+      if (message.t === 'about') return stay(mine.character ? state : { at: 'choosing', campaign: message.campaign })
       if (message.t === 'waiting') return stay(state.at === 'in' ? state : { at: 'waiting' })
       if (message.t === 'refused') return out({ why: 'refused', reason: message.reason })
       if (message.t === 'removed') return out({ why: 'removed' })
@@ -113,7 +131,8 @@ export function guestStep(state: GuestState, event: GuestEvent, mine: Mine): Gue
       if (state.at === 'in' && message.party.revision < state.party.revision) return stay(state)
       const counted = message.party.members.find((member) => member.character.id === message.party.you)?.character
       const next: GuestState = { at: 'in', party: message.party, linked: true, hostThere: true }
-      return { state: next, send: [], ...(counted && !sameValue(counted, bare(mine.character)) ? { keep: counted } : {}) }
+      const brought = mine.character ? bare(mine.character) : undefined
+      return { state: next, send: [], ...(counted && !sameValue(counted, brought) ? { keep: counted } : {}) }
     }
     case 'closed': {
       const reason = outFor(event.code)

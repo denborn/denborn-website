@@ -18,6 +18,8 @@ export const SESSION_VERSION = 1
 
 /** From a player to the game master. */
 export const guestMessage = z.discriminatedUnion('t', [
+  /** Asks which campaign is being played, before a character is chosen. */
+  z.object({ t: z.literal('hello') }),
   /** Asks to come in with a character, or says "I am back" with the same one. The character travels without its rules: the game master has them. */
   z.object({ t: z.literal('ask'), dataPackVersion: z.string().min(1).max(80), character: characterDocument }),
   /** Leaves the session, or takes a request back. */
@@ -66,6 +68,8 @@ export type Party = z.infer<typeof party>
 
 /** From the game master to a player. */
 export const hostMessage = z.discriminatedUnion('t', [
+  /** The campaign being played: the player chooses among their characters made for it. */
+  z.object({ t: z.literal('about'), campaign: z.object({ id: documentId, name: z.string().min(1).max(60) }) }),
   /** The request is in front of the game master. */
   z.object({ t: z.literal('waiting') }),
   z.object({ t: z.literal('refused'), reason: z.enum(REFUSALS) }),

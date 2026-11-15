@@ -23,6 +23,25 @@ function checkSymbol(body: string): string | null {
   return ROOM_CODE_ALPHABET.charAt(sum)
 }
 
+/** What comes before a join code in a link: the tag of the family of Denborn's codes, in the capitals a QR code packs best. */
+const JOIN_TAG = 'DNJ1.'
+
+/** The link that opens the app on the join screen with a session's code filled in (decision 124). */
+export function joinLink(code: string, origin: string): string {
+  return `${origin}/#${JOIN_TAG}${code}`
+}
+
+/**
+ * The join code in what a player typed, pasted or scanned: the code alone, or
+ * a join link. Nothing when there is no well-formed code in it.
+ */
+export function joinCodeIn(text: string): string | undefined {
+  const trimmed = text.trim()
+  const afterHash = trimmed.slice(trimmed.lastIndexOf('#') + 1)
+  const code = normalizeRoomCode(afterHash.toUpperCase().startsWith(JOIN_TAG) ? afterHash.slice(JOIN_TAG.length) : afterHash)
+  return isValidRoomCode(code) ? code : undefined
+}
+
 export function normalizeRoomCode(input: string): string {
   return input.trim().toUpperCase()
 }

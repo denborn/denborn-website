@@ -1737,6 +1737,48 @@
   color: var(--dn-label-gold);
 }
 
+/* A session's join code on a top screen: the code in large letters to read out, and its QR code beside it. Denborn's own. */
+.dn-join {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) calc(92 * var(--dn-u));
+  align-items: center;
+  gap: calc(8 * var(--dn-u));
+  padding: calc(10 * var(--dn-u)) calc(12 * var(--dn-u));
+}
+
+.dn-join__words {
+  display: grid;
+  gap: calc(3 * var(--dn-u));
+}
+
+.dn-join__label {
+  font-size: calc(9 * var(--dn-t));
+  color: var(--dn-label-gold);
+}
+
+.dn-join__code {
+  font-size: calc(22 * var(--dn-t));
+  line-height: 1;
+  letter-spacing: 0.12em;
+  color: var(--dn-text);
+}
+
+.dn-join__name {
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-text);
+  overflow-wrap: anywhere;
+}
+
+/* A party standing on a top screen: up to six, on two rows when one is not enough. */
+.dn-lineup--party {
+  flex-wrap: wrap;
+  align-content: end;
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+}
+
 /* The camera's picture on a top screen, with a frame to aim a QR code into. Denborn's own. */
 .dn-camera {
   position: absolute;

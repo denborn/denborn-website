@@ -105,6 +105,7 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `.dn-figures` | A small table of numbers | BW summary | Names on the left, figures on the right; the last column, the value, stands out from the figures it is made from. A stat its nature raises is red with an arrow up, a lowered one blue with an arrow down. |
 | `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |
 | `.dn-camera` | The camera's picture on a top screen | Denborn's own | Fills the screen; a frame in the selection colour marks where to aim, and what lies outside it is dimmed. Nothing moves in it but the picture. |
+| `.dn-join` | A session's join code on a top screen | Denborn's own | The code in the largest size, letters spaced, to be read out across a table; its QR code beside it; the campaign's name under it. |
 | `QrCode` | A code as a QR code | — | Always black on white with its quiet border, as wide as its container. The finest shown is 101 × 101 squares (decision 99); for a longer text it shows what it is given instead, such as the way to the file. |
 | `PaperQrCode` | The same QR code, for paper | — | Drawn as lines, not as a picture, so a printer keeps it sharp at any size. Same limit of 101 × 101 squares. |
 

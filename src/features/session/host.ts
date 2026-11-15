@@ -143,6 +143,8 @@ function heard(session: HostSession, peer: string, body: unknown, pack: DataPack
   if (!decoded.ok) return decoded.reason === 'version' ? refuse(session, peer, 'version') : { session, send: [] }
   const message = decoded.message
 
+  if (message.t === 'hello') return { session, send: [{ to: [peer], message: { t: 'about', campaign: { id: session.campaign.id, name: session.campaign.name } } }] }
+
   if (message.t === 'leave') {
     const requests = session.requests.filter((request) => request.peer !== peer)
     if (!session.party.some((member) => member.peer === peer)) return { session: { ...session, requests }, send: [] }

@@ -2,7 +2,7 @@ import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import { PokemonIcon, PokemonSprite, Screen, Slot } from '../../ui'
 
-export type HomeEntry = 'characters' | 'campaigns' | 'options'
+export type HomeEntry = 'characters' | 'session' | 'campaigns' | 'options'
 
 export interface HomeProps {
   pack: DataPack
@@ -13,7 +13,7 @@ export interface HomeProps {
 
 /** The three that stand on the first screen, and the icon of each entry: Pokédex numbers. */
 const FACES = ['bulbasaur', 'charmander', 'squirtle']
-const ICONS: Record<HomeEntry, number> = { characters: 25, campaigns: 150, options: 137 }
+const ICONS: Record<HomeEntry, number> = { characters: 25, session: 81, campaigns: 150, options: 137 }
 
 /** The app's first screen: its name over three Pokémon, and the ways in. */
 export function Home({ pack, entries: shown, onOpen }: HomeProps) {
@@ -22,6 +22,7 @@ export function Home({ pack, entries: shown, onOpen }: HomeProps) {
   const text = messages.home
   const all: { id: HomeEntry; label: string; hint: string }[] = [
     { id: 'characters', label: text.characters, hint: text.charactersHint },
+    { id: 'session', label: text.session, hint: text.sessionHint },
     { id: 'campaigns', label: text.campaigns, hint: text.campaignsHint },
     { id: 'options', label: text.options, hint: text.optionsHint },
   ]
