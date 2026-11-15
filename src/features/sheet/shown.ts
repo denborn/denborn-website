@@ -6,6 +6,9 @@ import type { Messages } from '../../i18n/en.ts'
 import { encodeCharacterCode, qrForm } from '../../shared/codec/codes.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
 
+/** The Agony stacks a downed Pokémon starts with (Agony rule 1): how many its badge counts out of. */
+export const AGONY_STACKS = 3
+
 export interface SheetView {
   pack: DataPack
   character: CharacterDocument

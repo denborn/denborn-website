@@ -1275,6 +1275,11 @@
   color: var(--dn-text-muted);
 }
 
+/* Two columns set side by side to be compared: neither stands back. */
+.dn-figures--even td:not(:last-child) {
+  color: var(--dn-text);
+}
+
 /* A stat its nature raises or lowers, in the games' red and blue; its mark says so without the colour. */
 .dn-figures tr[data-trend='up'] th {
   color: var(--dn-hp-low);
@@ -1724,6 +1729,34 @@
   margin-top: calc(2 * var(--dn-u));
   font-size: calc(9 * var(--dn-t));
   color: var(--dn-label-gold);
+}
+
+/* The camera's picture on a top screen, with a frame to aim a QR code into. Denborn's own. */
+.dn-camera {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--dn-ink);
+}
+
+.dn-camera video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The frame: what lies outside it is dimmed, so the eye goes to the middle. */
+.dn-camera__frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(128 * var(--dn-u));
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: calc(2 * var(--dn-u)) solid var(--dn-select);
+  box-shadow: 0 0 0 calc(256 * var(--dn-u)) color-mix(in srgb, var(--dn-ink) 45%, transparent);
+  pointer-events: none;
 }
 
 /* The top screen of a character's sheet: the Pokémon on the left, its box and types on the right. */
