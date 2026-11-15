@@ -6,6 +6,7 @@ import type { Party } from '../../shared/protocol/session'
 import type { CampaignDocument } from '../../shared/schema/campaign'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { Note, Phone, usePack } from '../../ui/stories/board'
+import { sampleFord, sampleQuarry } from '../encounters/samples'
 import { HostScreen } from './HostScreen'
 import { JoinScreen } from './JoinScreen'
 import type { GuestState, Out } from './guest'
@@ -30,7 +31,8 @@ function heroes(pack: DataPack): CharacterDocument[] {
 }
 
 function campaign(pack: DataPack, characters: CharacterDocument[] = []): CampaignDocument {
-  return { kind: 'denborn.campaign', schemaVersion: 1, ...CAMPAIGN, revision: 4, dataPackVersion: pack.version, rulesHistory: [{ ...sampleRules(pack, 2, 2, 4), version: 1 }], characters, encounters: [] }
+  const rules = { ...sampleRules(pack, 2, 2, 4), version: 1 }
+  return { kind: 'denborn.campaign', schemaVersion: 1, ...CAMPAIGN, revision: 4, dataPackVersion: pack.version, rulesHistory: [rules], characters, encounters: [sampleQuarry(pack, rules), sampleFord(pack, rules)] }
 }
 
 interface HostArgs {
@@ -72,6 +74,7 @@ function Hosting({ line, party }: HostArgs) {
         onDecline={(peer) => setSession({ ...session, requests: session.requests.filter((entry) => entry.peer !== peer) })}
         onRemove={(peer) => setSession({ ...session, party: session.party.filter((member) => member.peer !== peer) })}
         onEnd={() => undefined}
+        onEncounter={() => undefined}
         onCopy={() => Promise.resolve(true)}
         onBack={() => undefined}
       />
@@ -142,8 +145,9 @@ export const Host: StoryObj<HostArgs> = {
         The game master hosting a session (decision 124). On the top screen: the join code in large letters to read out, its QR code, the
         campaign. Below: COPY THE LINK, then who is asking to come in and the party. The second request is a character the game master
         already has a copy of, which differs (decision 13): both copies, which is more recent, and the pick. A tap on a member opens REMOVE
-        FROM THE SESSION (decision 123). END THE SESSION asks first. Set <code>line</code> to see what is said when the connection is not
-        there.
+        FROM THE SESSION (decision 123). Under the party, the campaign’s encounters (decision 143): a tap opens one to prepare it, NEW
+        ENCOUNTER makes another, and both come back here; the way to launch one comes with the battle. END THE SESSION asks first. Set{' '}
+        <code>line</code> to see what is said when the connection is not there.
       </Note>
     </>
   ),

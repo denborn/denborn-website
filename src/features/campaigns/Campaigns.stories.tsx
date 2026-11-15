@@ -39,6 +39,7 @@ function Editor({ saved }: Args) {
         onSaveFile={() => undefined}
         onRemove={() => undefined}
         onHost={() => undefined}
+        onEncounters={() => undefined}
         onBack={() => undefined}
       />
     </Phone>
@@ -75,8 +76,10 @@ export const SavedCampaign: Story = {
     <>
       <Editor {...args} />
       <Note>
-        A saved campaign. Under its rules: the creation link as a QR code and as text, a button to copy it, and the campaign’s file. Change
-        a rule and the link gives way to “Changes not saved yet” until the rules are saved again, which makes the next version.
+        A saved campaign. Under its rules: HOST A SESSION, then ENCOUNTERS with how many are prepared (decision 143), the creation link as
+        a QR code and as text, a button to copy it, and the campaign’s file. While a session of the campaign is being hosted from this
+        device, the first button reads BACK TO THE SESSION with its code. Change a rule and all of it gives way to “Changes not saved yet”
+        until the rules are saved again, which makes the next version.
       </Note>
     </>
   ),

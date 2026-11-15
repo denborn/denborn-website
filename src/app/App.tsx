@@ -9,7 +9,7 @@ import { joinCodeIn } from '../shared/protocol/room-code'
 import { OptionButton, Screen } from '../ui'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CampaignPage, CampaignsPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
+import { CampaignPage, CampaignsPage, EncounterPage, EncountersPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
 
 /** Shown while the game data loads. */
 function Loading() {
@@ -142,6 +142,9 @@ const router = createBrowserRouter([
       { path: 'campaigns/:id', element: <CampaignPage /> },
       { path: 'campaigns/:id/remove', element: <RemoveCampaignPage /> },
       { path: 'campaigns/:id/session', element: <HostSessionPage /> },
+      { path: 'campaigns/:id/encounters', element: <EncountersPage /> },
+      { path: 'campaigns/:id/encounters/new', element: <EncounterPage /> },
+      { path: 'campaigns/:id/encounters/:encounterId', element: <EncounterPage /> },
       { path: 'session', element: <JoinSessionPage /> },
       { path: 'session/:code', element: <JoinSessionPage /> },
       { path: 'characters', element: <CharactersPage /> },

@@ -11,6 +11,20 @@ export interface EncounterListProps {
   onOpen: (id: string) => void
 }
 
+/** One encounter in a list: its name, how many enemies it has and their levels. A tap opens it. */
+export function EncounterRow({ encounter, onOpen }: { encounter: Encounter; onOpen: () => void }) {
+  const text = useMessages().encounters
+  const levels = encounter.enemies.map((enemy) => enemy.level)
+  return (
+    <Slot onClick={onOpen}>
+      <span className="dn-slot__text">
+        <span className="dn-text-shadow">{encounter.name}</span>
+        <span className="dn-note">{text.listEntry(encounter.enemies.length, Math.min(...levels), Math.max(...levels))}</span>
+      </span>
+    </Slot>
+  )
+}
+
 /** The encounters a game master prepared for a campaign. */
 export function EncounterList({ campaign, encounters, onBack, onNew, onOpen }: EncounterListProps) {
   const messages = useMessages()
@@ -29,19 +43,11 @@ export function EncounterList({ campaign, encounters, onBack, onNew, onOpen }: E
         <div className="dn-stack">
           {encounters.length === 0 && <p className="dn-note">{text.empty}</p>}
           <ul className="dn-list">
-            {encounters.map((encounter) => {
-              const levels = encounter.enemies.map((enemy) => enemy.level)
-              return (
-                <li key={encounter.id}>
-                  <Slot onClick={() => onOpen(encounter.id)}>
-                    <span className="dn-slot__text">
-                      <span className="dn-text-shadow">{encounter.name}</span>
-                      <span className="dn-note">{text.listEntry(encounter.enemies.length, Math.min(...levels), Math.max(...levels))}</span>
-                    </span>
-                  </Slot>
-                </li>
-              )
-            })}
+            {encounters.map((encounter) => (
+              <li key={encounter.id}>
+                <EncounterRow encounter={encounter} onOpen={() => onOpen(encounter.id)} />
+              </li>
+            ))}
           </ul>
         </div>
         <div className="dn-foot">

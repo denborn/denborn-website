@@ -168,6 +168,21 @@ describe('the party', () => {
   })
 })
 
+describe('the campaign changed on another screen while the session goes on (decision 143)', () => {
+  it('is played with from then on, with the copies of the characters the session holds, and nobody is told', () => {
+    const changed = campaign({ revision: 7, name: 'Renamed', rulesHistory: [testRules(), testRules({ version: 2, startingLevel: 30 })] })
+    const taken = play(withParty('ann'), { on: 'campaign', campaign: changed })
+    expect(taken.sent).toEqual([])
+    expect(taken.session.campaign).toMatchObject({ revision: 7, name: 'Renamed' })
+    expect(taken.session.campaign.characters.map((character) => character.id)).toEqual(['hero-ann'])
+    expect(taken.session.party).toMatchObject([{ peer: 'ann', present: true }])
+
+    // The next player is told the rules now in force.
+    const told = play(taken.session, from('bob', encodeMessage({ t: 'hello' })))
+    expect(told.sent).toMatchObject([{ to: ['bob'], message: { t: 'about', invitation: { campaign: { name: 'Renamed' }, rules: { version: 2 } } } }])
+  })
+})
+
 describe('a session taken up again (decision 122)', () => {
   const before = withParty('ann', 'bob')
   const remembered = before.party.map((member) => ({ peer: member.peer, character: member.character.id }))

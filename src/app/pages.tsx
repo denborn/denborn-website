@@ -3,7 +3,7 @@
  * and to what the device keeps. The screens themselves know neither.
  */
 import { useEffect, useRef, useState } from 'react'
-import { useBeforeUnload, useBlocker, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { usePack } from '../data/use-pack'
 import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
 import { CampaignList } from '../features/campaigns/CampaignList'
@@ -11,6 +11,9 @@ import { ImportCampaign } from '../features/campaigns/ImportCampaign'
 import { RemoveCampaign } from '../features/campaigns/RemoveCampaign'
 import { readIncomingCampaign } from '../features/campaigns/incoming-campaign'
 import { CharacterList } from '../features/characters/CharacterList'
+import { ENEMY_FIELDS, EncounterEditor, type EncounterView, type EnemyField } from '../features/encounters/EncounterEditor'
+import { EncounterList } from '../features/encounters/EncounterList'
+import { withEncounter, withoutEncounter } from '../features/encounters/encounter-draft'
 import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
 import { CreationFlow } from '../features/creation/CreationFlow'
 import { Home } from '../features/home/Home'
@@ -22,9 +25,7 @@ import { CharacterSheet } from '../features/sheet/CharacterSheet'
 import { HostScreen } from '../features/session/HostScreen'
 import { JoinScreen } from '../features/session/JoinScreen'
 import { GUEST_START, type GuestState } from '../features/session/guest'
-import { openSession } from '../features/session/host'
 import { type GuestRun, runGuest } from '../features/session/run-guest'
-import { type HostRun, type HostView, runHost } from '../features/session/run-host'
 import { PaperSheet } from '../features/sheet/PaperSheet'
 import { RemoveCharacter } from '../features/sheet/RemoveCharacter'
 import { SheetUnavailable } from '../features/sheet/SheetUnavailable'
@@ -39,8 +40,10 @@ import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
 import { OptionButton, Panel, Screen, StepHeader } from '../ui'
 import { copyText } from './clipboard'
+import { useHosting } from './hosting'
 import { useLibrary } from './library-store'
 import { sessionKeys } from './session-keys'
+import { useUnsavedGuard } from './unsaved-guard'
 import { useOffline } from './offline'
 import { usePageTitle } from './page-title'
 
@@ -155,18 +158,12 @@ export function CampaignPage() {
   const messages = useMessages()
   const { id } = useParams()
   const [search, setSearch] = useSearchParams()
-  const [unsaved, setUnsaved] = useState(false)
-  // Leaving the page with changes not saved asks first. Moving a campaign just saved to its own address is not leaving.
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) => unsaved && currentLocation.pathname !== nextLocation.pathname && !(nextLocation.state as { justSaved?: true } | null)?.justSaved,
-  )
-  // Closing the tab or reloading with changes not saved asks too, in the browser's own words.
-  useBeforeUnload((event) => {
-    if (unsaved) event.preventDefault()
-  })
+  const guard = useUnsavedGuard()
   const entry = id === undefined ? undefined : library.campaigns().find((stored) => stored.id === id)
   const campaign = entry?.read.ok ? entry.read.value : undefined
   const asked = search.get('rule')
+  // The code of the session of this campaign going on from this device, if there is one.
+  const hostedCode = useHosting((state) => (state.hosted && state.hosted.campaignId === id ? state.hosted.code : undefined))
   usePageTitle(campaign?.name ?? messages.campaigns.newTitle)
 
   const remove = (): void => void navigate(`/campaigns/${id ?? ''}/remove`)
@@ -191,7 +188,10 @@ export function CampaignPage() {
       newId={newId}
       onSave={(made) => {
         const kept = library.saveCampaign(made)
-        if (kept.ok && id === undefined) void navigate(`/campaigns/${made.id}`, { replace: true, state: { justSaved: true } })
+        if (!kept.ok) return kept
+        // Nothing is left to lose: moving a campaign just saved to its own address is not asked about.
+        guard.onUnsaved(false)
+        if (id === undefined) void navigate(`/campaigns/${made.id}`, { replace: true })
         return kept
       }}
       origin={window.location.origin}
@@ -199,75 +199,139 @@ export function CampaignPage() {
       onSaveFile={(kept) => saveToDevice(campaignFile(kept))}
       onRemove={remove}
       onHost={() => void navigate(`/campaigns/${id ?? ''}/session`)}
+      hosting={hostedCode}
+      onEncounters={() => void navigate(`/campaigns/${id ?? ''}/encounters`)}
       onBack={() => void navigate('/campaigns')}
-      onUnsaved={setUnsaved}
-      leaving={blocker.state === 'blocked' ? { stay: () => blocker.reset(), leave: () => blocker.proceed() } : undefined}
+      onUnsaved={guard.onUnsaved}
+      leaving={guard.leaving}
     />
   )
 }
 
-/** The game master hosting a session of a campaign: the page that keeps the line to the relay open. Leaving it leaves the players waiting; coming back takes the session up again (decision 122). */
+/** The game master hosting a session of a campaign. The session itself lives above the pages (hosting.ts): leaving this one does not leave the players (decision 143). */
 export function HostSessionPage() {
   const navigate = useNavigate()
   const pack = usePack()
   const library = useLibrary()
   const messages = useMessages()
   const { id } = useParams()
-  const run = useRef<HostRun>(undefined)
-  // The room this device hosts the campaign in: the one it had, or a new one, made once for this visit.
-  const [hosting] = useState(() => (id === undefined ? undefined : sessionKeys.hostingOf(id)))
-  const [view, setView] = useState<HostView>()
-  const [notKept, setNotKept] = useState<Extract<WriteResult, { ok: false }>['reason']>()
+  const hosting = useHosting()
   const entry = library.campaigns().find((stored) => stored.id === id)
   const campaign = entry?.read.ok ? entry.read.value : undefined
   usePageTitle(campaign?.name ?? messages.campaigns.title)
 
   useEffect(() => {
-    // Read once, when hosting starts: from then on the session itself holds the campaign and hands its changes over.
-    const kept = useLibrary.getState().campaigns().find((stored) => stored.id === id)
-    if (!hosting || !kept?.read.ok) return
-    const hosted = kept.read.value
-    const started = runHost({
-      campaign: hosted,
-      pack,
-      hosting,
-      origin: window.location.origin,
-      onChange: setView,
-      onCampaign: (changed) => {
-        const saved = useLibrary.getState().saveCampaign(changed)
-        setNotKept(saved.ok ? undefined : saved.reason)
-      },
-      onMembers: (members) => sessionKeys.keepMembers(hosted.id, members),
-    })
-    run.current = started
-    return () => {
-      started.stop()
-      run.current = undefined
-    }
-  }, [id, pack, hosting])
+    if (id !== undefined) useHosting.getState().start(id, pack)
+  }, [id, pack])
 
-  if (!campaign || !hosting || id === undefined) return <CampaignUnavailable message={messages.campaigns.missing} />
-  // Until the line first speaks: the session as this device remembers it, on its way to the relay.
-  const shown = view ?? { session: openSession(campaign, hosting.members), line: 'connecting' as const }
+  if (!campaign || id === undefined) return <CampaignUnavailable message={messages.campaigns.missing} />
+  const hosted = hosting.hosted?.campaignId === id ? hosting.hosted : undefined
+  // Hosting starts just after the page is first drawn.
+  if (!hosted) return null
+  const here = `/campaigns/${id}/session`
   return (
     <HostScreen
       pack={pack}
-      session={shown.session}
-      code={hosting.code}
+      session={hosted.view.session}
+      code={hosted.code}
       origin={window.location.origin}
-      line={shown.line}
-      notice={notKept ? messages.saving[notKept] : undefined}
-      onApprove={(peer, keep) => run.current?.approve(peer, keep)}
-      onDecline={(peer) => run.current?.decline(peer)}
-      onRemove={(peer) => run.current?.remove(peer)}
+      line={hosted.view.line}
+      notice={hosted.notKept ? messages.saving[hosted.notKept] : undefined}
+      // Preparing an encounter from the session comes back to the session.
+      onEncounter={(encounter) => void navigate(`/campaigns/${id}/encounters/${encounter ?? 'new'}`, { state: { back: here } })}
+      onApprove={hosting.approve}
+      onDecline={hosting.decline}
+      onRemove={hosting.remove}
       onEnd={() => {
-        run.current?.end()
-        // The room is given up: the next session of the campaign gets a new code.
-        sessionKeys.forgetHosting(id)
+        hosting.end()
         void navigate(`/campaigns/${id}`)
       }}
       onCopy={copyText}
       onBack={() => void navigate(`/campaigns/${id}`)}
+    />
+  )
+}
+
+/** The encounters prepared for a campaign. */
+export function EncountersPage() {
+  const navigate = useNavigate()
+  const library = useLibrary()
+  const messages = useMessages()
+  const { id } = useParams()
+  const entry = library.campaigns().find((stored) => stored.id === id)
+  const campaign = entry?.read.ok ? entry.read.value : undefined
+  usePageTitle(messages.encounters.title)
+  if (!campaign || id === undefined) return <CampaignUnavailable message={messages.campaigns.missing} />
+  return (
+    <EncounterList
+      campaign={campaign.name}
+      encounters={campaign.encounters}
+      onBack={() => void navigate(`/campaigns/${id}`)}
+      onNew={() => void navigate(`/campaigns/${id}/encounters/new`)}
+      onOpen={(encounter) => void navigate(`/campaigns/${id}/encounters/${encounter}`)}
+    />
+  )
+}
+
+const isEnemyField = (value: string | null): value is EnemyField => ENEMY_FIELDS.some((field) => field === value)
+
+/** How deep a view is in the encounter: its page, one of its parts, one thing of one enemy. */
+const depthOf = (view: EncounterView): number => (view.at === 'hub' ? 0 : view.at === 'enemy' && view.field ? 2 : 1)
+
+/** One encounter of a campaign: a new one at …/encounters/new, a kept one at …/encounters/<id>. What is open is in the address, so that Back closes it. */
+export function EncounterPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const pack = usePack()
+  const library = useLibrary()
+  const messages = useMessages()
+  const { id, encounterId } = useParams()
+  const [search, setSearch] = useSearchParams()
+  const guard = useUnsavedGuard()
+  const entry = library.campaigns().find((stored) => stored.id === id)
+  const campaign = entry?.read.ok ? entry.read.value : undefined
+  const rules = campaign?.rulesHistory.at(-1)
+  const encounter = campaign?.encounters.find((kept) => kept.id === encounterId)
+  usePageTitle(encounter?.name ?? messages.encounters.newTitle)
+  if (!campaign || !rules || id === undefined) return <CampaignUnavailable message={messages.campaigns.missing} />
+
+  const list = `/campaigns/${id}/encounters`
+  // Where the game master came from: the session being hosted, when the encounter was opened from it.
+  const back = (location.state as { back?: string } | null)?.back ?? list
+  const enemy = search.get('enemy')
+  const field = search.get('field')
+  const part = search.get('open')
+  const view: EncounterView = enemy ? { at: 'enemy', id: enemy, ...(isEnemyField(field) ? { field } : {}) } : part === 'name' || part === 'bag' ? { at: part } : { at: 'hub' }
+
+  return (
+    <EncounterEditor
+      // Another encounter is another page: what was being prepared is not carried over.
+      key={encounterId ?? 'new'}
+      pack={pack}
+      rules={rules}
+      encounter={encounter}
+      view={view}
+      onView={(next) => {
+        // Closing what is open goes back one page when this visit opened it; otherwise the address is set straight.
+        if (depthOf(next) < depthOf(view) && location.key !== 'default') void navigate(-1)
+        else setSearch(next.at === 'enemy' ? { enemy: next.id, ...(next.field ? { field: next.field } : {}) } : next.at === 'hub' ? {} : { open: next.at }, { replace: depthOf(next) < depthOf(view), state: location.state as unknown })
+      }}
+      newId={newId}
+      onSave={(made) => {
+        // Written into the campaign as the device keeps it now: a session going on may have added a character meanwhile.
+        const kept = library.saveCampaign(withEncounter(campaign, made))
+        if (!kept.ok) return kept
+        guard.onUnsaved(false)
+        if (encounterId === undefined) void navigate(`${list}/${made.id}`, { replace: true, state: { back } })
+        return kept
+      }}
+      onRemove={() => {
+        if (encounter) library.saveCampaign(withoutEncounter(campaign, encounter.id))
+        void navigate(back, { replace: true })
+      }}
+      onBack={() => void navigate(back)}
+      onUnsaved={guard.onUnsaved}
+      leaving={guard.leaving}
     />
   )
 }

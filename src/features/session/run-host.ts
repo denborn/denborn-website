@@ -29,8 +29,8 @@ export interface HostRunOptions {
   /** The site's address, where the relay lives. */
   origin: string
   onChange: (view: HostView) => void
-  /** The campaign changed: a character's copy joined it. To be kept. */
-  onCampaign: (campaign: CampaignDocument) => void
+  /** A character's copy joined the campaign: the copies to be kept in it, in the place of those it has. */
+  onCharacters: (characters: CampaignDocument['characters']) => void
   /** Who is in the party changed. To be remembered for the next visit. */
   onMembers: (members: Hosting['members']) => void
   /** Opens the line. The real one by default; a test passes its own. */
@@ -42,6 +42,8 @@ export interface HostRun {
   approve(peer: string, keep: 'theirs' | 'mine'): void
   decline(peer: string): void
   remove(peer: string): void
+  /** Takes in the campaign as the device now keeps it, after another screen changed it while the session went on. */
+  refresh(campaign: CampaignDocument): void
   /** Ends the session for everyone: the code stops working. */
   end(): void
   /** Leaves the hosting without ending it: players wait, and the session can be taken up again. */
@@ -67,7 +69,8 @@ export function runHost(options: HostRunOptions): HostRun {
     const step = hostStep(session, event, options.pack)
     session = step.session
     for (const { to, message } of step.send) link.send({ t: 'send', to, body: encodeMessage(message) })
-    if (session.campaign !== before.campaign) options.onCampaign(session.campaign)
+    // The copies of the characters are this session's to write; the rest of the campaign belongs to other screens.
+    if (event.on !== 'campaign' && session.campaign.characters !== before.campaign.characters) options.onCharacters(session.campaign.characters)
     if (JSON.stringify(membersOf(session)) !== JSON.stringify(membersOf(before))) options.onMembers(membersOf(session))
     options.onChange({ session, line })
   }
@@ -98,6 +101,7 @@ export function runHost(options: HostRunOptions): HostRun {
     approve: (peer, keep) => apply({ on: 'approve', peer, keep }),
     decline: (peer) => apply({ on: 'decline', peer }),
     remove: (peer) => apply({ on: 'remove', peer }),
+    refresh: (campaign) => apply({ on: 'campaign', campaign }),
     end: () => {
       // Said to the relay when it can be heard; either way this device hosts that room no more.
       link.send({ t: 'end' })

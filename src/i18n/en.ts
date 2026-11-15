@@ -324,6 +324,10 @@ export const en = {
   session: {
     host: {
       start: 'HOST A SESSION',
+      resume: (code: string) => `BACK TO THE SESSION (${code})`,
+      running: 'A session of this campaign is being hosted from this device. It goes on while you look at other screens.',
+      encounters: 'Encounters',
+      newEncounter: 'NEW ENCOUNTER',
       startHint: 'Players join with a code while you host. Their characters come into the campaign.',
       code: 'JOIN CODE',
       codeLabel: (code: string) => `Join code: ${code.split('').join(' ')}`,

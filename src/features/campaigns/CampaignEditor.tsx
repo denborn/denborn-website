@@ -34,6 +34,10 @@ export interface CampaignEditorProps {
   onRemove: () => void
   /** Opens the screen that hosts a session of the campaign. */
   onHost: () => void
+  /** The join code of the session of this campaign being hosted from this device, when there is one. */
+  hosting?: string | undefined
+  /** Opens the campaign's encounters (decision 143). */
+  onEncounters: () => void
   onBack: () => void
   /** Told whenever the page starts or stops holding changes not saved yet. */
   onUnsaved?: (unsaved: boolean) => void
@@ -52,7 +56,7 @@ const MOVE_ACCESS = ['level-up', 'level-up-tm-tutor-egg'] as const
  * of its rules when one changed. Once saved, its creation link and QR code
  * stand under the rules.
  */
-export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onRemove, onHost, onBack, onUnsaved, leaving }: CampaignEditorProps) {
+export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onRemove, onHost, hosting, onEncounters, onBack, onUnsaved, leaving }: CampaignEditorProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.campaigns
@@ -243,7 +247,7 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
                   {messages.saving[notKept]}
                 </p>
               )}
-              {campaign && !changed && <CampaignLink campaign={campaign} pack={pack} origin={origin} onCopy={onCopy} onSaveFile={() => onSaveFile(campaign)} onRemove={onRemove} onHost={onHost} />}
+              {campaign && !changed && <CampaignLink campaign={campaign} pack={pack} origin={origin} onCopy={onCopy} onSaveFile={() => onSaveFile(campaign)} onRemove={onRemove} onHost={onHost} hosting={hosting} onEncounters={onEncounters} />}
             </div>
             <div className="dn-foot">
               <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
@@ -266,10 +270,12 @@ interface CampaignLinkProps {
   onSaveFile: () => void
   onRemove: () => void
   onHost: () => void
+  hosting: string | undefined
+  onEncounters: () => void
 }
 
-/** Under the rules of a saved campaign: the way to host a session (decision 127), the link players make their characters from, as a QR code and as text, the campaign's file, and last the way to remove it. */
-function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile, onRemove, onHost }: CampaignLinkProps) {
+/** Under the rules of a saved campaign: the way to host a session (decision 127) and to its encounters (decision 143), the link players make their characters from, as a QR code and as text, the campaign's file, and last the way to remove it. */
+function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile, onRemove, onHost, hosting, onEncounters }: CampaignLinkProps) {
   const messages = useMessages()
   const text = messages.campaigns
   const [copied, setCopied] = useState<boolean>()
@@ -279,11 +285,15 @@ function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile, onRemove, on
   const link = `${origin}/#${code}`
   return (
     <>
-      <p className="dn-note">{messages.session.host.startHint}</p>
+      <p className="dn-note">{hosting ? messages.session.host.running : messages.session.host.startHint}</p>
       <div className="dn-row">
         <OptionButton primary onClick={onHost}>
-          {messages.session.host.start}
+          {hosting ? messages.session.host.resume(hosting) : messages.session.host.start}
         </OptionButton>
+      </div>
+      <p className="dn-note">{messages.encounters.entryHint(campaign.encounters.length)}</p>
+      <div className="dn-row">
+        <OptionButton onClick={onEncounters}>{messages.encounters.entry}</OptionButton>
       </div>
       <span className="dn-label">
         {text.link} · {text.version(rules.version)}

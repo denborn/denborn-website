@@ -318,6 +318,10 @@ export const fr: Messages = {
   session: {
     host: {
       start: 'OUVRIR UNE SESSION',
+      resume: (code) => `RETOUR À LA SESSION (${code})`,
+      running: 'Une session de cette campagne est ouverte depuis cet appareil. Elle continue pendant que vous regardez d’autres écrans.',
+      encounters: 'Rencontres',
+      newEncounter: 'NOUVELLE RENCONTRE',
       startHint: 'Les joueurs vous rejoignent avec un code pendant que vous l’ouvrez. Leurs personnages entrent dans la campagne.',
       code: 'CODE DE SESSION',
       codeLabel: (code) => `Code de session\u00a0: ${code.split('').join(' ')}`,

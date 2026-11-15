@@ -44,7 +44,7 @@ describe('a session being hosted', () => {
   function hosting(members: { peer: string; character: string }[] = [], kept = campaign) {
     const line = fakeLine()
     const views: HostView[] = []
-    const campaigns: CampaignDocument[] = []
+    const copies: CampaignDocument['characters'][] = []
     const remembered: unknown[] = []
     const run = runHost({
       campaign: kept,
@@ -52,11 +52,11 @@ describe('a session being hosted', () => {
       hosting: { code: 'ABCDEF', secret: 'host-secret-0123456789abcdef', members },
       origin: 'https://denborn.test',
       onChange: (view) => views.push(view),
-      onCampaign: (changed) => campaigns.push(changed),
+      onCharacters: (characters) => copies.push(characters),
       onMembers: (list) => remembered.push(list),
       open: line.open,
     })
-    return { line, views, campaigns, remembered, run }
+    return { line, views, copies, remembered, run }
   }
 
   it('claims its room with its secret, and is up once the relay says the room is its own', () => {
@@ -69,7 +69,7 @@ describe('a session being hosted', () => {
   })
 
   it('answers a player through the relay, and hands over what must be kept when the player is let in', () => {
-    const { line, run, campaigns, remembered } = hosting()
+    const { line, run, copies, remembered } = hosting()
     line.says({ t: 'hosting', peers: [] })
     line.says(fromPlayer({ t: 'ask', dataPackVersion: 'test-pack', character: newcomer() }))
     expect(line.sent).toEqual([{ t: 'send', to: [PEER], body: encodeMessage({ t: 'waiting' }) }])
@@ -77,7 +77,7 @@ describe('a session being hosted', () => {
 
     run.approve(PEER, 'theirs')
     expect(line.sent.at(-1)).toMatchObject({ t: 'send', to: [PEER], body: { t: 'party' } })
-    expect(campaigns.at(-1)?.characters.map((character) => character.id)).toEqual(['character-0001'])
+    expect(copies.at(-1)?.map((character) => character.id)).toEqual(['character-0001'])
     expect(remembered.at(-1)).toEqual([{ peer: PEER, character: 'character-0001' }])
   })
 
@@ -95,6 +95,14 @@ describe('a session being hosted', () => {
     expect(run.view()).toMatchObject({ line: 'down', session: { party: [{ present: false }] } })
     line.drops(CLOSED.replaced, false)
     expect(run.view().line).toBe('replaced')
+  })
+
+  it('takes in the campaign changed on another screen without handing it back as its own change', () => {
+    const { line, run, copies } = hosting()
+    line.says({ t: 'hosting', peers: [] })
+    run.refresh({ ...campaign, revision: 9, name: 'Renamed' })
+    expect(run.view().session.campaign).toMatchObject({ revision: 9, name: 'Renamed' })
+    expect(copies).toEqual([])
   })
 
   it('ends the session for everyone, and hosts that room no more', () => {

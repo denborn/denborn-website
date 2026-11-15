@@ -1,5 +1,5 @@
 import { type Page, devices, expect, test } from '@playwright/test'
-import { createPikachu, setCampaign } from './creating.ts'
+import { createPikachu, draftEncounter, setCampaign } from './creating.ts'
 
 /**
  * A game master hosting a campaign on one phone and a player with a character
@@ -105,6 +105,37 @@ test('a player with no character makes one from the join screen, and asks to com
   await gm.getByRole('group', { name: 'Volt' }).getByRole('button', { name: 'LET IN' }).click()
   await expect(player.getByText('Volt (you)')).toBeVisible()
   await expect(gm.getByText('Pikachu · Lv. 5 · here')).toBeVisible()
+})
+
+test('an encounter is prepared from the session being hosted, and the players stay in meanwhile (decision 143)', async ({ page: gm }) => {
+  const { player, code } = await table(gm)
+  await ask(player, code)
+  await gm.getByRole('group', { name: 'Volt' }).getByRole('button', { name: 'LET IN' }).click()
+  await expect(player.getByText('Volt (you)')).toBeVisible()
+
+  await gm.getByRole('button', { name: 'NEW ENCOUNTER' }).click()
+  await draftEncounter(gm, 'The quarry')
+  // The game master is on another screen, and still answers: a player's page that reloads comes straight back into the party.
+  await player.reload()
+  await expect(player.getByRole('heading', { name: 'In the session of Dawn Patrol' })).toBeVisible()
+  await expect(player.getByText('The game master is away.')).toBeHidden()
+
+  await gm.getByRole('button', { name: 'DONE' }).click()
+  await gm.getByRole('button', { name: 'SAVE THE ENCOUNTER' }).click()
+  // Back goes where the encounter was opened from: the session, as it was left, with the encounter in it.
+  await gm.getByRole('button', { name: 'BACK' }).click()
+  await expect(gm.locator('.dn-join__code')).toHaveText(code)
+  await expect(gm.getByText('Pikachu · Lv. 5 · here')).toBeVisible()
+  await expect(gm.getByRole('button', { name: /^The quarry/ })).toContainText('1 enemy · Lv. 5')
+
+  // The campaign's page leads back to the session going on rather than to a new one.
+  await gm.getByRole('button', { name: 'BACK' }).click()
+  await gm.getByRole('button', { name: `BACK TO THE SESSION (${code})` }).click()
+  await expect(gm.getByText('Party: 1 of 6')).toBeVisible()
+  // The character that joined is still in the campaign: saving the encounter did not write over it.
+  await gm.reload()
+  await expect(gm.getByText('Pikachu · Lv. 5 · here')).toBeVisible()
+  await expect(gm.getByRole('button', { name: /^The quarry/ })).toBeVisible()
 })
 
 test('a join link opens the join screen with its code, and a code that is none says so', async ({ page }) => {

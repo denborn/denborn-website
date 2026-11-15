@@ -5,6 +5,7 @@ import { useLanguage, useMessages } from '../../i18n'
 import { joinLink } from '../../shared/protocol/room-code'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { OptionButton, PokemonIcon, QrCode, Screen, Slot, StepHeader } from '../../ui'
+import { EncounterRow } from '../encounters/EncounterList'
 import type { HostSession, JoinRequest } from './host'
 import type { HostLine } from './run-host'
 
@@ -18,6 +19,8 @@ export interface HostScreenProps {
   line: HostLine
   /** Something to say above everything else, such as a character's copy that the device could not keep. */
   notice?: string | undefined
+  /** Opens one of the campaign's encounters, or a new one when no id is given (decision 143). */
+  onEncounter: (id: string | undefined) => void
   onApprove: (peer: string, keep: 'theirs' | 'mine') => void
   onDecline: (peer: string) => void
   onRemove: (peer: string) => void
@@ -30,9 +33,9 @@ export interface HostScreenProps {
 /**
  * The game master hosting a session (decision 124): the join code in large
  * letters with its QR code on the top screen, the link to copy, then who is
- * asking to come in and who is in.
+ * asking to come in, who is in, and the campaign's encounters (decision 143).
  */
-export function HostScreen({ pack, session, code, origin, line, notice, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
+export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.host
@@ -113,6 +116,18 @@ export function HostScreen({ pack, session, code, origin, line, notice, onApprov
               )}
             </div>
           ))}
+          <span className="dn-label">{text.encounters}</span>
+          {session.campaign.encounters.length === 0 && <p className="dn-note">{messages.encounters.empty}</p>}
+          <ul className="dn-list">
+            {session.campaign.encounters.map((encounter) => (
+              <li key={encounter.id}>
+                <EncounterRow encounter={encounter} onOpen={() => onEncounter(encounter.id)} />
+              </li>
+            ))}
+          </ul>
+          <div className="dn-row">
+            <OptionButton onClick={() => onEncounter(undefined)}>{text.newEncounter}</OptionButton>
+          </div>
           {ending && (
             <p className="dn-note dn-note--error" role="alert">
               {text.endQuestion}

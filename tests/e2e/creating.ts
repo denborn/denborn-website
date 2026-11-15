@@ -100,3 +100,31 @@ export async function setCampaign(page: Page, name: string): Promise<void> {
   await expect(page).toHaveURL(/\/campaigns\/[A-Za-z0-9_-]{16}$/)
   await expect(page.getByText('Creation link · Rules version 1')).toBeVisible()
 }
+
+/**
+ * On the page of a new encounter: names it and gives it one enemy, a Pikachu,
+ * with the fewest choices that let the encounter be saved. Ends on that
+ * enemy's page, nothing saved yet.
+ */
+export async function draftEncounter(page: Page, name: string): Promise<void> {
+  const done = page.getByRole('button', { name: 'DONE' })
+  await page.getByRole('button', { name: /^Name/ }).click()
+  await page.getByRole('textbox', { name: 'Name' }).fill(name)
+  await done.click()
+
+  await page.getByRole('button', { name: 'ADD AN ENEMY' }).click()
+  // Its Pokémon comes first: the rest opens once it is chosen.
+  await expect(page.getByRole('button', { name: /^Moves/ })).toBeHidden()
+  await page.getByRole('button', { name: /^Pokémon/ }).click()
+  await page.getByRole('searchbox').fill('pika')
+  await page.getByRole('button', { name: /Pikachu/ }).click()
+  await done.click()
+  await page.getByRole('button', { name: /^Name, gender/ }).click()
+  await page.getByRole('button', { name: /^Female/ }).click()
+  await page.getByRole('button', { name: /^Jolly/ }).click()
+  await page.getByRole('button', { name: /^Static/ }).click()
+  await done.click()
+  await page.getByRole('button', { name: /^Moves/ }).click()
+  await page.getByRole('button', { name: /^Thunder Shock/ }).click()
+  await done.click()
+}

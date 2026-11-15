@@ -57,6 +57,8 @@ export type HostEvent =
   | { on: 'remove'; peer: string }
   /** The game master's own line to the relay dropped: nobody can be reached until it is back. */
   | { on: 'offline' }
+  /** The campaign as the device now keeps it: its rules or its encounters were changed on another screen while the session went on. */
+  | { on: 'campaign'; campaign: CampaignDocument }
 
 export interface HostStep {
   session: HostSession
@@ -117,6 +119,9 @@ export function hostStep(session: HostSession, event: HostEvent, pack: DataPack)
       if (!member?.present) return { session: { ...session, requests }, send: [] }
       return changed({ ...session, requests, party: session.party.map((entry) => (entry === member ? { ...entry, present: false } : entry)) })
     }
+    case 'campaign':
+      // The copies of the characters are the session's own to write: one the device could not keep is still played with.
+      return { session: { ...session, campaign: { ...event.campaign, characters: session.campaign.characters } }, send: [] }
     case 'offline':
       // Requests and presences were true of a line that is gone: every device says its piece again when it is back.
       return { session: { ...session, requests: [], party: session.party.map((member) => ({ ...member, present: false })) }, send: [] }
