@@ -5,7 +5,7 @@ import { openSessionKeys } from './session-keys'
 
 /** Bytes that are never the same twice, without being random: every byte asked for, in this visit or another, counts on from the last. */
 let nextByte = 0
-const counting = (bytes: Uint8Array): Uint8Array => bytes.map(() => nextByte++ % 256)
+const counting = (length: number): Uint8Array => Uint8Array.from({ length }, () => nextByte++ % 256)
 
 const keys = (storage: KeyValue = memoryStorage()) => openSessionKeys(storage, counting)
 
@@ -41,26 +41,36 @@ describe('a game master’s hold on a room', () => {
 })
 
 describe('a player’s place in a room', () => {
-  it('is the same on return with the same character, so the game master sees the same player', () => {
+  it('is the same on every return to the room, whichever character is brought, so the game master sees one player', () => {
     const storage = memoryStorage()
-    const first = keys(storage).takeSeat('ABCDEF', 'character-0001')
-    expect(keys(storage).seatAt('ABCDEF')).toEqual(first)
-    expect(keys(storage).takeSeat('ABCDEF', 'character-0001')).toEqual(first)
+    const first = keys(storage).seatAt('ABCDEF')
+    expect(first.token).toMatch(/^[A-Za-z0-9_-]{22,64}$/)
+    expect(keys(storage).bring('ABCDEF', 'character-0001')).toEqual({ token: first.token, character: 'character-0001' })
+    expect(keys(storage).seatAt('ABCDEF')).toEqual({ token: first.token, character: 'character-0001' })
+    expect(keys(storage).bring('ABCDEF', 'character-0002').token).toBe(first.token)
+    // No character chosen any more, the same place still.
+    expect(keys(storage).bring('ABCDEF', undefined)).toEqual({ token: first.token })
   })
 
-  it('is another place with another character, and in another room', () => {
+  it('is another place in another room, and a new one once forgotten', () => {
     const device = keys()
-    const first = device.takeSeat('ABCDEF', 'character-0001')
-    expect(device.takeSeat('ABCDEF', 'character-0002').token).not.toBe(first.token)
-    expect(device.seatAt('ABCDEF')).toMatchObject({ character: 'character-0002' })
-    expect(device.seatAt('GHJKMN')).toBeUndefined()
-  })
-
-  it('is forgotten once the player is out for good', () => {
-    const device = keys()
-    device.takeSeat('ABCDEF', 'character-0001')
+    const first = device.seatAt('ABCDEF')
+    expect(device.seatAt('GHJKMN').token).not.toBe(first.token)
     device.forgetSeat('ABCDEF')
-    expect(device.seatAt('ABCDEF')).toBeUndefined()
+    expect(device.seatAt('ABCDEF').token).not.toBe(first.token)
+  })
+})
+
+describe('the party a game master’s device remembers', () => {
+  it('comes back with the room on the next visit, and goes with it when the session is ended', () => {
+    const storage = memoryStorage()
+    const first = keys(storage).hostingOf('campaign-0001')
+    expect(first.members).toEqual([])
+    const members = [{ peer: '0123456789abcdef', character: 'character-0001' }]
+    keys(storage).keepMembers('campaign-0001', members)
+    expect(keys(storage).hostingOf('campaign-0001')).toEqual({ ...first, members })
+    keys(storage).forgetHosting('campaign-0001')
+    expect(keys(storage).hostingOf('campaign-0001').members).toEqual([])
   })
 })
 
@@ -69,6 +79,6 @@ describe('a storage that refuses to keep anything', () => {
     const refusing: KeyValue = { ...memoryStorage(), setItem: () => { throw new Error('refused') } }
     const device = keys(refusing)
     expect(isValidRoomCode(device.hostingOf('campaign-0001').code)).toBe(true)
-    expect(device.takeSeat('ABCDEF', 'character-0001').token).toMatch(/^[A-Za-z0-9_-]{22,64}$/)
+    expect(device.seatAt('ABCDEF').token).toMatch(/^[A-Za-z0-9_-]{22,64}$/)
   })
 })

@@ -55,6 +55,8 @@ export type HostEvent =
   | { on: 'decline'; peer: string }
   /** The game master takes a member out of the session (decision 123). */
   | { on: 'remove'; peer: string }
+  /** The game master's own line to the relay dropped: nobody can be reached until it is back. */
+  | { on: 'offline' }
 
 export interface HostStep {
   session: HostSession
@@ -62,9 +64,17 @@ export interface HostStep {
   send: { to: string[]; message: HostMessage }[]
 }
 
-/** A session that starts with nobody in it. */
-export function openSession(campaign: CampaignDocument): HostSession {
-  return { campaign, revision: 0, requests: [], party: [] }
+/**
+ * A session as it starts or is taken up again: with the members the game
+ * master's device remembers, each with the campaign's copy of its character
+ * and counted away until its device speaks (decision 122).
+ */
+export function openSession(campaign: CampaignDocument, remembered: readonly { peer: string; character: string }[] = []): HostSession {
+  const party = remembered.flatMap(({ peer, character: id }): Member[] => {
+    const character = campaign.characters.find((copy) => copy.id === id)
+    return character ? [{ peer, character, present: false }] : []
+  })
+  return { campaign, revision: 0, requests: [], party: party.slice(0, PARTY_MAX) }
 }
 
 /** A character as it travels and as the campaign keeps it: without the rules a player's device kept with it. */
@@ -107,6 +117,9 @@ export function hostStep(session: HostSession, event: HostEvent, pack: DataPack)
       if (!member?.present) return { session: { ...session, requests }, send: [] }
       return changed({ ...session, requests, party: session.party.map((entry) => (entry === member ? { ...entry, present: false } : entry)) })
     }
+    case 'offline':
+      // Requests and presences were true of a line that is gone: every device says its piece again when it is back.
+      return { session: { ...session, requests: [], party: session.party.map((member) => ({ ...member, present: false })) }, send: [] }
     case 'message':
       return heard(session, event.from, event.body, pack)
     case 'approve': {

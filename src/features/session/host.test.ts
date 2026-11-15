@@ -164,3 +164,25 @@ describe('the party', () => {
     expect(left.sent.map((entry) => entry.to)).toEqual([['bob']])
   })
 })
+
+describe('a session taken up again (decision 122)', () => {
+  const before = withParty('ann', 'bob')
+  const remembered = before.party.map((member) => ({ peer: member.peer, character: member.character.id }))
+
+  it('starts with the members the device remembers, each away until its device speaks', () => {
+    const again = openSession(before.campaign, [...remembered, { peer: 'gone', character: 'hero-nobody' }])
+    expect(again.party).toMatchObject([{ peer: 'ann', present: false, character: { id: 'hero-ann' } }, { peer: 'bob', present: false }])
+    // A member that says "I am back" is in at once: the game master is not asked again.
+    const back = play(again, from('ann', asks(hero('hero-ann'))))
+    expect(back.session.requests).toEqual([])
+    expect(back.session.party).toMatchObject([{ present: true }, { present: false }])
+  })
+
+  it('counts everyone away, and forgets the requests, when the game master’s own line drops', () => {
+    const waiting = play(before, from('cid', asks(hero('hero-cid')))).session
+    const dropped = play(waiting, { on: 'offline' })
+    expect(dropped.session.party.map((member) => member.present)).toEqual([false, false])
+    expect(dropped.session.requests).toEqual([])
+    expect(dropped.sent).toEqual([])
+  })
+})

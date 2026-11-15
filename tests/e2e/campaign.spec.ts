@@ -1,37 +1,5 @@
-import { type Page, expect, test } from '@playwright/test'
-import { createPikachu } from './creating.ts'
-
-/** From the home, sets a campaign with the fewest choices that let it be saved, and saves it. */
-async function setCampaign(page: Page, name: string): Promise<void> {
-  const done = page.getByRole('button', { name: 'DONE' })
-  const save = page.getByRole('button', { name: 'SAVE THE RULES' })
-  await page.goto('/')
-  await page.getByRole('button', { name: /CAMPAIGNS/ }).click()
-  await page.getByRole('button', { name: 'NEW' }).click()
-  // Natures and moves have no default, and a pack is needed: nothing can be saved yet.
-  await expect(save).toBeDisabled()
-
-  await page.getByRole('button', { name: /^Name/ }).click()
-  await page.getByRole('textbox', { name: 'Name' }).fill(name)
-  await done.click()
-  await page.getByRole('button', { name: /^Natures/ }).click()
-  await page.getByRole('button', { name: /^Each player chooses/ }).click()
-  await done.click()
-  await page.getByRole('button', { name: /^Moves/ }).click()
-  await page.getByRole('button', { name: /^Level-up only/ }).click()
-  await done.click()
-  await page.getByRole('button', { name: /^Item packs/ }).click()
-  await page.getByRole('button', { name: 'ADD A PACK' }).click()
-  await page.getByRole('textbox', { name: 'Name of the pack' }).fill('Field kit')
-  await page.getByRole('searchbox', { name: 'Add an item' }).fill('potion')
-  await page.getByRole('button', { name: /^Potion/ }).click()
-  await done.click()
-
-  await save.click()
-  // A saved campaign has an address of its own.
-  await expect(page).toHaveURL(/\/campaigns\/[A-Za-z0-9_-]{16}$/)
-  await expect(page.getByText('Creation link · Rules version 1')).toBeVisible()
-}
+import { expect, test } from '@playwright/test'
+import { createPikachu, setCampaign } from './creating.ts'
 
 test('a campaign set by its game master gives a creation link that makes a character', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])

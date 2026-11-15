@@ -6,9 +6,7 @@ import { joinLink } from '../../shared/protocol/room-code'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { OptionButton, PokemonIcon, QrCode, Screen, Slot, StepHeader } from '../../ui'
 import type { HostSession, JoinRequest } from './host'
-
-/** How the game master's line to the relay stands: on its way, there, dropped and coming back, or over and why. */
-export type HostLine = 'connecting' | 'up' | 'down' | 'replaced' | 'notHost' | 'update' | 'ended'
+import type { HostLine } from './run-host'
 
 export interface HostScreenProps {
   pack: DataPack
@@ -18,6 +16,8 @@ export interface HostScreenProps {
   /** The app's address, for the join link. */
   origin: string
   line: HostLine
+  /** Something to say above everything else, such as a character's copy that the device could not keep. */
+  notice?: string | undefined
   onApprove: (peer: string, keep: 'theirs' | 'mine') => void
   onDecline: (peer: string) => void
   onRemove: (peer: string) => void
@@ -32,7 +32,7 @@ export interface HostScreenProps {
  * letters with its QR code on the top screen, the link to copy, then who is
  * asking to come in and who is in.
  */
-export function HostScreen({ pack, session, code, origin, line, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
+export function HostScreen({ pack, session, code, origin, line, notice, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.host
@@ -67,6 +67,11 @@ export function HostScreen({ pack, session, code, origin, line, onApprove, onDec
       <Screen kind="menu" label={session.campaign.name} tall>
         <StepHeader title={session.campaign.name} />
         <div className="dn-stack">
+          {notice && (
+            <p className="dn-note dn-note--error" role="alert">
+              {notice}
+            </p>
+          )}
           {line !== 'up' && (
             <p className={line === 'connecting' || line === 'down' ? 'dn-note' : 'dn-note dn-note--error'} role="status">
               {text.line[line]}

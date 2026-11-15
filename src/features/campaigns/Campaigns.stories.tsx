@@ -38,6 +38,7 @@ function Editor({ saved }: Args) {
         onCopy={() => Promise.resolve(true)}
         onSaveFile={() => undefined}
         onRemove={() => undefined}
+        onHost={() => undefined}
         onBack={() => undefined}
       />
     </Phone>

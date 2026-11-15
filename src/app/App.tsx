@@ -5,10 +5,11 @@ import { usePack } from '../data/use-pack'
 import { useMessages } from '../i18n'
 import { useOfflineStatus } from '../pwa/use-offline-status'
 import { decodeCreationCode } from '../shared/codec/codes'
+import { joinCodeIn } from '../shared/protocol/room-code'
 import { OptionButton, Screen } from '../ui'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CampaignPage, CampaignsPage, ImportCampaignPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
+import { CampaignPage, CampaignsPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
 
 /** Shown while the game data loads. */
 function Loading() {
@@ -56,8 +57,9 @@ class LoadBoundary extends Component<{ children: ReactNode }, { failed: boolean 
 }
 
 /**
- * A link to the app carries its code after a "#": a creation link, or a
- * character's own. On arrival, and whenever the address changes to one, a
+ * A link to the app carries its code after a "#": a creation link, a
+ * character's own, or a session's join link. On arrival, and whenever the
+ * address changes to one, a join link opens the join screen; a
  * creation link's campaign is kept on this device and its creation opens; a
  * character's link opens the import screen, which shows the character before
  * anything is kept. The code is then taken out of the address, so that a
@@ -73,6 +75,11 @@ function IncomingLink() {
       const code = window.location.hash.slice(1)
       if (/^dnc\d/i.test(code)) {
         void navigate('/characters/import', { replace: true, state: { code } })
+        return
+      }
+      if (/^dnj\d/i.test(code)) {
+        // A session's join link (decision 124): the join screen opens with the code filled in, or empty when the link holds none.
+        void navigate(`/session/${joinCodeIn(code) ?? ''}`, { replace: true })
         return
       }
       if (!/^dnr\d/i.test(code)) return
@@ -134,6 +141,9 @@ const router = createBrowserRouter([
       { path: 'campaigns/import', element: <ImportCampaignPage /> },
       { path: 'campaigns/:id', element: <CampaignPage /> },
       { path: 'campaigns/:id/remove', element: <RemoveCampaignPage /> },
+      { path: 'campaigns/:id/session', element: <HostSessionPage /> },
+      { path: 'session', element: <JoinSessionPage /> },
+      { path: 'session/:code', element: <JoinSessionPage /> },
       { path: 'characters', element: <CharactersPage /> },
       { path: 'characters/new', element: <NewCharacterPage /> },
       { path: 'characters/new/:campaignId', element: <CreateCharacterPage /> },

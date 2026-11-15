@@ -2,7 +2,7 @@
  * The app's pages: each one ties a screen (src/features) to the address bar
  * and to what the device keeps. The screens themselves know neither.
  */
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useBeforeUnload, useBlocker, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { usePack } from '../data/use-pack'
 import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
@@ -19,12 +19,19 @@ import { QrCamera } from '../features/import/QrCamera'
 import { type Device, readIncomingCode, readIncomingFile } from '../features/import/incoming'
 import { Options } from '../features/options/Options'
 import { CharacterSheet } from '../features/sheet/CharacterSheet'
+import { HostScreen } from '../features/session/HostScreen'
+import { JoinScreen } from '../features/session/JoinScreen'
+import { GUEST_START, type GuestState } from '../features/session/guest'
+import { openSession } from '../features/session/host'
+import { type GuestRun, runGuest } from '../features/session/run-guest'
+import { type HostRun, type HostView, runHost } from '../features/session/run-host'
 import { PaperSheet } from '../features/sheet/PaperSheet'
 import { RemoveCharacter } from '../features/sheet/RemoveCharacter'
 import { SheetUnavailable } from '../features/sheet/SheetUnavailable'
 import { sheetToShow } from '../features/sheet/open-sheet'
 import { useLanguage, useMessages } from '../i18n'
 import { decodeCreationCode } from '../shared/codec/codes'
+import { joinCodeIn } from '../shared/protocol/room-code'
 import type { CharacterDocument } from '../shared/schema/character'
 import { saveToDevice, textOfPickedFile } from '../storage/browser'
 import { campaignFile, characterFile, storedCampaignFile, storedCharacterFile } from '../storage/files'
@@ -33,13 +40,14 @@ import type { WriteResult } from '../storage/library'
 import { OptionButton, Panel, Screen, StepHeader } from '../ui'
 import { copyText } from './clipboard'
 import { useLibrary } from './library-store'
+import { sessionKeys } from './session-keys'
 import { useOffline } from './offline'
 import { usePageTitle } from './page-title'
 
 export function HomePage() {
   const navigate = useNavigate()
   usePageTitle(undefined)
-  return <Home pack={usePack()} entries={['characters', 'campaigns', 'options']} onOpen={(entry) => void navigate(`/${entry}`)} />
+  return <Home pack={usePack()} entries={['characters', 'session', 'campaigns', 'options']} onOpen={(entry) => void navigate(`/${entry}`)} />
 }
 
 export function CampaignsPage() {
@@ -190,9 +198,138 @@ export function CampaignPage() {
       onCopy={copyText}
       onSaveFile={(kept) => saveToDevice(campaignFile(kept))}
       onRemove={remove}
+      onHost={() => void navigate(`/campaigns/${id ?? ''}/session`)}
       onBack={() => void navigate('/campaigns')}
       onUnsaved={setUnsaved}
       leaving={blocker.state === 'blocked' ? { stay: () => blocker.reset(), leave: () => blocker.proceed() } : undefined}
+    />
+  )
+}
+
+/** The game master hosting a session of a campaign: the page that keeps the line to the relay open. Leaving it leaves the players waiting; coming back takes the session up again (decision 122). */
+export function HostSessionPage() {
+  const navigate = useNavigate()
+  const pack = usePack()
+  const library = useLibrary()
+  const messages = useMessages()
+  const { id } = useParams()
+  const run = useRef<HostRun>(undefined)
+  // The room this device hosts the campaign in: the one it had, or a new one, made once for this visit.
+  const [hosting] = useState(() => (id === undefined ? undefined : sessionKeys.hostingOf(id)))
+  const [view, setView] = useState<HostView>()
+  const [notKept, setNotKept] = useState<Extract<WriteResult, { ok: false }>['reason']>()
+  const entry = library.campaigns().find((stored) => stored.id === id)
+  const campaign = entry?.read.ok ? entry.read.value : undefined
+  usePageTitle(campaign?.name ?? messages.campaigns.title)
+
+  useEffect(() => {
+    // Read once, when hosting starts: from then on the session itself holds the campaign and hands its changes over.
+    const kept = useLibrary.getState().campaigns().find((stored) => stored.id === id)
+    if (!hosting || !kept?.read.ok) return
+    const hosted = kept.read.value
+    const started = runHost({
+      campaign: hosted,
+      pack,
+      hosting,
+      origin: window.location.origin,
+      onChange: setView,
+      onCampaign: (changed) => {
+        const saved = useLibrary.getState().saveCampaign(changed)
+        setNotKept(saved.ok ? undefined : saved.reason)
+      },
+      onMembers: (members) => sessionKeys.keepMembers(hosted.id, members),
+    })
+    run.current = started
+    return () => {
+      started.stop()
+      run.current = undefined
+    }
+  }, [id, pack, hosting])
+
+  if (!campaign || !hosting || id === undefined) return <CampaignUnavailable message={messages.campaigns.missing} />
+  // Until the line first speaks: the session as this device remembers it, on its way to the relay.
+  const shown = view ?? { session: openSession(campaign, hosting.members), line: 'connecting' as const }
+  return (
+    <HostScreen
+      pack={pack}
+      session={shown.session}
+      code={hosting.code}
+      origin={window.location.origin}
+      line={shown.line}
+      notice={notKept ? messages.saving[notKept] : undefined}
+      onApprove={(peer, keep) => run.current?.approve(peer, keep)}
+      onDecline={(peer) => run.current?.decline(peer)}
+      onRemove={(peer) => run.current?.remove(peer)}
+      onEnd={() => {
+        run.current?.end()
+        // The room is given up: the next session of the campaign gets a new code.
+        sessionKeys.forgetHosting(id)
+        void navigate(`/campaigns/${id}`)
+      }}
+      onCopy={copyText}
+      onBack={() => void navigate(`/campaigns/${id}`)}
+    />
+  )
+}
+
+/** A player joining a session and being in it: the code at /session, the session itself at /session/<code>, so that a reload comes back to it. */
+export function JoinSessionPage() {
+  const navigate = useNavigate()
+  const pack = usePack()
+  const library = useLibrary()
+  const { code: given } = useParams()
+  const code = given !== undefined ? joinCodeIn(given) : undefined
+  const run = useRef<GuestRun>(undefined)
+  /** One more each time the player tries again with the same code. */
+  const [attempt, setAttempt] = useState(0)
+  const visit = `${code ?? ''}#${attempt}`
+  /** Where the player stands, with the visit it is true of: what a former visit left is not shown for the next. */
+  const [stand, setStand] = useState<{ visit: string; state: GuestState }>()
+  usePageTitle(useMessages().session.join.title)
+
+  useEffect(() => {
+    if (!code) return
+    const seat = sessionKeys.seatAt(code)
+    const kept = useLibrary.getState().characters().find((stored) => stored.id === seat.character)
+    const started = runGuest({
+      code,
+      origin: window.location.origin,
+      token: seat.token,
+      dataPackVersion: pack.version,
+      character: kept?.read.ok ? kept.read.value : undefined,
+      onChange: (next) => {
+        setStand({ visit, state: next })
+        if (next.at !== 'out') return
+        // Out with nothing to come back to: the place is given up. Refused or removed: the place stays, the character is to choose again.
+        if (next.why === 'ended' || next.why === 'noSession' || next.why === 'left') sessionKeys.forgetSeat(code)
+        else if (next.why === 'refused' || next.why === 'removed') sessionKeys.bring(code, undefined)
+      },
+      // The copy the game master's side gave back is the one that counts (decision 13): it takes the place of the device's.
+      onKeep: (copy) => void useLibrary.getState().saveCharacter(copy),
+    })
+    run.current = started
+    return () => {
+      started.stop()
+      run.current = undefined
+    }
+  }, [code, pack, visit])
+
+  return (
+    <JoinScreen
+      // A code in the address that is no join code is shown as typed, for the player to correct.
+      key={given ?? 'code'}
+      pack={pack}
+      code={given}
+      state={code ? (stand?.visit === visit ? stand.state : GUEST_START) : undefined}
+      characters={library.characters().flatMap((stored) => (stored.read.ok ? [stored.read.value] : []))}
+      onCode={(typed) => void navigate(`/session/${typed}`)}
+      onChoose={(character) => {
+        if (code) sessionKeys.bring(code, character.id)
+        run.current?.choose(character)
+      }}
+      onLeave={() => run.current?.leave()}
+      onAgain={() => setAttempt(attempt + 1)}
+      onBack={() => void navigate('/')}
     />
   )
 }

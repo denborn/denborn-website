@@ -1,8 +1,8 @@
 /**
  * What a device keeps to find its place in a live session again (decision
- * 122): for a game master, the room's code and the secret that makes the
- * room theirs; for a player, the token that makes them the same player to
- * the game master, and the character they brought.
+ * 122): for a game master, the room's code, the secret that makes the room
+ * theirs, and who is in the party; for a player, the token that makes them
+ * the same player to the game master, and the character they brought.
  *
  * These never leave the device except towards the relay. Like everything in
  * the browser's storage they are a convenience: a device that lost them hosts
@@ -19,10 +19,14 @@ const SEATS = 'denborn/seat/'
 
 /** 32 random bytes written in 43 letters and digits: far too many to guess. */
 const SECRET_BYTES = 32
+/** The random bytes a room code is made from. */
+const ROOM_CODE_BYTES = 5
 const secret = z.string().regex(/^[A-Za-z0-9_-]{22,64}$/)
 
-const hosting = z.object({ code: z.string().refine(isValidRoomCode), secret })
-const seat = z.object({ token: secret, character: documentId })
+/** A member of the party as the game master's device remembers it: the player's device and the character it brought. */
+const member = z.object({ peer: z.string().regex(/^[0-9a-f]{16}$/), character: documentId })
+const hosting = z.object({ code: z.string().refine(isValidRoomCode), secret, members: z.array(member).max(32).default([]) })
+const seat = z.object({ token: secret, character: documentId.optional() })
 
 /** A game master's hold on a room. */
 export type Hosting = z.infer<typeof hosting>
@@ -32,19 +36,21 @@ export type Seat = z.infer<typeof seat>
 export interface SessionKeys {
   /** The room a campaign is hosted in from this device: the one it had, or a new one. */
   hostingOf(campaignId: string): Hosting
+  /** Remembers who is in the party, so that a game master whose page reloads finds everyone again. */
+  keepMembers(campaignId: string, members: Hosting['members']): void
   /** Forgets a campaign's room, once its session is ended: the next one gets a new code. */
   forgetHosting(campaignId: string): void
-  /** The place a device has in a room, if it has one. */
-  seatAt(code: string): Seat | undefined
-  /** The place a device takes in a room with a character: the one it had with that character, or a new one. */
-  takeSeat(code: string, character: string): Seat
+  /** The place a device has in a room: the one it had, or a new one. One place per room, whichever character it brings (decision 119). */
+  seatAt(code: string): Seat
+  /** Remembers the character brought, or that none is chosen any more. */
+  bring(code: string, character: string | undefined): Seat
   /** Forgets a place, once the player is out of the session for good. */
   forgetSeat(code: string): void
 }
 
-/** `random` fills an array with random bytes: `crypto.getRandomValues` in a browser. */
-export function openSessionKeys(storage: KeyValue, random: (bytes: Uint8Array) => Uint8Array): SessionKeys {
-  const newSecret = (): string => toBase64Url(random(new Uint8Array(SECRET_BYTES)))
+/** `random` gives that many random bytes: from `crypto.getRandomValues` in a browser. */
+export function openSessionKeys(storage: KeyValue, random: (length: number) => Uint8Array): SessionKeys {
+  const newSecret = (): string => toBase64Url(random(SECRET_BYTES))
 
   /** What is kept under a key, when it is still what it should be. */
   function kept<T>(key: string, schema: z.ZodType<T>): T | undefined {
@@ -67,15 +73,16 @@ export function openSessionKeys(storage: KeyValue, random: (bytes: Uint8Array) =
     return value
   }
 
+  const hostingOf = (campaignId: string): Hosting =>
+    kept(HOSTING + campaignId, hosting) ?? keep(HOSTING + campaignId, { code: makeRoomCode(random(ROOM_CODE_BYTES)), secret: newSecret(), members: [] })
+  const seatAt = (code: string): Seat => kept(SEATS + code, seat) ?? keep(SEATS + code, { token: newSecret() })
+
   return {
-    hostingOf: (campaignId) => kept(HOSTING + campaignId, hosting) ?? keep(HOSTING + campaignId, { code: makeRoomCode(random(new Uint8Array(5))), secret: newSecret() }),
+    hostingOf,
+    keepMembers: (campaignId, members) => void keep(HOSTING + campaignId, { ...hostingOf(campaignId), members }),
     forgetHosting: (campaignId) => storage.removeItem(HOSTING + campaignId),
-    seatAt: (code) => kept(SEATS + code, seat),
-    takeSeat: (code, character) => {
-      const before = kept(SEATS + code, seat)
-      // Another character is another player to the game master: one character per device (decision 119).
-      return before?.character === character ? before : keep(SEATS + code, { token: newSecret(), character })
-    },
+    seatAt,
+    bring: (code, character) => keep(SEATS + code, { token: seatAt(code).token, ...(character ? { character } : {}) }),
     forgetSeat: (code) => storage.removeItem(SEATS + code),
   }
 }
