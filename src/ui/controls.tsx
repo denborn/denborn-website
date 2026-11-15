@@ -88,10 +88,10 @@ export function CommandMenu({ labels, disabled = [], onCommand, children }: Comm
   )
 }
 
-/** A small tile hanging from the top right corner of the touch screen, beside the ball. */
-export function CornerButton({ children, ...rest }: ButtonProps) {
+/** A small tile hanging from a top corner of the touch screen, beside the ball: the right corner unless told `left`. */
+export function CornerButton({ children, side = 'right', ...rest }: ButtonProps & { side?: 'left' | 'right' }) {
   return (
-    <button type="button" className="dn-command dn-command--corner" {...rest}>
+    <button type="button" className={`dn-command dn-command--corner${side === 'left' ? ' dn-command--corner-left' : ''}`} {...rest}>
       <span className="dn-command__label">{children}</span>
     </button>
   )

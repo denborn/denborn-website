@@ -780,7 +780,8 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: 1fr auto calc(50 * var(--dn-u));
+  /* The bar is 50 wide when there is room, and gives way to a status badge with the mark of effects beside it. */
+  grid-template-columns: 1fr auto minmax(calc(30 * var(--dn-u)), calc(50 * var(--dn-u)));
   align-items: center;
   gap: calc(1 * var(--dn-u)) calc(3 * var(--dn-u));
   min-height: calc(10 * var(--dn-u));
@@ -842,7 +843,6 @@
   display: flex;
   align-items: center;
   gap: calc(2 * var(--dn-u));
-  min-width: 0;
 }
 
 /* A downed Pokémon's Agony badge, in the place of the HP label and bar. */
@@ -2026,4 +2026,327 @@
     animation-duration: 0ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* --- The battle on a phone (milestone 6) ------------------------------------- */
+/* The scene: one foe upper right, one ally lower left, each with its box, and the message band (decision 88). */
+.dn-scene__spot {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.dn-scene__spot--foe {
+  left: calc(208 * var(--dn-u));
+  bottom: calc(104 * var(--dn-u));
+}
+
+.dn-scene__spot--ally {
+  left: calc(52 * var(--dn-u));
+  bottom: calc(40 * var(--dn-u));
+}
+
+.dn-scene__box {
+  --dn-hud-width: calc(104 * var(--dn-u));
+  position: absolute;
+}
+
+.dn-scene__box--foe {
+  left: 0;
+  top: calc(2 * var(--dn-u));
+}
+
+.dn-scene__box--ally {
+  right: 0;
+  bottom: calc(48 * var(--dn-u));
+}
+
+.dn-scene__message {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* WAIT hangs from the top left corner as BATTLEFIELD does from the right. Denborn's own (decision 137). */
+.dn-command--corner-left {
+  right: auto;
+  left: calc(2 * var(--dn-u));
+}
+
+/* The party's order, down the left of the ball (decision 135). Denborn's own. A tap opens the party's list. */
+.dn-order {
+  position: absolute;
+  top: calc(37 * var(--dn-u));
+  left: calc(2 * var(--dn-u));
+  display: grid;
+  justify-items: start;
+  gap: calc(1 * var(--dn-u));
+  width: calc(46 * var(--dn-u));
+  padding: calc(1 * var(--dn-u)) calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+.dn-order__title {
+  color: var(--dn-label-gold);
+}
+
+.dn-order__entry {
+  display: flex;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  height: calc(15 * var(--dn-u));
+}
+
+.dn-order__entry--mine .dn-order__rank {
+  box-shadow: 0 calc(2 * var(--dn-u)) 0 var(--dn-label-gold);
+}
+
+/* A Pokémon whose action is locked: a small tick, drawn. */
+.dn-tick {
+  flex: none;
+  width: calc(3 * var(--dn-u));
+  height: calc(6 * var(--dn-u));
+  margin: 0 calc(2 * var(--dn-u)) calc(2 * var(--dn-u));
+  border: solid var(--dn-slot-ok-band);
+  border-width: 0 calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0;
+  transform: rotate(45deg);
+}
+
+/* The round's timer, down the right of the ball. Denborn's own. */
+.dn-timer {
+  position: absolute;
+  top: calc(37 * var(--dn-u));
+  right: calc(2 * var(--dn-u));
+  display: grid;
+  justify-items: end;
+  width: calc(46 * var(--dn-u));
+  padding: calc(1 * var(--dn-u)) calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  color: var(--dn-text-muted);
+}
+
+.dn-timer__clock {
+  font-size: calc(16 * var(--dn-t));
+  line-height: calc(15 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+.dn-timer--low .dn-timer__clock {
+  color: var(--dn-hp-low);
+}
+
+/* In a row of text: the same clock, small. */
+.dn-timer--inline {
+  position: static;
+  display: inline-flex;
+  gap: calc(3 * var(--dn-u));
+  width: auto;
+  padding: 0;
+}
+
+.dn-timer--inline .dn-timer__clock {
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+/* A list that fills the touch screen under a line of title, over a row of buttons: the party, the bag, a Pokémon's moves. */
+.dn-roster {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: calc(2 * var(--dn-u));
+  padding: calc(3 * var(--dn-u)) calc(4 * var(--dn-u)) calc(2 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+}
+
+.dn-roster__title {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(4 * var(--dn-u));
+  margin: 0;
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-label-gold);
+}
+
+.dn-roster__list {
+  display: grid;
+  align-content: start;
+  gap: calc(2 * var(--dn-u));
+  margin: 0;
+  padding: 0 calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.dn-roster__row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 calc(4 * var(--dn-u));
+  width: 100%;
+  min-height: calc(22 * var(--dn-u));
+  padding: calc(1 * var(--dn-u)) calc(5 * var(--dn-u));
+  text-align: left;
+  color: var(--dn-text);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  box-shadow: calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-panel-edge);
+  background-image: conic-gradient(var(--dn-panel-2) 25%, var(--dn-panel) 0 50%, var(--dn-panel-2) 0 75%, var(--dn-panel) 0);
+  background-size: calc(2 * var(--dn-u)) calc(2 * var(--dn-u));
+  background-size: round(up, calc(2 * var(--dn-u)), 2px) round(up, calc(2 * var(--dn-u)), 2px);
+}
+
+button.dn-roster__row {
+  min-height: max(calc(22 * var(--dn-u)), var(--dn-target));
+}
+
+button.dn-roster__row:active:not(:disabled) {
+  transform: translateY(calc(1 * var(--dn-u)));
+  filter: brightness(1.25);
+}
+
+.dn-roster__row--mine {
+  border-color: var(--dn-label-gold);
+}
+
+.dn-roster__rank {
+  color: var(--dn-label-gold);
+}
+
+.dn-roster__text {
+  display: grid;
+  line-height: calc(10 * var(--dn-u));
+  min-width: 0;
+}
+
+.dn-roster__text > :last-child:not(:first-child) {
+  color: var(--dn-text-muted);
+}
+
+.dn-roster__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: calc(4 * var(--dn-u));
+  padding: 0 calc(2 * var(--dn-u));
+}
+
+/* A question that takes the whole touch screen: an ally's ask, with its two answers. */
+.dn-ask {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: calc(10 * var(--dn-u));
+  padding: calc(10 * var(--dn-u));
+  text-align: center;
+}
+
+.dn-ask__text {
+  margin: 0;
+  line-height: calc(13 * var(--dn-u));
+}
+
+.dn-ask__answers {
+  display: flex;
+  gap: calc(8 * var(--dn-u));
+}
+
+/* What is being asked, written between the two lines of the plan. */
+.dn-field__hint {
+  margin: 0;
+  padding: 0 calc(6 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  text-align: center;
+  color: var(--dn-text);
+}
+
+/* A Pokémon's sheet during a fight, on the touch screen: its box, types, stats with their stages, Ability, item and moves. */
+.dn-card {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: calc(2 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u)) calc(2 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+}
+
+.dn-card__head {
+  --dn-hud-width: calc(112 * var(--dn-u));
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+}
+
+.dn-card__types {
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+  padding-top: calc(2 * var(--dn-u));
+}
+
+.dn-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(1 * var(--dn-u)) calc(8 * var(--dn-u));
+  margin: 0;
+}
+
+.dn-card__stats > div {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(4 * var(--dn-u));
+  line-height: calc(11 * var(--dn-u));
+  white-space: nowrap;
+}
+
+.dn-card__stats dt {
+  color: var(--dn-text-muted);
+}
+
+.dn-card__stats dd {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dn-card__wide {
+  grid-column: 1 / -1;
+}
+
+.dn-card__stage {
+  color: var(--dn-label-gold);
+}
+
+.dn-card__moves {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-auto-rows: min-content;
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dn-card__moves li {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(3 * var(--dn-u));
+  padding: 0 calc(4 * var(--dn-u));
+  line-height: calc(12 * var(--dn-u));
+  white-space: nowrap;
+  overflow: hidden;
+  background: var(--dn-type-fill);
+  border: calc(1 * var(--dn-u)) solid var(--dn-type-shade);
+  text-shadow: calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-type-shade);
+}
+
+.dn-card__back {
+  justify-self: end;
 }

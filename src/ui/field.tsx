@@ -86,6 +86,10 @@ export interface FieldTile {
   outOfReach?: boolean
   /** True when it carries stat changes or effects of its own; its spoken label should say so. */
   changed?: boolean
+  /** True when it cannot be picked right now: while a target or an ally is being chosen, those that are not offered. */
+  disabled?: boolean
+  /** For the slot a dead Pokémon left: true when the place itself can be picked, to move into it. */
+  open?: boolean
   /** Spoken description: letter, name, HP and whatever else is worth saying. */
   label: string
 }
@@ -119,14 +123,21 @@ export function FieldPlan({ foes, allies, shown = [], onSelect, labels, ground, 
       <div className="dn-field__tiles">
         {tiles.map((tile) =>
           tile.state === 'gone' ? (
-            <span key={tile.id} className="dn-tile dn-tile--gone" />
+            tile.open ? (
+              <button key={tile.id} type="button" className="dn-tile dn-tile--gone" aria-label={tile.label} onClick={() => onSelect(tile.id)}>
+                <span className="dn-tile__letter">{tile.letter}</span>
+              </button>
+            ) : (
+              <span key={tile.id} className="dn-tile dn-tile--gone" />
+            )
           ) : (
             <button
               key={tile.id}
               type="button"
-              className={`dn-tile${tile.state === 'downed' ? ' dn-tile--down' : ''}${tile.outOfReach ? ' dn-tile--far' : ''}`}
+              className={`dn-tile${tile.state === 'downed' ? ' dn-tile--down' : ''}${tile.outOfReach || tile.disabled ? ' dn-tile--far' : ''}`}
               aria-pressed={shown.includes(tile.id)}
               aria-label={tile.label}
+              disabled={tile.disabled}
               onClick={() => onSelect(tile.id)}
             >
               <span className={`dn-tile__letter${tile.mine ? ' dn-tile__letter--mine' : ''}`}>{tile.letter}</span>
