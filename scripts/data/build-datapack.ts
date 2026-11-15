@@ -28,7 +28,10 @@ const accept = process.argv.includes('--accept')
 const report = process.argv.includes('--report')
 
 const { pack, problems, notes, lock } = await buildDataPack()
-const { battleText, problems: textProblems } = await buildBattleText(await ensureBattleText())
+const heldItems = Object.values(pack.items)
+  .filter((item) => item.holdable)
+  .map((item) => item.id)
+const { battleText, problems: textProblems } = await buildBattleText(await ensureBattleText(), heldItems)
 problems.push(...textProblems)
 if (problems.length) {
   console.error(`The data pack cannot be built. ${problems.length} problem(s):`)

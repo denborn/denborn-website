@@ -93,7 +93,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
 
   // The round that was just played is told step by step before its result shows (decision 91). A fight that
   // is met in its course is shown as it stands; one that begins tells what happened as the Pokémon entered.
-  const script = useMemo(() => roundScript(fight.last), [fight.last])
+  const script = useMemo(() => roundScript(fight.last, (key) => battleText.messages[key]?.[language]), [fight.last, battleText, language])
   const [told, setTold] = useState(() => ({ round: fight.last.round, steps: fight.last.round === 0 ? 0 : Number.MAX_SAFE_INTEGER }))
   const toldSteps = told.round === fight.last.round ? told.steps : 0
   const playing = toldSteps < script.steps.length

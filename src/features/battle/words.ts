@@ -78,5 +78,8 @@ export function tellingOf(wording: Wording, battleText: BattleText): Telling {
     nameOf: wording.nameOf,
     moveName: (id) => moveName(id, wording),
     itemName: (id) => wording.pack.items[id]?.name[wording.language] ?? id,
+    abilityName: (id) => wording.pack.abilities[id]?.name[wording.language] ?? id,
+    typeName: (id) => wording.pack.types[id]?.name[wording.language] ?? id,
+    itemGrammar: (id) => battleText.itemGrammar[id],
   }
 }

@@ -79,6 +79,14 @@ describe('locking a round', () => {
     expect(game.battle.combatant('foe').hp).toBeLessThan(game.battle.combatant('foe').maxHp)
   })
 
+  it('keeps the weather each round began under, which the line that ends a weather does not name', () => {
+    const game = table([player('ann', 'Machamp', ['raindance'])], [enemy('foe', 'Chansey', ['tackle'])])
+    game.locks('ann', { do: 'move', move: 'raindance' })
+    expect(game.gmLocks('foe', splash).played?.weather).toBeUndefined()
+    game.locks('ann', splash)
+    expect(game.gmLocks('foe', splash).played?.weather).toBe('raindance')
+  })
+
   it('lets a locked action be taken back and changed until then', () => {
     const game = pair()
     game.locks('ann', tackle('foe'))

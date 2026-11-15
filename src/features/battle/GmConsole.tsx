@@ -320,7 +320,7 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
   const timer = table.timer
   /** The last round, in the words the players were told it with. */
   const telling = tellingOf(wording, battleText)
-  const played = roundScript(table.last).steps.flatMap((step) => (step.said ? (sentence(step.said, telling) ?? []) : []))
+  const played = roundScript(table.last, telling.official).steps.flatMap((step) => (step.said ? (sentence(step.said, telling) ?? []) : []))
   /** Everything in effect: the weather, the terrain, each side's conditions, what sits on a Pokémon. */
   const effects = effectsOf(table.field, fighters, effectWords(wording, battleText))
   const order = table.order.flatMap((id) => byId(id) ?? []).map((fighter, index) => `${index + 1} ${fighter.name}`)

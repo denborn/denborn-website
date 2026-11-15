@@ -116,6 +116,8 @@ const playedRound = z.object({
   events: z.array(denbornEvent).max(600),
   /** Everyone as they stood when the round began. */
   before: z.array(combatant).max(2 * LINE_MAX),
+  /** The weather the round began under. */
+  weather: engineWord.optional(),
 })
 
 /** The fight as every player of the party is shown it (features/battle/fight.ts, FightView). */

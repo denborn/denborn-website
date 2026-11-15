@@ -88,6 +88,8 @@ export interface PlayedRound {
   events: DenbornEvent[]
   /** Everyone as they stood when the round began: where its playback starts from. */
   before: CombatantView[]
+  /** The weather the round began under, by the engine's id: the line that ends a weather does not name it. */
+  weather?: string
 }
 
 export interface Fight {
@@ -425,6 +427,7 @@ function played(fight: Fight, context: FightContext): FightStep {
   }
 
   const before = engine.combatants()
+  const weather = engine.field().weather?.id
   let result: RoundResult
   try {
     result = engine.resolveRound({ actions, extraMoves })
@@ -442,7 +445,7 @@ function played(fight: Fight, context: FightContext): FightStep {
     else bags = { ...bags, [event.user]: oneLess(bags[event.user] ?? [], event.item) }
   }
 
-  const last: PlayedRound = { round: fight.round, log: named(result.log, engine), events: result.events, before }
+  const last: PlayedRound = { round: fight.round, log: named(result.log, engine), events: result.events, before, ...(weather ? { weather } : {}) }
   const next: Fight = {
     ...fight,
     round: engine.round,
