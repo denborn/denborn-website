@@ -48,7 +48,7 @@ const preview: Preview = {
   initialGlobals: { locale: 'en' },
   parameters: {
     layout: 'fullscreen',
-    options: { storySort: { order: ['Screens', 'Scenes', 'Foundations', 'Components'] } },
+    options: { storySort: { order: ['To decide', 'Screens', 'Scenes', 'Foundations', 'Components'] } },
   },
 }
 

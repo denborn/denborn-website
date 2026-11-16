@@ -2043,6 +2043,258 @@
   }
 }
 
+/* --- The title screen (decisions 202 to 207) ------------------------------------- */
+/* The scene stands on its own pixels (the meadow's), one of which is --dn-title-px: the component sets the world's place and size
+   in whole device pixels, and every layer is drawn on that grid. Each step of the intro adds a class that stays: is-lit (the light
+   has risen), is-dark (the plain is dark), is-named, is-storm. The steps change opacity and transform only. */
+.dn-title-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.dn-title-scene__world {
+  position: absolute;
+}
+
+.dn-title-scene__world > * {
+  position: absolute;
+}
+
+.dn-title-scene__plain {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+.dn-title-scene__art,
+.dn-title-scene__light {
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* The night: a veil over the plain, then one over each layer of stones, cut to their shape, so that the light between them stays
+   bright. */
+.dn-title-scene__night {
+  inset: 0;
+  background: var(--dn-title-night);
+  opacity: 0;
+  transition: opacity var(--dn-title-darken) linear;
+}
+
+.dn-title-scene__night--masked {
+  inset: auto;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+}
+
+.is-dark .dn-title-scene__night {
+  opacity: 1;
+}
+
+/* The light rises out of the pit: the whole of it, its fade in squares leading, climbs from behind the rocks in front, one row of
+   the scene at a time and at an even pace; its squares and streaks keep moving all the while. */
+.dn-title-scene__shaft {
+  overflow: hidden;
+}
+
+.dn-title-scene__light {
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat-x;
+  transform: translateY(var(--dn-title-rise-run));
+  transition: transform var(--dn-title-rise) steps(var(--dn-title-light-rows));
+  animation: dn-title-light var(--dn-title-light-loop) steps(8) infinite;
+}
+
+@keyframes dn-title-light {
+  to {
+    background-position-x: var(--dn-title-light-run);
+  }
+}
+
+.is-lit .dn-title-scene__light {
+  transform: none;
+}
+
+/* What the light changes comes with it: pink on the rocks turned to it, and on the ground around, which it brightens rather
+   than paints over, so that the plain's grass still shows through. */
+.dn-title-scene__glow {
+  opacity: 0;
+  transition: opacity var(--dn-title-rise) linear;
+}
+
+.dn-title-scene__glow--ground {
+  mix-blend-mode: screen;
+}
+
+.is-lit .dn-title-scene__glow {
+  opacity: 1;
+}
+
+/* A bolt shows at full strength, then goes; the flash over the whole scene, the title included, lights it red. */
+.dn-title-scene__bolt {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: dn-title-bolt calc(var(--dn-title-flash) * 1.5) linear forwards;
+}
+
+.dn-title-scene__bolt-edge {
+  fill: var(--dn-title-bolt);
+}
+
+.dn-title-scene__bolt-core {
+  fill: var(--dn-title-bolt-core);
+}
+
+@keyframes dn-title-bolt {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.dn-title-scene__flash {
+  position: absolute;
+  inset: 0;
+  background: var(--dn-title-lightning);
+  mix-blend-mode: screen;
+  opacity: 0;
+  pointer-events: none;
+  animation: dn-title-flash var(--dn-title-flash) linear forwards;
+}
+
+@keyframes dn-title-flash {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.6;
+  }
+  45% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Rain: a tile of streaks, one pixel wide and leaning as they fall, cut out of a colour. Each layer is a tile larger than the
+   scene above and to the right, and moves by one tile, four rows down for each column left, so that its loop does not show. */
+.dn-title-scene__rain {
+  top: calc(-128 * var(--dn-title-px));
+  left: 0;
+  width: calc(100% + 32 * var(--dn-title-px));
+  height: calc(100% + 128 * var(--dn-title-px));
+  background: var(--dn-title-rain);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 128' shape-rendering='crispEdges'%3E%3Crect x='5' y='4' width='1' height='4'/%3E%3Crect x='4' y='8' width='1' height='4'/%3E%3Crect x='3' y='12' width='1' height='4'/%3E%3Crect x='21' y='18' width='1' height='4'/%3E%3Crect x='20' y='22' width='1' height='4'/%3E%3Crect x='19' y='26' width='1' height='4'/%3E%3Crect x='13' y='42' width='1' height='4'/%3E%3Crect x='12' y='46' width='1' height='4'/%3E%3Crect x='11' y='50' width='1' height='4'/%3E%3Crect x='29' y='55' width='1' height='4'/%3E%3Crect x='28' y='59' width='1' height='4'/%3E%3Crect x='27' y='63' width='1' height='4'/%3E%3Crect x='8' y='79' width='1' height='4'/%3E%3Crect x='7' y='83' width='1' height='4'/%3E%3Crect x='6' y='87' width='1' height='4'/%3E%3Crect x='24' y='92' width='1' height='4'/%3E%3Crect x='23' y='96' width='1' height='4'/%3E%3Crect x='22' y='100' width='1' height='4'/%3E%3Crect x='16' y='104' width='1' height='4'/%3E%3Crect x='15' y='108' width='1' height='4'/%3E%3Crect x='14' y='112' width='1' height='4'/%3E%3Crect x='31' y='114' width='1' height='4'/%3E%3Crect x='30' y='118' width='1' height='4'/%3E%3Crect x='29' y='122' width='1' height='4'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 128' shape-rendering='crispEdges'%3E%3Crect x='5' y='4' width='1' height='4'/%3E%3Crect x='4' y='8' width='1' height='4'/%3E%3Crect x='3' y='12' width='1' height='4'/%3E%3Crect x='21' y='18' width='1' height='4'/%3E%3Crect x='20' y='22' width='1' height='4'/%3E%3Crect x='19' y='26' width='1' height='4'/%3E%3Crect x='13' y='42' width='1' height='4'/%3E%3Crect x='12' y='46' width='1' height='4'/%3E%3Crect x='11' y='50' width='1' height='4'/%3E%3Crect x='29' y='55' width='1' height='4'/%3E%3Crect x='28' y='59' width='1' height='4'/%3E%3Crect x='27' y='63' width='1' height='4'/%3E%3Crect x='8' y='79' width='1' height='4'/%3E%3Crect x='7' y='83' width='1' height='4'/%3E%3Crect x='6' y='87' width='1' height='4'/%3E%3Crect x='24' y='92' width='1' height='4'/%3E%3Crect x='23' y='96' width='1' height='4'/%3E%3Crect x='22' y='100' width='1' height='4'/%3E%3Crect x='16' y='104' width='1' height='4'/%3E%3Crect x='15' y='108' width='1' height='4'/%3E%3Crect x='14' y='112' width='1' height='4'/%3E%3Crect x='31' y='114' width='1' height='4'/%3E%3Crect x='30' y='118' width='1' height='4'/%3E%3Crect x='29' y='122' width='1' height='4'/%3E%3C/svg%3E");
+  mask-size: calc(32 * var(--dn-title-px)) calc(128 * var(--dn-title-px));
+  -webkit-mask-size: calc(32 * var(--dn-title-px)) calc(128 * var(--dn-title-px));
+  opacity: 0;
+  transition: opacity var(--dn-slow) linear;
+  animation: dn-title-rain var(--dn-title-rain-fall) steps(32) infinite;
+}
+
+.dn-title-scene__rain--far {
+  background: var(--dn-title-rain-far);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 128' shape-rendering='crispEdges'%3E%3Crect x='10' y='10' width='1' height='4'/%3E%3Crect x='9' y='14' width='1' height='4'/%3E%3Crect x='26' y='33' width='1' height='4'/%3E%3Crect x='25' y='37' width='1' height='4'/%3E%3Crect x='3' y='60' width='1' height='4'/%3E%3Crect x='2' y='64' width='1' height='4'/%3E%3Crect x='19' y='71' width='1' height='4'/%3E%3Crect x='18' y='75' width='1' height='4'/%3E%3Crect x='12' y='96' width='1' height='4'/%3E%3Crect x='11' y='100' width='1' height='4'/%3E%3Crect x='28' y='113' width='1' height='4'/%3E%3Crect x='27' y='117' width='1' height='4'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 128' shape-rendering='crispEdges'%3E%3Crect x='10' y='10' width='1' height='4'/%3E%3Crect x='9' y='14' width='1' height='4'/%3E%3Crect x='26' y='33' width='1' height='4'/%3E%3Crect x='25' y='37' width='1' height='4'/%3E%3Crect x='3' y='60' width='1' height='4'/%3E%3Crect x='2' y='64' width='1' height='4'/%3E%3Crect x='19' y='71' width='1' height='4'/%3E%3Crect x='18' y='75' width='1' height='4'/%3E%3Crect x='12' y='96' width='1' height='4'/%3E%3Crect x='11' y='100' width='1' height='4'/%3E%3Crect x='28' y='113' width='1' height='4'/%3E%3Crect x='27' y='117' width='1' height='4'/%3E%3C/svg%3E");
+  animation-duration: calc(var(--dn-title-rain-fall) * 2);
+}
+
+@keyframes dn-title-rain {
+  to {
+    transform: translate(calc(-32 * var(--dn-title-px)), calc(128 * var(--dn-title-px)));
+  }
+}
+
+.is-storm .dn-title-scene__rain {
+  opacity: 1;
+}
+
+/* The name, a little above the middle of the screen, placed on the screen and not on the scene: the scene's crop never hides it. */
+.dn-title-scene__name {
+  position: absolute;
+  top: calc(44 * var(--dn-u));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--dn-title-name) linear;
+}
+
+.is-named .dn-title-scene__name {
+  opacity: 1;
+}
+
+/* Still (the Options' switch, or reduced motion): the rain hangs and the light holds its first frame. */
+.dn-title-scene--still .dn-title-scene__light,
+.dn-title-scene--still .dn-title-scene__rain {
+  animation: none;
+}
+
+/* TOUCH TO START (decision 205): the whole black bottom screen is one button. Its words are there from the start, for whoever reads
+   them out, and show once the storm has come, blinking slowly (under one blink a second). Its focus ring is drawn inside it: the
+   screen cuts off what is outside. */
+.dn-start {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dn-text);
+  font: inherit;
+  font-size: calc(14 * var(--dn-t));
+  letter-spacing: calc(1 * var(--dn-u));
+  cursor: pointer;
+}
+
+.dn-root .dn-start:focus-visible {
+  outline-offset: calc(-3 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-start__words {
+  opacity: 0;
+  transition: opacity var(--dn-slow) linear;
+}
+
+.dn-start--shown .dn-start__words {
+  opacity: 1;
+  animation: dn-start-blink var(--dn-title-blink) infinite;
+}
+
+.dn-start--still .dn-start__words {
+  animation: none;
+}
+
+/* On, then off; it ends on, which is where reduced motion leaves it. */
+@keyframes dn-start-blink {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  61%,
+  99% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* MissingNo. in the place of a Pokémon seen from behind: the same picture, turned the other way. */
 .dn-sprite--mirrored {
   transform: scaleX(-1);

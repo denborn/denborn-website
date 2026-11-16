@@ -1,7 +1,8 @@
 /**
  * Where each piece of artwork is served from. Every path comes from the data
- * pack and the sprite lock (data-sources/sprites.lock.json); nothing is
- * guessed from a name.
+ * pack, the sprite lock (data-sources/sprites.lock.json), the backdrop lock
+ * (data-sources/backdrops.lock.json) or the app's own pictures in public/;
+ * nothing is guessed from a name.
  */
 import type { ItemIcon, SpeciesData } from './types'
 
@@ -43,6 +44,61 @@ export function battleSpriteUrl(
  * pixels; the first is the still icon.
  */
 export const APP_EMBLEM = { url: '/icon-frames.png', side: 32, frames: 8 } as const
+
+/** Where a picture stands in the title screen's scene, in the scene's own pixels. */
+export interface ScenePlacement {
+  url: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+/**
+ * The title screen's plain (decision 204): Showdown's meadow, served at three
+ * times and a bit its own size; `width` and `height` are its own pixels, which
+ * the scene takes it back to.
+ */
+export const TITLE_PLAIN = { url: `${ROOT}/fx/bg-meadow.png`, width: 238, height: 158 } as const
+
+/** The plain's pixel at the top left corner of the den's drawing: far enough from the plain's edges for every phone to show the den in its middle. */
+const DEN_AT = { x: 42, y: -3 }
+
+/** A picture of the den: `left` and `top` are where it starts in the den's drawing. */
+function denPicture(url: string, left: number, top: number, width: number, height: number): ScenePlacement {
+  return { url, x: DEN_AT.x + left, y: DEN_AT.y + top, width, height }
+}
+
+/**
+ * The den on the title screen (decisions 202 and 210): a ring of flat rocks
+ * round a pit, drawn on the plain's pixels and in its manner by
+ * `scripts/assets/draw-den.ts`, which checks these numbers against its
+ * drawing. It comes in layers, which the screen lights and darkens apart:
+ * the rocks behind the light with the pit, and those in front of it, as they
+ * are by day (`back`, `front`); what the light changes on each (`backGlow`,
+ * `frontGlow`) and on the ground around (`spill`). Where a rock's foot stands
+ * in grass, the pictures leave the plain to show.
+ *
+ * The light is a strip of `frames` frames side by side, each `width` wide and
+ * `height` tall. Its top fades in squares, so it is hung from the top row the
+ * screen shows and runs down to `foot`, the row where the rocks in front hide
+ * its end; `height` is enough for the tallest screen. The columns `left` to
+ * `right` are where it shines. `middle` is the middle of the ring, on the
+ * ground: the column kept in the screen's middle, and where lightning strikes
+ * the den.
+ */
+export const TITLE_DEN = {
+  spill: denPicture('/den-spill.svg', -16, 92, 160, 70),
+  back: denPicture('/den-back.svg', 0, 100, 128, 60),
+  backGlow: denPicture('/den-back-glow.svg', 0, 100, 128, 60),
+  front: denPicture('/den-front.svg', 0, 100, 128, 60),
+  frontGlow: denPicture('/den-front-glow.svg', 0, 100, 128, 60),
+  light: { url: '/den-light.svg', x: DEN_AT.x + 37, width: 54, height: 135, frames: 8, left: DEN_AT.x + 44, right: DEN_AT.x + 84, foot: DEN_AT.y + 127 },
+  middle: { x: DEN_AT.x + 64, y: DEN_AT.y + 121 },
+} as const satisfies Record<'spill' | 'back' | 'backGlow' | 'front' | 'frontGlow', ScenePlacement> & {
+  light: { url: string; x: number; width: number; height: number; frames: number; left: number; right: number; foot: number }
+  middle: { x: number; y: number }
+}
 
 /** Every battle sprite of the species given: seen from the front and from behind, and the female ones where there are. */
 export function battleSpriteUrls(all: Iterable<Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>>): string[] {

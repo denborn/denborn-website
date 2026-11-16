@@ -20,12 +20,13 @@ This file lists where everything that is not ours comes from. It is updated when
 
 ## Artwork shown in the app
 
-Not stored in this repository, with one exception (MissingNo., last row). `scripts/assets/sync-sprites.ts` downloads the rest at build time, and `data-sources/sprites.lock.json` records each file's source and checksum.
+Not stored in this repository, with one exception (MissingNo., last row). `scripts/assets/sync-sprites.ts` downloads the rest at build time, and `data-sources/sprites.lock.json` records each file's source and checksum (`data-sources/backdrops.lock.json` for the meadow).
 
 | What | Source | Rights |
 |---|---|---|
 | Pokémon battle sprites (Gen 5 animated, with the `ani` set as fallback), Pokémon icons, item icons, move-category icons | [Pokémon Showdown's sprite collection](https://play.pokemonshowdown.com/sprites/), maintained in [smogon/sprites](https://github.com/smogon/sprites) | "The sprites themselves are property of Nintendo / Game Freak / The Pokémon Company" (smogon/sprites README) |
 | Icons of the 45 items Showdown does not have (Potion, Revive, Linking Cord…) | [PokéAPI sprites](https://github.com/PokeAPI/sprites), commit `1dd55c0` | "All image contents within are Copyright The Pokémon Company" (PokéAPI sprites licence file) |
+| The meadow of the title screen, where the den stands (`fx/bg-meadow.png`) | One of the battle backdrops of [Pokémon Showdown](https://play.pokemonshowdown.com/), drawn by Kyle Dove: "Kyle Dove – Art (battle backdrops)" on [Showdown's credits page](https://pokemonshowdown.com/credits), read on 16 November 2026 | Kyle Dove's. The credits page shows no licence to reuse it; used by the owner's decision (`DECISIONS.md` 204). |
 | MissingNo., shown in the place of a Pokémon whose sprite is not there (`public/missingno.gif`, the one piece of artwork stored in this repository) | ["MissingNo. GIF"](https://www.deviantart.com/pokemon-ranger-sumi/art/MissingNo-GIF-667189987) by [Pokemon-Ranger-Sumi](https://www.deviantart.com/pokemon-ranger-sumi) on DeviantArt, published 5 March 2017, supplied by the project's owner. Changed for the app: brought back from 1100 × 1100 to its own pixels (45 × 50), the white around it made see-through, its colours brought down to 31, frames that repeat merged into longer ones (same animation). | "© 2017 - 2026 Pokemon-Ranger-Sumi" (the picture's page, which shows no licence to reuse it; used by the owner's decision, `DECISIONS.md` 187). MissingNo. itself is from Pokémon Red and Blue, © Nintendo, Creatures Inc., GAME FREAK inc. |
 
 ## The app's icon
@@ -34,6 +35,12 @@ Not stored in this repository, with one exception (MissingNo., last row). `scrip
 |---|---|---|
 | The den with its light (the eight frames of `public/icon-frames.png`) | A picture supplied by the project's owner, who made it or had an AI make it (`DECISIONS.md` 193), brought down to 32 × 32 pixels; its light is redrawn and animated by the project. | The project's own. |
 | The pink grid ball (`public/icon-32.png`, `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-512.png`, `public/apple-touch-icon.png`) | Drawn by the project as pixel art, seen from the front, after a picture supplied by the project's owner (`DECISIONS.md` 209); its colours are read on that picture. The ground behind it is the project's own redrawing of the ground of the Pokémon Black game icon (see "Design references"). | The project's own. |
+
+## The den of the title screen
+
+| What | Source | Rights |
+|---|---|---|
+| The ring of rocks and its light (`public/den-*.svg`) | Drawn by the project as rectangles, by `scripts/assets/draw-den.ts`, after a screenshot of a den of Pokémon Sword / Shield supplied by the project's owner (`DECISIONS.md` 210): the screenshot gave the idea, the arrangement of the rocks and their colours; no pixel of it is copied, and it is not kept in the repository. | The drawing is the project's own. Dens are a creation of Pokémon Sword / Shield (© 2019 Pokémon, Nintendo, Creatures Inc., GAME FREAK inc.). |
 
 ## Design references
 

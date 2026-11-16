@@ -2,9 +2,9 @@ import { type ReactNode, createContext, useContext, useEffect, useRef, useState 
 import { snapScale } from './pixel'
 
 /** Width of a DS screen, in DS pixels. Everything inside a Screen is sized in these. */
-const DS_WIDTH = 256
+export const DS_WIDTH = 256
 
-interface ScreenMetrics {
+export interface ScreenMetrics {
   /** One DS pixel, in CSS pixels. */
   unit: number
   /** Device pixels per CSS pixel. */
@@ -19,6 +19,11 @@ export function useDsUnit(): number {
   return useContext(MetricsContext).unit
 }
 
+/** One DS pixel and the device's pixel ratio, inside the nearest Screen: for art drawn on a grid of its own. */
+export function useScreenMetrics(): ScreenMetrics {
+  return useContext(MetricsContext)
+}
+
 /**
  * The size, in CSS pixels, to give one pixel of a sprite or an icon so that it
  * stays sharp. `dsScale` is the size wanted in DS pixels: 1 draws the art as
@@ -30,8 +35,8 @@ export function usePixelScale(dsScale = 1): number {
 }
 
 export interface ScreenProps {
-  /** `scene`: the top screen of a battle. `touch`: the bottom screen. `menu`: a menu background. */
-  kind?: 'scene' | 'touch' | 'menu'
+  /** `scene`: the top screen of a battle. `touch`: the bottom screen. `menu`: a menu background. `blank`: black, nothing on it. */
+  kind?: 'scene' | 'touch' | 'menu' | 'blank'
   /** What the screen is, for assistive technology. */
   label: string
   /** As long as what it holds, not 4:3: for a menu or a form that the page scrolls. */

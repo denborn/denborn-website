@@ -245,3 +245,41 @@ body {
 .sb-row--top {
   align-items: start;
 }
+
+/* Proposals for the name on the title screen (the "To decide" page). Board only: the one the owner picks moves into the kit. Each
+   fills VT323's letters with bands of colour cut to the letters, then draws the outline and the shadow around the cut letters. */
+.sb-title--gilded,
+.sb-title--steel,
+.sb-title--blood {
+  color: transparent;
+  text-shadow: none;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.sb-title--gilded {
+  background-image: linear-gradient(#fff6c2 0 34%, #ffd640 34% 50%, #eaa21c 50% 64%, #a65a0c 64% 100%);
+  filter: drop-shadow(calc(2 * var(--dn-u)) 0 0 #101010) drop-shadow(calc(-2 * var(--dn-u)) 0 0 #101010)
+    drop-shadow(0 calc(2 * var(--dn-u)) 0 #101010) drop-shadow(0 calc(-2 * var(--dn-u)) 0 #101010)
+    drop-shadow(calc(3 * var(--dn-u)) calc(3 * var(--dn-u)) 0 #6a0018);
+}
+
+.sb-title--steel {
+  background-image: linear-gradient(#ffffff 0 34%, #d6dbe6 34% 50%, #98a2b6 50% 64%, #586276 64% 100%);
+  filter: drop-shadow(calc(2 * var(--dn-u)) 0 0 #101010) drop-shadow(calc(-2 * var(--dn-u)) 0 0 #101010)
+    drop-shadow(0 calc(2 * var(--dn-u)) 0 #101010) drop-shadow(0 calc(-2 * var(--dn-u)) 0 #101010)
+    drop-shadow(calc(3 * var(--dn-u)) calc(3 * var(--dn-u)) 0 #ce0039);
+}
+
+.sb-title--blood {
+  background-image: linear-gradient(#ff8a8a 0 34%, #ff2d4a 34% 50%, #ce0039 50% 64%, #6a0018 64% 100%);
+  filter: drop-shadow(calc(1 * var(--dn-u)) 0 0 #f0c040) drop-shadow(calc(-1 * var(--dn-u)) 0 0 #f0c040)
+    drop-shadow(0 calc(1 * var(--dn-u)) 0 #f0c040) drop-shadow(0 calc(-1 * var(--dn-u)) 0 #f0c040)
+    drop-shadow(calc(2 * var(--dn-u)) 0 0 #101010) drop-shadow(calc(-2 * var(--dn-u)) 0 0 #101010)
+    drop-shadow(0 calc(2 * var(--dn-u)) 0 #101010) drop-shadow(0 calc(-2 * var(--dn-u)) 0 #101010);
+}
+
+/* A phone's height, for a page of two screens shown whole on the board. */
+.sb-device .dn-page {
+  min-height: 760px;
+}

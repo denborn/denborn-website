@@ -2,14 +2,20 @@
  * Downloads the artwork the app shows into public/sprites/, which is never
  * committed: the artwork belongs to its rights holders (CREDITS.md).
  *
- * data-sources/sprites.lock.json lists every file with its source and SHA-256.
+ * data-sources/sprites.lock.json lists every file with its source and SHA-256;
+ * data-sources/backdrops.lock.json does the same for the backdrops.
  *
- *   node scripts/assets/sync-sprites.ts          download what is missing and check everything against the lock
- *   node scripts/assets/sync-sprites.ts --pin    rebuild the lock from what the sources serve today
+ *   node scripts/assets/sync-sprites.ts                  download what is missing and check everything against the locks
+ *   node scripts/assets/sync-sprites.ts --pin            rebuild the sprite lock from what the sources serve today
+ *   node scripts/assets/sync-sprites.ts --pin-backdrops  rebuild the backdrop lock alone
  *
  * Pokémon sprites, Pokémon icons, item icons, type and category icons come
  * from Pokémon Showdown. Icons of items Showdown does not have come from
- * PokéAPI's sprite repository, at a pinned commit.
+ * PokéAPI's sprite repository, at a pinned commit. The title screen's plain
+ * is one of Showdown's battle backdrops (decision 204). The backdrops have a
+ * lock of their own: the sprites' offline cache is named after the sprite
+ * lock, and pinning a backdrop must not make every device fetch the sprites
+ * again.
  */
 import { join } from 'node:path'
 import { Dex } from '@pkmn/dex'
@@ -17,9 +23,12 @@ import { readBagTable } from '../data/lib/bag-table.ts'
 import { NotFoundError, ROOT, ensureFile, inBatches, readJson, writeJson } from '../data/lib/pinned.ts'
 
 const LOCK_PATH = join(ROOT, 'data-sources/sprites.lock.json')
+const BACKDROP_LOCK_PATH = join(ROOT, 'data-sources/backdrops.lock.json')
 const OUT = join(ROOT, 'public/sprites')
 const SHOWDOWN = 'https://play.pokemonshowdown.com/sprites'
 const LAST_SPECIES = 151
+/** The backdrops the app shows, served under public/sprites/fx/. */
+const BACKDROPS = ['bg-meadow.png']
 
 export interface SpriteLock {
   showdown: {
@@ -36,8 +45,17 @@ export interface SpriteLock {
   }
 }
 
+export interface BackdropLock {
+  base: string
+  credit: string
+  /** SHA-256 by file name under the base URL. */
+  files: Record<string, string>
+}
+
 const pin = process.argv.includes('--pin')
+const pinBackdrops = process.argv.includes('--pin-backdrops')
 const lock = await readJson<SpriteLock>(LOCK_PATH)
+const backdrops = await readJson<BackdropLock>(BACKDROP_LOCK_PATH)
 const pokeapiBase = `https://raw.githubusercontent.com/${lock.pokeapi.repository}/${lock.pokeapi.commit}`
 
 const speciesIds = Dex.species
@@ -116,4 +134,18 @@ if (pin) {
   await fetchAll(SHOWDOWN, Object.keys(lock.showdown.files), lock.showdown.files, '')
   await fetchAll(pokeapiBase, Object.keys(lock.pokeapi.files), lock.pokeapi.files, 'pokeapi')
   console.log(`Sprites ready: ${Object.keys(lock.showdown.files).length + Object.keys(lock.pokeapi.files).length} files checked against the lock`)
+}
+
+if (pinBackdrops) {
+  const found = await fetchAll(backdrops.base, BACKDROPS, {}, 'fx')
+  if (found.missing.length) throw new Error(`Showdown does not serve: ${found.missing.join(', ')}`)
+  backdrops.files = found.found
+  await writeJson(BACKDROP_LOCK_PATH, backdrops)
+  console.log(`Pinned ${Object.keys(backdrops.files).length} backdrop`)
+} else {
+  const absent = BACKDROPS.filter((name) => !(name in backdrops.files))
+  if (absent.length) throw new Error(`data-sources/backdrops.lock.json lacks: ${absent.join(', ')}. Run with --pin-backdrops after reviewing.`)
+  // Checked against the lock in every other run, --pin included: pinning the sprites leaves the backdrops as they are.
+  await inBatches(Object.keys(backdrops.files), 6, (name) => ensureFile({ url: `${backdrops.base}/${name}`, path: join(OUT, 'fx', name), sha256: backdrops.files[name] }))
+  console.log(`Backdrops ready: ${Object.keys(backdrops.files).length} file checked against the lock`)
 }
