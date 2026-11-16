@@ -38,6 +38,22 @@ One device hosts, two phones play, each with a character in the session and no f
 
 Also worth a look: whether the sliders are easy to set to an exact value on a small phone, and whether the line of text over BACK hides too much of the list on a short screen.
 
+## The release's own checks (milestone 8)
+
+One phone that has never opened the site, or its site data cleared first. About 10 minutes.
+
+| # | Do | Expect | Result |
+|---|---|---|---|
+| 1 | Open the site on mobile data or a slow Wi-Fi. Watch the line under the home screen's buttons. | "Getting ready to work offline…", then "Works offline. Fetching the Pokémon sprites: … of 346.", then "Ready to work offline." Note how long each takes. | |
+| 2 | Clear the site's data, open the site again, and turn on airplane mode as soon as the home screen shows. | The three Pokémon of the home screen may show as MissingNo. (the glitch block, moving), never as an empty space. Turn airplane mode off: the count moves again by itself, and the real sprites show after a reload. | |
+| 3 | Install the app (iPhone: Share, Add to Home Screen; Android: Install app). | The icon is the den with its pink light on black, not a letter D and not a screenshot. On Android it is not cut through the den. | |
+| 4 | Open the installed app. Look at the home screen, then open CREDITS. | The den's light moves on the home screen. The credits list eight names; tapping an underlined name opens its page outside the app. | |
+| 5 | In the phone's accessibility settings, turn on "reduce motion", then reopen the app and start a fight. | The den stands still; sprites stand still; nothing slides or blinks; every message shows whole. | |
+| 6 | Turn on VoiceOver (iPhone) or TalkBack (Android). Go from the home screen to a character's sheet, then join a session. | Each screen's title is read when it opens; every button says what it does; a Pokémon is read by its name, MissingNo. included. | |
+| 7 | When a new version has been pushed: open the installed app, wait a minute on the home screen. | "A new version is ready." with UPDATE appears on the home screen and in the Options, and nowhere during a session or a fight. UPDATE reloads into the new version. | |
+
+Also worth reading once on the Cloudflare dashboard, since only the account's owner can: the Worker's requests and the Durable Object's requests and duration after an evening of play. Pages, scripts and sprites are static files and do not count as Worker requests; a session does (one connection per device, and the messages it carries).
+
 ## Installed app, offline, camera (from milestones 4 and 5; still to do)
 
 | # | Do | Expect | Result |
