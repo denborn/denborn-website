@@ -102,18 +102,19 @@ function CellIcon({ cell, scale = 1, label }: IconProps & { cell: SheetCell }) {
 }
 
 /**
- * The app's emblem, as the DS showed a game's icon in its menu: the den, with
- * the light climbing out of it. It plays through its frames; with reduced
- * motion it stays on the first, which is the app's still icon.
+ * The app's emblem, as the DS showed a game's icon in its menu: the ball,
+ * rocking left and right, then resting. With reduced motion it stays upright.
  */
 export function AppEmblem({ scale = 1, label }: IconProps) {
-  const side = APP_EMBLEM.side * usePixelScale(scale)
+  const factor = usePixelScale(scale)
+  const width = APP_EMBLEM.width * factor
+  const height = APP_EMBLEM.height * factor
   const style = {
-    width: side,
-    height: side,
+    width,
+    height,
     backgroundImage: `url(${APP_EMBLEM.url})`,
-    backgroundSize: `${side * APP_EMBLEM.frames}px ${side}px`,
-    '--dn-emblem-run': `${-side * APP_EMBLEM.frames}px`,
+    backgroundSize: `${width * APP_EMBLEM.frames}px ${height}px`,
+    '--dn-emblem-pose': `${width}px`,
   } as CSSProperties
   return <span className="dn-emblem" style={style} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} />
 }

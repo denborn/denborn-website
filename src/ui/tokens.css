@@ -189,7 +189,7 @@
   --dn-quick: 160ms; /* a selection moving, a badge appearing */
   --dn-move: 280ms; /* a panel sliding in */
   --dn-slow: 480ms; /* a screen wipe */
-  --dn-emblem-loop: 960ms; /* the app's emblem: eight frames of 120 ms. Denborn's own. */
+  --dn-emblem-loop: 1250ms; /* the app's emblem: the ball rocks in eleven steps of 50 ms, then rests 700 ms. Denborn's own. */
   /* The title screen (decision 205), kept equal to TITLE in motion.ts. */
   --dn-title-day: 800ms; /* the den in daylight, before its light rises: short, as the owner asked (decision 211) */
   --dn-title-rise: 1000ms; /* the light rising out of the den */

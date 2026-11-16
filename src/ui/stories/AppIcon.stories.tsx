@@ -3,11 +3,11 @@ import type { ReactNode } from 'react'
 import { AppEmblem, Screen } from '..'
 import { Note, Phone, Section } from './board'
 
-/** A still icon as a phone shows it: at a size, under the shape the phone cuts it to. */
-function Still({ file, size, radius, name }: { file: string; size: number; radius: string; name: string }) {
+/** A still icon as a phone or a browser shows it: at a size, under the shape the phone cuts it to, on what lies behind it. */
+function Still({ file, size, radius, name, ground = 'transparent' }: { file: string; size: number; radius: string; name: string; ground?: string }) {
   return (
     <figure style={{ margin: 0, display: 'grid', gap: 6, justifyItems: 'center' }}>
-      <img src={file} alt={name} width={size} height={size} style={{ borderRadius: radius, imageRendering: 'pixelated', display: 'block' }} />
+      <img src={file} alt={name} width={size} height={size} style={{ borderRadius: radius, imageRendering: 'pixelated', display: 'block', background: ground }} />
       <figcaption className="sb-note" style={{ margin: 0 }}>
         {name}
       </figcaption>
@@ -23,21 +23,15 @@ function Row({ children }: { children: ReactNode }) {
   )
 }
 
-function TheDen() {
+function TheBall() {
   return (
     <Phone>
-      <Section title="The den, on the ground of the Pokémon Black icon">
+      <Section title="Animated, inside the app (decision 212)">
         <Note>
-          The app’s icon (decision 191): the icon Pokémon Black shows in the DS menu, without its ball, and the den in the ball’s place. The ground is
-          redrawn from what the games’ icon measures (black, with a chequer of small blocks that fades downwards); the den is the owner’s
-          picture brought down to the icon’s 32 × 32 pixels, its light cut by the icon’s top as the games’ ball is by its sides.
-        </Note>
-      </Section>
-      <Section title="Animated, inside the app">
-        <Note>
-          Eight frames in a second: bands climb the light, and two sparks rise beside it. With reduced motion it stays on its first frame. A
-          phone’s home screen cannot play an icon, so this one lives inside the app: on the home screen and while the game data loads
-          (decision 192; see Screens/Home).
+          The pink grid ball rocks as a Poké Ball shakes in the games: to the left and back, to the right and back, then a pause. It rolls
+          as it tips, five pixels at most either way, in eleven steps of 50 ms, then rests 700 ms. The glow round it and the light on it stay
+          where they are; the band, the grid and the shade turn with it. With reduced motion it stays upright. It shows while the game data
+          loads and on the credits screen, over the menu screens’ faint plus marks.
         </Note>
         <Screen kind="menu" label="The emblem">
           <div className="sb-row sb-pad" style={{ alignItems: 'end', gap: 24 }}>
@@ -51,15 +45,16 @@ function TheDen() {
         <Note>
           The pink grid ball (decision 209), seen from the front, with a margin, on the ground of the Pokémon Black icon: black, with a
           chequer of 3 × 2 blocks that darkens downwards, drawn in the ball’s own pixels to every edge. The tab has a ball of its own, 28
-          pixels across, so that its 32 keep a margin; Android’s round-cut one keeps the widest, the whole ball inside the circle Android
+          pixels across, so that its 32 keep a margin, with the same grid as the others (decision 213); Android’s round-cut one keeps the widest, the whole ball inside the circle Android
           always shows.
         </Note>
         <Row>
           <Still file="/apple-touch-icon.png" size={120} radius="22.5%" name="iPhone" />
           <Still file="/icon-maskable-512.png" size={120} radius="50%" name="Android, cut round" />
-          <Still file="/icon-192.png" size={96} radius="0" name="Android, whole" />
-          <Still file="/icon-32.png" size={32} radius="0" name="Tab" />
-          <Still file="/icon-32.png" size={16} radius="0" name="Tab, small" />
+          <Still file="/icon-192.png" size={96} radius="0" name="Android, whole" ground="#f2f2f2" />
+          <Still file="/icon-32.png" size={32} radius="0" name="Tab, light" ground="#f2f2f2" />
+          <Still file="/icon-32.png" size={32} radius="0" name="Tab, dark" ground="#202124" />
+          <Still file="/icon-32.png" size={16} radius="0" name="Tab, small" ground="#f2f2f2" />
         </Row>
       </Section>
     </Phone>
@@ -69,4 +64,4 @@ function TheDen() {
 const meta = { title: 'Foundations/App icon' } satisfies Meta
 export default meta
 
-export const Den: StoryObj = { render: () => <TheDen /> }
+export const Ball: StoryObj = { render: () => <TheBall /> }

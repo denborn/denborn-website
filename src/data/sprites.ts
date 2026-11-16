@@ -39,11 +39,13 @@ export function battleSpriteUrl(
 }
 
 /**
- * The app's own emblem: the den with its light, on the ground of the games'
- * icon. Its frames stand side by side in one picture, each a square of `side`
- * pixels; the first is the still icon.
+ * The app's own emblem: the pink grid ball (decision 212), rocking as a Poké
+ * Ball shakes in the games, on a see-through ground. Its poses stand side by
+ * side in one picture, each `width` by `height` pixels, wide enough for the
+ * ball to roll five pixels either way: upright first, then three to the left,
+ * then three to the right, each further over. `.dn-emblem` plays them.
  */
-export const APP_EMBLEM = { url: '/icon-frames.png', side: 32, frames: 8 } as const
+export const APP_EMBLEM = { url: '/emblem-frames.png', width: 42, height: 32, frames: 7 } as const
 
 /** Where a picture stands in the title screen's scene, in the scene's own pixels. */
 export interface ScenePlacement {

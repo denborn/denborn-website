@@ -79,8 +79,8 @@ export const Loading: StoryObj = {
     <Phone>
       <LoadingScreen />
       <Note>
-        Shown while the game data loads, a moment at most: the app’s emblem, the den with its light climbing, as a console shows a game’s icon
-        while it starts (decision 192), over the word. With reduced motion the den stands still.
+        Shown while the game data loads, a moment at most: the app’s emblem, the ball rocking left and right then resting (decision 212), as
+        a console shows a game’s icon while it starts (decision 192), over the word. With reduced motion the ball stays upright.
       </Note>
     </Phone>
   ),

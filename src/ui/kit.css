@@ -2011,19 +2011,46 @@
   -webkit-user-drag: none;
 }
 
-/* The app's emblem: eight frames side by side in one picture, played one after the other. The component sets the size and the
-   length of the run in whole device pixels. With reduced motion the run does not play, and the first frame stays. */
+/* The app's emblem (decision 212): the ball rocks to the left and back, to the right and back, then rests, as a Poké Ball shakes
+   in the games. Its seven poses stand side by side in one picture (APP_EMBLEM): upright, three to the left, three to the right.
+   The component sets one pose's width in whole device pixels. With reduced motion the rocking does not play: the ball stays
+   upright. */
 .dn-emblem {
   display: block;
   flex: none;
-  background-repeat: repeat-x;
+  background-repeat: no-repeat;
   image-rendering: pixelated;
-  animation: dn-emblem-run var(--dn-emblem-loop) steps(8) infinite;
+  animation: dn-emblem-rock var(--dn-emblem-loop) step-end infinite;
 }
 
-@keyframes dn-emblem-run {
-  to {
-    background-position-x: var(--dn-emblem-run);
+/* One step is 4% of the loop; the rocking takes eleven steps, the rest of the loop is the pause. */
+@keyframes dn-emblem-rock {
+  0%,
+  16% {
+    background-position-x: calc(-1 * var(--dn-emblem-pose));
+  }
+  4%,
+  12% {
+    background-position-x: calc(-2 * var(--dn-emblem-pose));
+  }
+  8% {
+    background-position-x: calc(-3 * var(--dn-emblem-pose));
+  }
+  24%,
+  40% {
+    background-position-x: calc(-4 * var(--dn-emblem-pose));
+  }
+  28%,
+  36% {
+    background-position-x: calc(-5 * var(--dn-emblem-pose));
+  }
+  32% {
+    background-position-x: calc(-6 * var(--dn-emblem-pose));
+  }
+  20%,
+  44%,
+  100% {
+    background-position-x: 0;
   }
 }
 
