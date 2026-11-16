@@ -296,6 +296,14 @@ Each row is the owner's answer to a question asked that day.
 | 165 | An Ability that acts, on the scene | "A banner like the games" (2026-11-15): not a line of the message band. |
 | 166 | The French sentences about items | "Keep the table" (2026-11-15): the games' own French sentences, with the gender and number of each held item from the table written by hand (`data-sources/item-grammar.json`). |
 | 167 | The Ability band as drawn | "Yes, as shown" (2026-11-15, on the board): it slides in from its Pokémon's side of the scene, a foe's from the right over its head in red, an ally's from the left over its head in blue; the name on one line and the Ability on the next; it stays while the message band says what the Ability did. |
+| 168 | Evolution and the campaign's list of Pokémon | "No, evolution is free" (2026-11-16): the list limits which Pokémon a character is created as, not what it may evolve into. |
+| 169 | The Ability of a character that evolves | "As in the games" (2026-11-16): it keeps its place (a first Ability becomes the new form's first, a second its second, a hidden one its hidden one); where the new form has no such place, it gets the first. Its player may pick another at the next Pokémon Center rest. |
+| 170 | What the game master gives or takes by hand | "Items, Pokédollars and EXP" (2026-11-16): EXP too, at any time, to any character, the level rising at once as after a fight (decision 161). EXP is only added, never taken back. |
+| 171 | Revival items and the dead | "Yes, a revival item revives the dead" (2026-11-16). **This replaces the "permanently" of Agony rule 8** (kickoff prompt) and the spec's "permanent death": a Pokémon at 0 stacks is dead until a revival item is used on it. "Any time, in a fight or outside." |
+| 172 | How the dead come back | "Exactly like a downed one" (2026-11-16): with the item's own HP (Revive half, Max Revive and Revival Herb full); Sacred Ash raises every downed and dead ally fully; revived mid-round it sits out the round; downed again, it starts over at 3 stacks. |
+| 173 | A Pokémon Center rest and the dead | "No, only a revival item" (2026-11-16): a rest heals the living and revives the downed (Agony rule 10), and does nothing for the dead. |
+| 174 | Reviving enemies | "Yes, same rule for both sides" (2026-11-16): an enemy that fainted, or an Agony enemy at 0 stacks, keeps its slot and can be revived with a revival item of the enemies' Bag. The fight still ends when every enemy is down. |
+| 175 | The Bag of a fallen teammate | The owner's words (2026-11-16): "other players may access it's bag (so situation where the palyer that have the revive crystals dies he can be revived or looted)". Then ruled, one by one: the Bag of a **downed or dead** teammate; **in a fight and outside** (in a fight, a player's Bag action may use an item from it in place of their own, still the round's action at priority +1); they may **use its items and take them** (outside a fight, into their own Bag); no approval from the game master; its Pokédollars stay with the sheet (the game master can move them). |
 
 ---
 
@@ -530,7 +538,7 @@ Mine to make; none changes gameplay. Dates are when the choice was made.
 - **Milestone 4 (offline flows)**: settled on 2026-11-14 and 15 as decisions 95 to 118, each screen approved on the board. What was not ruled one by one is listed in 2.2.
 - **Milestone 5 (relay and session)**: settled on 2026-11-15 as decisions 119 to 129, on top of decisions 13, 25 and 100, each screen approved on the board. What was not ruled one by one is listed in 2.2.
 - **Milestone 6 (battle)**: settled on 2026-11-15 as decisions 130 to 139 (rewards, enemies' items and classes, the party's order, items after a fight, WAIT, Speed exchange between enemies, a fight saved under an older engine). Still to ask, on the board: the names of the effects no move is named after (confusion, a flinch, a trap, a stat stage's multiplier) and what each effect in the MORE list says it does; and where the French of the engine's ordinary battle messages comes from (moves, damage, status, weather…): the engine's own text is English, and a French source has yet to be looked for.
-- **Milestone 7 (progression)**: whether the campaign's species filter limits evolution; rest and dead characters.
+- **Milestone 7 (progression)**: settled on 2026-11-16 as decisions 168 to 175 (evolution and the campaign's list, the Ability on evolving, the game master's grants, revival of the dead, a fallen teammate's Bag). Its screens go on the board one by one.
 
 ---
 
