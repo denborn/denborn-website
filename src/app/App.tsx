@@ -1,5 +1,4 @@
-import { MotionConfig } from 'motion/react'
-import { Component, type ReactNode, Suspense, useEffect, useRef } from 'react'
+import { Component, type ComponentType, type ReactNode, Suspense, lazy, useEffect, useRef } from 'react'
 import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useNavigate } from 'react-router'
 import { usePack } from '../data/use-pack'
 import { LoadingScreen } from '../features/home/LoadingScreen'
@@ -7,10 +6,42 @@ import { useMessages } from '../i18n'
 import { useOfflineStatus } from '../pwa/use-offline-status'
 import { decodeCreationCode } from '../shared/codec/codes'
 import { joinCodeIn } from '../shared/protocol/room-code'
-import { OptionButton, Screen } from '../ui'
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+import { Screen } from '../ui/Screen'
+import { OptionButton } from '../ui/controls'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CampaignPage, CampaignsPage, EncounterPage, EncountersPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, CreditsPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
+import { CreditsPage, HomePage, OptionsPage } from './pages'
+
+/**
+ * The pages a visit does not start from are fetched when first opened, each
+ * with its part of the app: a player's characters, a game master's campaigns,
+ * a session. Until one is there, the loading screen shows; once the app works
+ * offline, they are all kept on the device like the rest.
+ */
+const characters = () => import('./pages-characters')
+const campaigns = () => import('./pages-campaigns')
+const session = () => import('./pages-session')
+
+/** One page of a part of the app that is fetched when first opened. */
+function onDemand<Part>(part: () => Promise<Part>, name: keyof Part) {
+  return lazy(async () => ({ default: (await part())[name] as ComponentType }))
+}
+
+const CharactersPage = onDemand(characters, 'CharactersPage')
+const NewCharacterPage = onDemand(characters, 'NewCharacterPage')
+const CreateCharacterPage = onDemand(characters, 'CreateCharacterPage')
+const ImportCharacterPage = onDemand(characters, 'ImportCharacterPage')
+const CharacterPage = onDemand(characters, 'CharacterPage')
+const RemoveCharacterPage = onDemand(characters, 'RemoveCharacterPage')
+const CampaignsPage = onDemand(campaigns, 'CampaignsPage')
+const CampaignPage = onDemand(campaigns, 'CampaignPage')
+const ImportCampaignPage = onDemand(campaigns, 'ImportCampaignPage')
+const RemoveCampaignPage = onDemand(campaigns, 'RemoveCampaignPage')
+const HostSessionPage = onDemand(campaigns, 'HostSessionPage')
+const EncountersPage = onDemand(campaigns, 'EncountersPage')
+const EncounterPage = onDemand(campaigns, 'EncounterPage')
+const JoinSessionPage = onDemand(session, 'JoinSessionPage')
 
 function LoadFailed() {
   const messages = useMessages()
@@ -108,17 +139,15 @@ function OfflineProvider({ children }: { children: ReactNode }) {
 function Shell() {
   return (
     <OfflineProvider>
-      <MotionConfig reducedMotion="user">
-        <main className="app dn-root">
-          <LoadBoundary>
-            <Suspense fallback={<LoadingScreen />}>
-              <IncomingLink />
-              <FocusOnNavigation />
-              <Outlet />
-            </Suspense>
-          </LoadBoundary>
-        </main>
-      </MotionConfig>
+      <main className="app dn-root">
+        <LoadBoundary>
+          <Suspense fallback={<LoadingScreen />}>
+            <IncomingLink />
+            <FocusOnNavigation />
+            <Outlet />
+          </Suspense>
+        </LoadBoundary>
+      </main>
     </OfflineProvider>
   )
 }

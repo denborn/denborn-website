@@ -3,7 +3,10 @@ import { loadDataPack } from '../../data/pack'
 import { LANGUAGES, setLanguage, useLanguage, useMessages } from '../../i18n'
 import { probeRelay } from '../../network/relay-probe'
 import type { OfflineState } from '../../pwa/use-offline-status'
-import { OptionButton, Screen, StepHeader } from '../../ui'
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+import { Screen } from '../../ui/Screen'
+import { OptionButton } from '../../ui/controls'
+import { StepHeader } from '../../ui/forms'
 import { TEXT_SPEEDS, setTextSpeed, useTextSpeed } from './text-speed'
 
 type RelayCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; ms: number } | { state: 'failed' }

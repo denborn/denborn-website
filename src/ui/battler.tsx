@@ -1,8 +1,9 @@
-import { motion, useAnimate, useReducedMotion } from 'motion/react'
+import { MotionConfig, motion, useAnimate } from 'motion/react'
 import { type Ref, useImperativeHandle } from 'react'
 import type { SpeciesData } from '../data/types'
 import { useDsUnit } from './Screen'
 import { DURATION, EASE, HOLD } from './motion'
+import { usePrefersReducedMotion } from './reduced-motion'
 import { PokemonSprite } from './sprites'
 
 /** `standing`: in the fight. `downed`: agonizing, still on the field. `gone`: out of the fight. */
@@ -37,7 +38,7 @@ export interface BattlerProps {
  */
 export function Battler({ species, name, side, female = false, pose = 'standing', scale = 1, enterFrom = 'side', ref }: BattlerProps) {
   const unit = useDsUnit()
-  const reduced = useReducedMotion() === true
+  const reduced = usePrefersReducedMotion()
   const [body, animate] = useAnimate<HTMLDivElement>()
   const toward = side === 'player' ? 1 : -1
   const entry = enterFrom === 'side' ? -toward : enterFrom === 'left' ? -1 : 1
@@ -69,22 +70,25 @@ export function Battler({ species, name, side, female = false, pose = 'standing'
   }
 
   return (
-    <motion.div
-      className="dn-battler"
-      initial={{ x: 48 * unit * entry, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: DURATION.move, ease: EASE.out }}
-    >
-      <span className="dn-battler__base" />
+    // Its slides and its poses follow the device's wish for less motion; set here, so that only the screens with a Pokémon on the field carry the animation library.
+    <MotionConfig reducedMotion="user">
       <motion.div
-        ref={body}
-        className="dn-battler__body"
-        initial={false}
-        animate={poses[pose]}
-        transition={{ duration: pose === 'standing' ? DURATION.move : DURATION.slow, ease: pose === 'standing' ? EASE.snap : EASE.in }}
+        className="dn-battler"
+        initial={{ x: 48 * unit * entry, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: DURATION.move, ease: EASE.out }}
       >
-        <PokemonSprite species={species} name={name} back={side === 'player'} female={female} scale={scale} frozen={pose !== 'standing'} />
+        <span className="dn-battler__base" />
+        <motion.div
+          ref={body}
+          className="dn-battler__body"
+          initial={false}
+          animate={poses[pose]}
+          transition={{ duration: pose === 'standing' ? DURATION.move : DURATION.slow, ease: pose === 'standing' ? EASE.snap : EASE.in }}
+        >
+          <PokemonSprite species={species} name={name} back={side === 'player'} female={female} scale={scale} frozen={pose !== 'standing'} />
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </MotionConfig>
   )
 }

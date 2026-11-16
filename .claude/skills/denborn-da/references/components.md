@@ -16,6 +16,7 @@
 | `src/ui/qr.tsx`, `qr-size.ts` | `QrCode`, and `PaperQrCode` for print (lines, not a picture); which QR code holds a text and the largest the app shows (pure, tested). |
 | `src/ui/paper.css` | What prints: classes `dn-paper…`, in millimetres and points, black on white, no backgrounds and no icon sheets (printers leave backgrounds out). A paper sheet is `display: none` on screen and replaces `.dn-page` in print; `dn-paper--preview` shows it on the board. See DESIGN.md, "On paper". |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |
+| `src/ui/reduced-motion.ts` | `usePrefersReducedMotion`: the kit's one answer to "less motion?". Use it, not the animation library's hook. |
 | `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories (`proposals.ts`, created when needed), never in `src/i18n/`, until the owner rules. |
 | `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language switch. |
 
@@ -35,5 +36,6 @@
 - A two-pixel checker at a fractional scale blurs: round its tile with CSS `round()`.
 - Class names are global. A new `.dn-field` for forms silently took the battlefield plan's `.dn-field` rules (absolute, full size) and hid itself behind the list. Search `kit.css` for a name before using it.
 - A sticky screen hides what the browser scrolls into view under it: focusable things in a tall screen carry a `scroll-margin-top` of a screen's height.
+- The screens every visit starts from (home, options, credits, loading, the shell) import the kit's files one by one (`../../ui/Screen`, `../../ui/controls`…), never `src/ui/index.ts`: that door re-exports the pieces that move, and would pull the animation library into the main script. Every other screen uses the door.
 - A GIF cannot be paused; `PokemonSprite` copies the current frame to a canvas to hold it still.
 - What is said about a foot's buttons (the question they answer, what the last one did) goes over them, in the foot (`.dn-foot--said`), never at the top or the end of a long list: the list scrolls it off screen and the answer is given where nobody looks.

@@ -1,6 +1,7 @@
-import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from 'motion/react'
+import { animate, useMotionValue, useMotionValueEvent } from 'motion/react'
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 import { type HpTone, fillRatio, hpTone } from './meter'
+import { usePrefersReducedMotion } from './reduced-motion'
 import { CategoryIcon, TypeLabel } from './sprites'
 
 /** Seconds a full HP bar takes to drain; shorter changes take proportionally less. */
@@ -19,7 +20,7 @@ export interface HpBarProps {
  */
 export function HpBar({ current, max, label }: HpBarProps) {
   const target = fillRatio(current, max)
-  const reduced = useReducedMotion()
+  const reduced = usePrefersReducedMotion()
   const ratio = useMotionValue(target)
   const fill = useRef<HTMLSpanElement>(null)
   const [tone, setTone] = useState<HpTone>(hpTone(current, max))
@@ -257,11 +258,11 @@ export interface MessageBoxProps {
  * Space shows it all at once, and once it is all there asks for the next one.
  */
 export function MessageBox({ text, onAdvance, advanceLabel, lettersPerSecond = LETTERS_PER_SECOND }: MessageBoxProps) {
-  const reduced = useReducedMotion()
+  const reduced = usePrefersReducedMotion()
   // Restart the count whenever the text changes, without an effect.
   const [typed, setTyped] = useState({ text, shown: 0 })
   const shown = typed.text === text ? typed.shown : 0
-  const done = Boolean(reduced) || shown >= text.length
+  const done = reduced || shown >= text.length
 
   useEffect(() => {
     if (done) return

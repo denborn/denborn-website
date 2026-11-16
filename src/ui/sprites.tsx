@@ -1,4 +1,3 @@
-import { useReducedMotion } from 'motion/react'
 import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import {
   APP_EMBLEM,
@@ -12,6 +11,7 @@ import {
 } from '../data/sprites'
 import type { ItemIcon, SpeciesData } from '../data/types'
 import { usePixelScale } from './Screen'
+import { usePrefersReducedMotion } from './reduced-motion'
 
 export interface PokemonSpriteProps extends BattleSpriteOptions {
   species: Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>
@@ -35,7 +35,7 @@ export interface PokemonSpriteProps extends BattleSpriteOptions {
  */
 export function PokemonSprite({ species, name, scale = 1, frozen = false, decorative = false, back, female }: PokemonSpriteProps) {
   const factor = usePixelScale(scale)
-  const still = useReducedMotion() === true || frozen
+  const still = usePrefersReducedMotion() || frozen
   const options: BattleSpriteOptions = {}
   if (back !== undefined) options.back = back
   if (female !== undefined) options.female = female

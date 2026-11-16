@@ -66,6 +66,17 @@ test('the battle engine is fetched on demand and runs with no network once cache
   await expect(page.getByText(/^Working \(\d+ rounds in \d+ ms\)$/)).toBeVisible()
 })
 
+test('a part of the app that is fetched when first opened takes the focus on its title once it is there', async ({ page }) => {
+  await page.goto('/')
+  // A game master's pages are not part of what a visit starts with: the first click fetches them.
+  await page.getByRole('button', { name: /CAMPAIGNS/ }).click()
+  await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeFocused()
+  await page.getByRole('button', { name: 'BACK' }).click()
+  await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeFocused()
+  await page.getByRole('button', { name: /CHARACTERS/ }).click()
+  await expect(page.getByRole('heading', { name: 'Characters' })).toBeFocused()
+})
+
 test('every icon the app names for a phone and for a browser is a picture that is there', async ({ page }) => {
   await page.goto('/')
   const manifest = (await (await page.request.get('/manifest.webmanifest')).json()) as { icons: { src: string }[] }

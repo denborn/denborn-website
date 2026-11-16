@@ -1,7 +1,10 @@
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import type { OfflineState } from '../../pwa/use-offline-status'
-import { AppEmblem, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot } from '../../ui'
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+import { Screen } from '../../ui/Screen'
+import { OptionButton, Slot } from '../../ui/controls'
+import { AppEmblem, PokemonIcon, PokemonSprite } from '../../ui/sprites'
 
 export type HomeEntry = 'characters' | 'session' | 'campaigns' | 'options'
 

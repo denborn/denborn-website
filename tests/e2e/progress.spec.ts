@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
-import { ask, table } from './hosting.ts'
+import { draftEncounter } from './creating.ts'
+import { ask, newPlayer, table } from './hosting.ts'
 
 test('between two fights a character places points, receives what the game master gives, evolves, rests and changes what it holds', async ({ page: gm }) => {
   const { player, code } = await table(gm)
@@ -99,3 +100,72 @@ test('between two fights a character places points, receives what the game maste
   await expect(player.getByText('Lightning Rod', { exact: true })).toBeVisible()
   await expect(player.getByText('Raichu', { exact: true })).toBeVisible()
 })
+
+test('a Pokémon downed in a fight stays down after it, its Bag opens to its teammate, and a Revive given by the game master brings it back', async ({ page: gm }) => {
+  test.setTimeout(120_000)
+  const { player: volt, code, link } = await table(gm)
+  const bolt = await newPlayer(gm, link, 'Bolt')
+
+  // An encounter with one enemy far above the party: its first move downs whoever it hits.
+  await gm.getByRole('button', { name: 'NEW ENCOUNTER' }).click()
+  await draftEncounter(gm, 'The ambush')
+  await gm.getByRole('button', { name: /^Level/ }).click()
+  await gm.getByRole('slider', { name: 'Level' }).fill('60')
+  await gm.getByRole('button', { name: 'DONE' }).click()
+  await gm.getByRole('button', { name: 'DONE' }).click()
+  await gm.getByRole('button', { name: 'SAVE THE ENCOUNTER' }).click()
+  await gm.getByRole('button', { name: 'BACK' }).click()
+
+  for (const [player, name] of [[volt, 'Volt'], [bolt, 'Bolt']] as const) {
+    await ask(player, code, name)
+    await gm.getByRole('group', { name }).getByRole('button', { name: 'LET IN' }).click()
+    await expect(player.getByText(`${name} (you)`)).toBeVisible()
+  }
+
+  // The fight: both players lock, the enemy strikes Volt, and Volt goes down.
+  await gm.getByRole('button', { name: /^The ambush/ }).click()
+  await gm.getByRole('button', { name: 'LAUNCH' }).click()
+  await expect(gm.getByRole('heading', { name: 'The ambush · Round 1' })).toBeVisible({ timeout: 30_000 })
+  for (const player of [volt, bolt]) await player.getByRole('button', { name: 'WAIT', exact: true }).click()
+  await gm.getByRole('button', { name: /^A · Pikachu/ }).click()
+  await gm.getByRole('button', { name: /^Thunder Shock/ }).click()
+  await gm.getByRole('group', { name: 'PARTY' }).getByRole('button', { name: /Volt/ }).click()
+  await expect(gm.getByRole('heading', { name: 'The ambush · Round 2' })).toBeVisible()
+  await expect(gm.getByText('Volt is down!')).toBeVisible()
+
+  // The encounter ends with nothing awarded: everyone is left as the fight left them (decision 136).
+  await gm.getByRole('button', { name: 'END THE ENCOUNTER' }).click()
+  await gm.getByRole('button', { name: 'AWARD AND END' }).click()
+  for (const player of [volt, bolt]) await player.getByRole('button', { name: 'OK', exact: true }).click()
+
+  // Volt, down, can do nothing with its own Bag; Bolt finds it open, and takes its Potion.
+  await volt.getByRole('group', { name: 'Your character' }).getByRole('button', { name: /^BAG/ }).click()
+  await expect(volt.getByText('Volt is down: it cannot use items, take them, or change what it holds.')).toBeVisible()
+  await bolt.getByRole('group', { name: 'Your character' }).getByRole('button', { name: /^BAG/ }).click()
+  const voltsBag = bolt.getByRole('group', { name: 'Volt’s Bag' })
+  await voltsBag.getByRole('button', { name: /^Potion/ }).click()
+  await bolt.getByRole('button', { name: 'TAKE', exact: true }).click()
+  await expect(bolt.getByText('Bolt took Potion ×1 from Volt’s Bag.')).toBeVisible()
+  await expect(bolt.getByRole('button', { name: /^Potion ×2/ })).toBeVisible()
+  await expect(voltsBag.getByText('The bag is empty.')).toBeVisible()
+
+  // The game master gives Bolt a Revive; Bolt uses it on Volt, the only one it would do something for.
+  await gm.getByRole('button', { name: /^Bolt/ }).click()
+  await gm.getByRole('button', { name: 'GIVE OR TAKE' }).click()
+  await gm.getByRole('searchbox', { name: 'Add an item' }).fill('revive')
+  await gm.getByRole('button', { name: /^Revive/ }).first().click()
+  await gm.getByRole('button', { name: 'CONFIRM' }).click()
+  await bolt.getByRole('button', { name: 'BACK' }).click()
+  await expect(bolt.getByText('The game master gave Bolt: Revive ×1.')).toBeVisible()
+  await bolt.getByRole('button', { name: 'OK', exact: true }).click()
+  await bolt.getByRole('group', { name: 'Your character' }).getByRole('button', { name: /^BAG/ }).click()
+  await bolt.getByRole('button', { name: /^Revive/ }).click()
+  await bolt.getByRole('button', { name: 'USE', exact: true }).click()
+  await expect(bolt.getByRole('button', { name: /^Bolt \(you\)/ })).toBeDisabled()
+  await bolt.getByRole('button', { name: /^Volt/ }).click()
+  await expect(bolt.getByText('Bolt used the Revive on Volt.')).toBeVisible()
+  // Volt is back on its feet: its Bag closes to Bolt, and is its own again.
+  await expect(voltsBag).toBeHidden()
+  await expect(volt.getByText('Volt is down: it cannot use items, take them, or change what it holds.')).toBeHidden()
+})
+

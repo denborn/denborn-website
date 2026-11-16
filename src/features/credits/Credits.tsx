@@ -1,5 +1,9 @@
 import { useMessages } from '../../i18n'
-import { AppEmblem, OptionButton, Screen, StepHeader } from '../../ui'
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+import { Screen } from '../../ui/Screen'
+import { OptionButton } from '../../ui/controls'
+import { StepHeader } from '../../ui/forms'
+import { AppEmblem } from '../../ui/sprites'
 import { CREDIT_IDS, CREDIT_LINKS, type CreditId, SHEET_RIPPERS } from './sources'
 
 export interface CreditsProps {
