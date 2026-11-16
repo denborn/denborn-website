@@ -12,12 +12,37 @@
 import { z } from 'zod'
 import { PARTY_MAX } from '../../game-rules/party.ts'
 import { invitation } from '../codec/codes.ts'
-import { characterDocument } from '../schema/character.ts'
-import { documentId, whole } from '../schema/common.ts'
+import { attributePoints, characterDocument } from '../schema/character.ts'
+import { dataId, documentId, statSpread, whole } from '../schema/common.ts'
 import { intent, intentRefusal, playerFight } from './battle.ts'
 
-/** 2: the fight (milestone 6). A device that speaks 1 would never be shown one, so the two are told to update. */
-export const SESSION_VERSION = 2
+/**
+ * 3: a character's progress during a session (milestone 7), and a Bag action
+ * that names the Bag it draws from. A device that speaks an older version
+ * would not hear what it is asked, so the two are told to update.
+ */
+export const SESSION_VERSION = 3
+
+/**
+ * What a member asks to change of a sheet outside a fight (milestone 7):
+ * their own, or a teammate's when an item is used on it. The game master's
+ * side decides; the copies that changed come back with the party.
+ */
+export const sheetChange = z.discriminatedUnion('do', [
+  /** Places points a level brought: where every total then stands (decision 8: none is ever lowered). */
+  z.object({ do: z.literal('points'), ivs: statSpread(31), evs: statSpread(252), gained: attributePoints }),
+  z.object({ do: z.literal('evolve'), to: dataId }),
+  /** The Ability and the moves chosen during a rest at a Pokémon Center. */
+  z.object({ do: z.literal('reselect'), ability: dataId, moves: z.array(dataId).min(1).max(6) }),
+  /** Uses an item on a character of the party; `from` names the downed or dead teammate whose Bag it comes from (decision 175). */
+  z.object({ do: z.literal('item'), item: dataId, target: documentId, move: dataId.optional(), from: documentId.optional() }),
+  /** Takes items from the Bag of a teammate who is downed or dead. */
+  z.object({ do: z.literal('take'), from: documentId, item: dataId, quantity: whole(1, 999) }),
+  /** Holds an item of the Bag; with no item, holds nothing. */
+  z.object({ do: z.literal('hold'), item: dataId.optional() }),
+])
+
+export type SheetChange = z.infer<typeof sheetChange>
 
 /** From a player to the game master. */
 export const guestMessage = z.discriminatedUnion('t', [
@@ -34,6 +59,8 @@ export const guestMessage = z.discriminatedUnion('t', [
    * carried out in the next.
    */
   z.object({ t: z.literal('intent'), id: documentId, round: whole(1, 100_000), intent }),
+  /** A change asked of a sheet outside a fight. `id` tells it from every other the device sent: one that arrives twice is made once. */
+  z.object({ t: z.literal('change'), id: documentId, change: sheetChange }),
 ])
 
 export type GuestMessage = z.infer<typeof guestMessage>
@@ -62,6 +89,8 @@ const member = z.object({
   character: characterDocument,
   /** Whether its player's device is connected right now. */
   present: z.boolean(),
+  /** Whether it is resting at a Pokémon Center: its player may choose its Ability and its moves again, once. */
+  resting: z.boolean(),
 })
 
 /** The party as every member sees it. */
@@ -86,6 +115,21 @@ export const rewards = z.object({
 })
 
 export type Rewards = z.infer<typeof rewards>
+
+/** What the game master gave a character, or took from it, by hand (decisions 5 and 170). */
+export const granted = z.object({
+  exp: whole(0, 1_000_000),
+  /** Above 0 when given, below when taken. */
+  money: z.number().int().min(-999_999_999).max(999_999_999),
+  items: z.array(z.object({ item: dataId, quantity: z.number().int().min(-999).max(999) })).max(50),
+  /** The level before and after, when the EXP took the character past one. */
+  level: z.object({ from: whole(1, 100), to: whole(1, 100) }).optional(),
+})
+
+export type Granted = z.infer<typeof granted>
+
+/** Why a change asked of a sheet was not made: a word of the rules, for the screen to put into words. */
+export const changeRefusal = z.string().min(1).max(40)
 
 /** From the game master to a player. */
 export const hostMessage = z.discriminatedUnion('t', [
@@ -113,6 +157,10 @@ export const hostMessage = z.discriminatedUnion('t', [
   z.object({ t: z.literal('intentAnswer'), id: documentId, refused: intentRefusal.optional() }),
   /** An encounter is over: what the member's character was awarded, and the levels it went through. Its copy follows with the party. */
   z.object({ t: z.literal('rewards'), rewards }),
+  /** What became of a change asked of a sheet: made, or why not. */
+  z.object({ t: z.literal('changeAnswer'), id: documentId, refused: changeRefusal.optional() }),
+  /** The game master gave the member's character something, or took something from it. Its copy follows with the party. */
+  z.object({ t: z.literal('granted'), granted }),
 ])
 
 export type HostMessage = z.infer<typeof hostMessage>

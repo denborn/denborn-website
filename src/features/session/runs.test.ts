@@ -123,7 +123,7 @@ describe('a session being joined', () => {
     const run = runGuest({ code: 'ABCDEF', origin: 'https://denborn.test', token: 'player-token-0123456789abcdef', dataPackVersion: 'test-pack', character, onChange: (state) => states.push(state), onKeep: (copy) => kept.push(copy), open: line.open })
     return { line, states, kept, run }
   }
-  const party = (character: CharacterDocument) => ({ revision: 1, campaign: { id: 'campaign-0001', name: 'Test' }, you: character.id, members: [{ character, present: true }] })
+  const party = (character: CharacterDocument) => ({ revision: 1, campaign: { id: 'campaign-0001', name: 'Test' }, you: character.id, members: [{ character, present: true, resting: false }] })
 
   it('comes into the room with its token, learns the campaign, and asks with the character chosen', () => {
     const { line, run } = joining()

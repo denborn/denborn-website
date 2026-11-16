@@ -6,7 +6,7 @@ import { GUEST_START, type GuestEvent, type GuestState, type Mine, guestStep } f
 
 const mine: Mine = { character: { ...newcomer(), rules: testRules() }, dataPackVersion: 'test-pack' }
 const says = (message: HostMessage): GuestEvent => ({ on: 'message', body: encodeMessage(message) })
-const party = (changes: Partial<Party> = {}): Party => ({ revision: 1, campaign: { id: 'campaign-0001', name: 'Test' }, you: 'character-0001', members: [{ character: newcomer(), present: true }], ...changes })
+const party = (changes: Partial<Party> = {}): Party => ({ revision: 1, campaign: { id: 'campaign-0001', name: 'Test' }, you: 'character-0001', members: [{ character: newcomer(), present: true, resting: false }], ...changes })
 
 /** Plays events one after the other and gives the state they leave, with everything sent and kept on the way. */
 function play(state: GuestState, ...events: GuestEvent[]) {
@@ -87,7 +87,7 @@ describe('a player in a session', () => {
   it('keeps the copy of its character the game master’s side gives back, when it is not the one it has', () => {
     const same = play(GUEST_START, { on: 'joined', host: true }, says({ t: 'party', party: party() }))
     expect(same.kept).toEqual([])
-    const other = play(GUEST_START, { on: 'joined', host: true }, says({ t: 'party', party: party({ members: [{ character: newcomer({ money: 900 }), present: true }] }) }))
+    const other = play(GUEST_START, { on: 'joined', host: true }, says({ t: 'party', party: party({ members: [{ character: newcomer({ money: 900 }), present: true, resting: false }] }) }))
     expect(other.kept).toMatchObject([{ id: 'character-0001', money: 900 }])
   })
 
@@ -99,7 +99,7 @@ describe('a player in a session', () => {
   it('takes what a game master who started the session over says as news, whatever its number', () => {
     // Told the party's fifth state, then the game master's app reloads: the session counts from the beginning again.
     const before = play(inSession(), says({ t: 'party', party: party({ revision: 5 }) }), { on: 'host', present: false }, { on: 'host', present: true })
-    const after = play(before.state, says({ t: 'party', party: party({ revision: 1, members: [{ character: newcomer(), present: false }] }) }))
+    const after = play(before.state, says({ t: 'party', party: party({ revision: 1, members: [{ character: newcomer(), present: false, resting: false }] }) }))
     expect(after.state).toMatchObject({ at: 'in', party: { revision: 1, members: [{ present: false }] } })
     // From then on, an older state arriving late is ignored again.
     const later = play(after.state, says({ t: 'party', party: party({ revision: 4 }) }), says({ t: 'party', party: party({ revision: 3 }) }))
@@ -144,5 +144,32 @@ describe('a connection that closes', () => {
 
   it('asks for an update when the game master’s app speaks another version', () => {
     expect(play(GUEST_START, { on: 'joined', host: true }, { on: 'message', body: { p: 99, t: 'waiting' } }).state).toEqual({ at: 'out', why: 'update' })
+  })
+})
+
+describe('a change asked of a sheet (milestone 7)', () => {
+  const hold = { on: 'change', id: 'change-0001', change: { do: 'hold' } } as const
+
+  it('is asked of a game master who is there to hear, by a member', () => {
+    expect(play(inSession(), hold).sent).toEqual([{ t: 'change', id: 'change-0001', change: { do: 'hold' } }])
+    expect(play(inSession(), { on: 'host', present: false }, hold).sent).toEqual([])
+    expect(play(inSession(), { on: 'closed', code: 1006 }, hold).sent).toEqual([])
+    expect(play({ at: 'waiting' }, hold).sent).toEqual([])
+  })
+
+  it('is answered: made, or why not; the answer stays through the next news of the party', () => {
+    const answered = play(inSession(), says({ t: 'changeAnswer', id: 'change-0001', refused: 'no-item' }), says({ t: 'party', party: party({ revision: 2 }) }))
+    expect(answered.state).toMatchObject({ at: 'in', changed: { id: 'change-0001', refused: 'no-item' }, party: { revision: 2 } })
+    expect(play(inSession(), says({ t: 'changeAnswer', id: 'change-0002' })).state).toMatchObject({ changed: { id: 'change-0002' } })
+    // Someone who is not in the session has no change to hear of.
+    expect(play({ at: 'waiting' }, says({ t: 'changeAnswer', id: 'change-0001' })).state).toEqual({ at: 'waiting' })
+  })
+
+  it('keeps what the game master gave until the player has read it, through news of the party and a return', () => {
+    const granted = { exp: 10, money: -5, items: [{ item: 'potion', quantity: 1 }] }
+    const told = play(inSession(), says({ t: 'granted', granted }), says({ t: 'party', party: party({ revision: 2 }) }), { on: 'host', present: false }, { on: 'host', present: true })
+    expect(told.state).toMatchObject({ at: 'in', granted })
+    const read = play(told.state, { on: 'grantedRead' }).state
+    expect(read.at === 'in' && 'granted' in read).toBe(false)
   })
 })

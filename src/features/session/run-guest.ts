@@ -6,7 +6,7 @@
  */
 import { type RelayLink, type RelayLinkOptions, openRelayLink, roomUrl } from '../../network/relay-link.ts'
 import type { Intent } from '../../shared/protocol/battle.ts'
-import { encodeMessage } from '../../shared/protocol/session.ts'
+import { type SheetChange, encodeMessage } from '../../shared/protocol/session.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
 import { newId } from '../../storage/ids.ts'
 import { GUEST_START, type GuestEvent, type GuestState, guestStep } from './guest.ts'
@@ -45,6 +45,14 @@ export interface GuestRun {
   intend(intent: Intent): string
   /** The player has read what their character was awarded at the end of an encounter. */
   rewardsRead(): void
+  /**
+   * Asks a change of a sheet outside a fight (points placed, an evolution, an
+   * item used…), and gives the id its answer will carry. The sheet shown is
+   * the one the game master's side tells back.
+   */
+  change(change: SheetChange): string
+  /** The player has read what the game master gave their character or took from it. */
+  grantedRead(): void
   /** Closes the line without leaving: a member stays a member, and the game master sees it away. */
   stop(): void
 }
@@ -93,6 +101,12 @@ export function runGuest(options: GuestRunOptions): GuestRun {
       return id
     },
     rewardsRead: () => apply({ on: 'rewardsRead' }),
+    change: (change) => {
+      const id = (options.newId ?? newId)()
+      apply({ on: 'change', id, change })
+      return id
+    },
+    grantedRead: () => apply({ on: 'grantedRead' }),
     stop: () => link.close(),
   }
 }

@@ -74,8 +74,8 @@ const campaign: CampaignDocument = { kind: 'denborn.campaign', schemaVersion: 1,
 /** What the wire does to a message: only what JSON carries arrives. */
 const wired = (body: unknown): unknown => JSON.parse(JSON.stringify(body)) as unknown
 
-/** The game master and players at one table, with the test in the relay's place. */
-function table(options: { timerSeconds?: number } = {}) {
+/** The game master and players at one table, with the test in the relay's place. Bob comes as given, when the test needs him otherwise. */
+function table(options: { timerSeconds?: number; bob?: CharacterDocument } = {}) {
   let host: RelayLinkOptions | undefined
   /** Each player's device as the relay knows it: its line, and whether it is connected. */
   const devices = new Map<string, { line: RelayLinkOptions; online: boolean }>()
@@ -178,6 +178,12 @@ function table(options: { timerSeconds?: number } = {}) {
       answer: () => member()?.answer,
       /** What the device was told its character was awarded. */
       rewards: () => member()?.rewards,
+      /** The party as this device was last told it, and its own entry in it. */
+      party: () => member()?.party,
+      me: () => member()?.party.members.find((entry) => entry.character.id === member()?.party.you),
+      /** What became of the last change it asked of a sheet, and what the game master last gave or took. */
+      changed: () => member()?.changed,
+      granted: () => member()?.granted,
       /** The copies of its character the device was given to keep, in order. */
       copies: () => kept.copies[peer] ?? [],
       /** Something the device sent arrives a second time: the last thing by default, or the one `back` before the end. */
@@ -194,7 +200,7 @@ function table(options: { timerSeconds?: number } = {}) {
   }
 
   const ann = player('peer-ann', ANN)
-  const bob = player('peer-bob', BOB)
+  const bob = player('peer-bob', options.bob ?? BOB)
   const launch = (id = encounter.id) => gm.launch(id, options.timerSeconds === undefined ? {} : { timerSeconds: options.timerSeconds })
   return { gm: () => gm, ann, bob, launch, view: () => gm.view(), toHost, battles, kept, reopen }
 }
@@ -459,5 +465,105 @@ describe('a fight inside a session', () => {
     // Players choose no more: the answer says so.
     const late = ann.run.intend(lock('splash'))
     expect(ann.answer()).toEqual({ id: late, refused: 'closed' })
+  })
+})
+
+describe('a character\'s progress during a session (milestone 7)', () => {
+  const HURT = { ...BOB, hp: 5 }
+  const potion = { do: 'item', item: 'potion', target: BOB.id } as const
+
+  it('makes a change a player asks on the game master\'s side, once, and tells everyone the sheets it changed', () => {
+    const { ann, bob, view, kept } = table({ bob: HURT })
+    const asked = ann.run.change(potion)
+    expect(ann.changed()).toEqual({ id: asked })
+    // The item left Ann's Bag and healed Bob: both copies changed, in the session and in the campaign.
+    expect(view().session.party.map((member) => [member.character.hp, member.character.bag])).toEqual([[ANN.hp, [{ item: 'potion', quantity: 2 }]], [25, BOB.bag]])
+    expect(kept.characters.find((character) => character.id === BOB.id)?.hp).toBe(25)
+    // Each device is told the party, and is given the copy of its own character to keep.
+    expect(bob.party()?.members.map((member) => member.character.hp)).toEqual([ANN.hp, 25])
+    expect(bob.copies().at(-1)).toMatchObject({ id: BOB.id, hp: 25 })
+    expect(ann.copies().at(-1)).toMatchObject({ id: ANN.id, bag: [{ item: 'potion', quantity: 2 }] })
+
+    // The same request arriving again is answered and not made again.
+    ann.again()
+    expect(view().session.party[1]?.character.hp).toBe(25)
+    expect(ann.changed()).toEqual({ id: asked })
+  })
+
+  it('answers with the rule\'s own word when a change cannot be made, and changes nothing', () => {
+    const { ann, view } = table()
+    const before = view().session
+    const asked = ann.run.change(potion)
+    // Bob is at full HP: the item would do nothing.
+    expect(ann.changed()).toEqual({ id: asked, refused: 'no-effect' })
+    expect(view().session.party).toEqual(before.party)
+    expect(view().session.revision).toBe(before.revision)
+  })
+
+  it('leaves the sheets alone while a fight is on', async () => {
+    const { ann, launch, view } = table({ bob: HURT })
+    await launch()
+    const asked = ann.run.change(potion)
+    expect(ann.changed()).toEqual({ id: asked, refused: 'fight-on' })
+    expect(view().session.party[1]?.character.hp).toBe(5)
+    expect(view().session.party[0]?.character.bag).toEqual(ANN.bag)
+  })
+
+  it('rests a character when the game master says so, and lets its player choose its Ability and moves again, once', () => {
+    const { gm: master, ann, bob, view } = table({ bob: { ...HURT, status: 'psn' } })
+    const gm = master()
+    // Before any rest, moves are not chosen again.
+    bob.run.change({ do: 'reselect', ability: 'immunity', moves: ['splash'] })
+    expect(bob.changed()?.refused).toBe('not-resting')
+
+    expect(gm.rest(BOB.id)).toBeUndefined()
+    expect(view().session.party[1]?.character).toMatchObject({ hp: maxHpOf(BOB, pack) })
+    expect(view().session.party[1]?.character.status).toBeUndefined()
+    // Bob's player is told the rest is open; Ann's sees it too, and her own character is not resting.
+    expect(bob.me()?.resting).toBe(true)
+    expect(ann.party()?.members.map((member) => member.resting)).toEqual([false, true])
+
+    const chosen = bob.run.change({ do: 'reselect', ability: 'immunity', moves: ['splash'] })
+    expect(bob.changed()).toEqual({ id: chosen })
+    expect(view().session.party[1]?.character.moves).toEqual([{ id: 'splash', ppUps: 0, pp: 40 }])
+    expect(bob.me()?.resting).toBe(false)
+    bob.run.change({ do: 'reselect', ability: 'immunity', moves: ['tackle'] })
+    expect(bob.changed()?.refused).toBe('not-resting')
+  })
+
+  it('closes every rest when a fight begins', async () => {
+    const { gm: master, ann, launch } = table()
+    master().rest(ANN.id)
+    expect(ann.me()?.resting).toBe(true)
+    await launch()
+    expect(ann.me()?.resting).toBe(false)
+  })
+
+  it('tells the game master why a rest or a grant did nothing', async () => {
+    const { gm: master, launch, view } = table()
+    const gm = master()
+    const before = view().session
+    expect(gm.rest('hero-nobody-0001')).toBe('unknown-character')
+    expect(gm.grant(ANN.id, { items: [{ item: 'potion', quantity: -4 }] })).toBe('not-enough')
+    expect(gm.grant('hero-nobody-0001', { money: 5 })).toBe('unknown-character')
+    expect(view().session).toEqual(before)
+    await launch()
+    expect(gm.rest(ANN.id)).toBe('fight-on')
+    expect(gm.grant(ANN.id, { money: 5 })).toBe('fight-on')
+  })
+
+  it('gives what the game master grants, tells that player what it was, and everyone the sheet', () => {
+    const { gm: master, ann, bob, view } = table()
+    const exp = 1000
+    expect(master().grant(ANN.id, { exp, money: -100, items: [{ item: 'potion', quantity: 2 }] })).toBeUndefined()
+    const after = view().session.party[0]?.character
+    expect(after).toMatchObject({ exp: ANN.exp + exp, money: ANN.money - 100, bag: [{ item: 'potion', quantity: 5 }] })
+    expect(after?.level).toBeGreaterThan(ANN.level)
+    expect(ann.granted()).toEqual({ exp, money: -100, items: [{ item: 'potion', quantity: 2 }], level: { from: ANN.level, to: after?.level } })
+    // Only the one it was given to is told what was given; everyone sees the sheet.
+    expect(bob.granted()).toBeUndefined()
+    expect(bob.party()?.members[0]?.character.level).toBe(after?.level)
+    ann.run.grantedRead()
+    expect(ann.granted()).toBeUndefined()
   })
 })

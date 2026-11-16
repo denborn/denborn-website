@@ -7,6 +7,7 @@
  */
 import { create } from 'zustand'
 import type { DataPack } from '../data/types'
+import type { Grant } from '../domain/grants'
 import type { RewardDefaults } from '../domain/rewards'
 import type { FightCommand } from '../features/battle/fight'
 import type { LaunchRefusal } from '../features/session/host'
@@ -52,6 +53,10 @@ interface HostingState {
   rewards: () => RewardDefaults | undefined
   /** Ends the encounter and awards these amounts, by character. */
   closeFight: (awards: Readonly<Record<string, { exp: number; money: number }>>) => void
+  /** Starts a rest at a Pokémon Center for a character of the party; gives back why it did nothing, when it did not. */
+  rest: (character: string) => string | undefined
+  /** Gives a character of the party items, Pokédollars or EXP, or takes from it; gives back why it did nothing, when it did not. */
+  grant: (character: string, grant: Grant) => string | undefined
   /** A fight that cannot be taken up again is started again from its beginning, or ended with nothing changed (decision 139). */
   settleStale: (how: 'restart' | 'end') => void
   /** Ends the session for everyone: its code stops working, and the next session gets another. */
@@ -152,6 +157,8 @@ export const useHosting = create<HostingState>((set, get) => ({
   command: (command) => run?.command(command),
   rewards: () => run?.rewards(),
   closeFight: (awards) => run?.closeFight(awards),
+  rest: (character) => run?.rest(character),
+  grant: (character, grant) => run?.grant(character, grant),
   settleStale: (how) => {
     const hosted = get().hosted
     if (!hosted?.stale) return

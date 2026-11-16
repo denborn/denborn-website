@@ -110,7 +110,7 @@ interface JoinArgs {
 function Joining({ step, out }: JoinArgs) {
   const pack = usePack()
   const characters = heroes(pack).map((character) => ({ ...character, campaign: { ...CAMPAIGN, rulesVersion: 1 } }))
-  const members = characters.slice(0, 4).map((character, index) => ({ character, present: index !== 2 }))
+  const members = characters.slice(0, 4).map((character, index) => ({ character, present: index !== 2, resting: false }))
   const party: Party = { revision: 5, campaign: CAMPAIGN, you: characters[1]?.id ?? '', members }
   const states: Record<JoinArgs['step'], GuestState | undefined> = {
     code: undefined,

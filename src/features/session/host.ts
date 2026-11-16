@@ -10,11 +10,16 @@
 import type { BattleSetup } from '../../battle/contract.ts'
 import type { DataPack } from '../../data/types.ts'
 import { afterFight, awarded } from '../../domain/after-fight.ts'
+import { evolved } from '../../domain/evolution.ts'
+import { type Grant, granted } from '../../domain/grants.ts'
+import { withHeldItem, withItemUsed, withItemsTaken } from '../../domain/items.ts'
+import { withPointsPlaced } from '../../domain/level-up.ts'
 import { openCharacter } from '../../domain/open-character.ts'
+import { reselected, rested } from '../../domain/rest.ts'
 import { type RewardDefaults, rewardDefaults } from '../../domain/rewards.ts'
 import { PARTY_MAX } from '../../game-rules/party.ts'
 import type { Intent } from '../../shared/protocol/battle.ts'
-import { type HostMessage, type Party, type Refusal, decodeGuestMessage } from '../../shared/protocol/session.ts'
+import { type Granted, type HostMessage, type Party, type Refusal, type SheetChange, decodeGuestMessage } from '../../shared/protocol/session.ts'
 import { sameValue } from '../../shared/same-value.ts'
 import type { CampaignDocument } from '../../shared/schema/campaign.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
@@ -53,6 +58,10 @@ export interface HostSession {
   fight?: Fight | undefined
   /** The last intents carried out for each player's device: one that arrives twice is not carried out twice. */
   intents?: Readonly<Record<string, readonly string[]>>
+  /** The characters resting at a Pokémon Center: each may have its Ability and its moves chosen again, once. */
+  resting?: readonly string[]
+  /** The last changes made to a sheet for each player's device, like the intents. */
+  changes?: Readonly<Record<string, readonly string[]>>
 }
 
 /** What a fight in progress needs beside the session: the engine that plays it, and the game master's clock. */
@@ -90,12 +99,16 @@ export type HostEvent =
    * nothing; the fight's outcome is written to everyone who fought.
    */
   | { on: 'closeFight'; awards: Readonly<Record<string, { exp: number; money: number }>> }
+  /** The game master starts a rest at a Pokémon Center for one character of the party (decision 11). */
+  | { on: 'rest'; character: string }
+  /** The game master gives one character of the party items, Pokédollars or EXP, or takes items or Pokédollars from it (decisions 5 and 170). */
+  | { on: 'grant'; character: string; grant: Grant }
 
 export interface HostStep {
   session: HostSession
   /** What to send, and to which players. */
   send: { to: string[]; message: HostMessage }[]
-  /** Why the game master's own command in the fight changed nothing. */
+  /** Why the game master's own command changed nothing: in the fight, a rest or a grant. */
   refused?: string
 }
 
@@ -128,7 +141,7 @@ function partyFor(session: HostSession, member: Member): Party {
     revision: session.revision,
     campaign: { id: session.campaign.id, name: session.campaign.name },
     you: member.character.id,
-    members: session.party.map(({ character, present }) => ({ character, present })),
+    members: session.party.map(({ character, present }) => ({ character, present, resting: session.resting?.includes(character.id) ?? false })),
   }
 }
 
@@ -215,7 +228,9 @@ function stepped(session: HostSession, event: HostEvent, pack: DataPack, table: 
       return heard(session, event.from, event.body, pack, table)
     case 'launched': {
       if (session.fight || !table) return { session, send: [] }
-      return { session: { ...session, fight: openFight(event.start, contextOf(session, pack, table)), intents: {} }, send: [] }
+      const fighting: HostSession = { ...session, fight: openFight(event.start, contextOf(session, pack, table)), intents: {}, resting: [] }
+      // A fight ends every rest: nobody chooses moves again once it has begun. The party is told when a rest was open.
+      return session.resting?.length ? changed(fighting) : { session: fighting, send: [] }
     }
     case 'fight': {
       if (!session.fight || !table) return { session, send: [], refused: 'no-fight' }
@@ -229,6 +244,27 @@ function stepped(session: HostSession, event: HostEvent, pack: DataPack, table: 
       return session.fight || !table ? { session, send: [] } : { session: { ...session, fight: event.fight, intents: {} }, send: [] }
     case 'closeFight':
       return session.fight && table ? closed(session, session.fight, event.awards, pack, table) : { session, send: [] }
+    case 'rest': {
+      const member = session.party.find((entry) => entry.character.id === event.character)
+      if (session.fight || !member) return { session, send: [], refused: session.fight ? 'fight-on' : 'unknown-character' }
+      const result = rested(member.character, pack)
+      if (!result.ok) return { session, send: [], refused: result.problem }
+      // The rest is open until its player has chosen, or the next fight begins.
+      return changed({ ...withCopies(session, [result.character]), resting: [...new Set([...(session.resting ?? []), event.character])] })
+    }
+    case 'grant': {
+      const member = session.party.find((entry) => entry.character.id === event.character)
+      if (session.fight || !member) return { session, send: [], refused: session.fight ? 'fight-on' : 'unknown-character' }
+      const result = granted(member.character, event.grant, pack)
+      if (!result.ok) return { session, send: [], refused: result.problem }
+      const told: Granted = {
+        exp: result.character.exp - member.character.exp,
+        money: result.character.money - member.character.money,
+        items: (event.grant.items ?? []).filter(({ quantity }) => quantity !== 0).map(({ item, quantity }) => ({ item, quantity })),
+        ...(result.character.level > member.character.level ? { level: { from: member.character.level, to: result.character.level } } : {}),
+      }
+      return changed(withCopies(session, [result.character]), member.present ? [{ to: [member.peer], message: { t: 'granted', granted: told } }] : [])
+    }
     case 'approve': {
       const request = session.requests.find((entry) => entry.peer === event.peer)
       if (!request || session.party.length >= PARTY_MAX) return { session, send: [] }
@@ -255,6 +291,65 @@ function stepped(session: HostSession, event: HostEvent, pack: DataPack, table: 
       return changed({ ...session, party: session.party.filter((member) => member.peer !== event.peer) }, [{ to: [event.peer], message: { t: 'removed' } }])
     }
   }
+}
+
+/** The session with these copies of characters in the place of those it had, in the party and in the campaign. */
+function withCopies(session: HostSession, copies: readonly CharacterDocument[]): HostSession {
+  const newer = (character: CharacterDocument): CharacterDocument => copies.find((copy) => copy.id === character.id) ?? character
+  return {
+    ...session,
+    party: session.party.map((member) => ({ ...member, character: newer(member.character) })),
+    campaign: { ...session.campaign, revision: session.campaign.revision + 1, characters: session.campaign.characters.map(newer) },
+  }
+}
+
+/** A change a member asks of a sheet, made by the rules of src/domain: the characters it changed, or why it was not made. */
+function sheetChanged(session: HostSession, own: CharacterDocument, change: SheetChange, pack: DataPack): { ok: true; characters: CharacterDocument[] } | { ok: false; problem: string } {
+  const party = session.party.map((member) => member.character)
+  const one = (result: { ok: true; character: CharacterDocument } | { ok: false; problem: string }) => (result.ok ? { ok: true as const, characters: [result.character] } : result)
+  const several = (result: { ok: true; party: CharacterDocument[] } | { ok: false; problem: string }) => (result.ok ? { ok: true as const, characters: result.party } : result)
+  switch (change.do) {
+    case 'points':
+      return one(withPointsPlaced(own, change, pack))
+    case 'evolve':
+      return one(evolved(own, change.to, pack))
+    case 'reselect': {
+      // Ability and moves are chosen again during a rest, and at no other time (spec, section 3).
+      const rules = session.campaign.rulesHistory.find((version) => version.version === own.campaign.rulesVersion)
+      if (!rules || !session.resting?.includes(own.id)) return { ok: false, problem: 'not-resting' }
+      return one(reselected(own, change, rules, pack))
+    }
+    case 'item':
+      return several(withItemUsed(party, { user: own.id, item: change.item, target: change.target, move: change.move, from: change.from }, pack))
+    case 'take':
+      return several(withItemsTaken(party, { taker: own.id, from: change.from, item: change.item, quantity: change.quantity }))
+    case 'hold':
+      return one(withHeldItem(own, change.item, pack))
+  }
+}
+
+/** A member's change to a sheet, outside a fight: made once, by the rules, and answered either way. */
+function asked(session: HostSession, peer: string, message: { id: string; change: SheetChange }, pack: DataPack): HostStep {
+  const member = session.party.find((entry) => entry.peer === peer)
+  if (!member) return { session, send: [] }
+  const answer = (refused?: string): HostStep['send'] => [{ to: [peer], message: { t: 'changeAnswer', id: message.id, ...(refused ? { refused } : {}) } }]
+  const made = session.changes?.[peer] ?? []
+  // Sent twice, as a device does when it is not sure the first was heard: said again, not made again.
+  if (made.includes(message.id)) return { session, send: answer() }
+  // During a fight the sheets are the fight's: they change again once it is over.
+  if (session.fight) return { session, send: answer('fight-on') }
+
+  const result = sheetChanged(session, member.character, message.change, pack)
+  if (!result.ok) return { session, send: answer(result.problem) }
+  // Whatever the rules let through, a sheet that would no longer pass its campaign's rules is not kept.
+  const valid = result.characters.every((character) => openCharacter(character, session.campaign.rulesHistory.find((version) => version.version === character.campaign.rulesVersion), pack).ok)
+  if (!valid) return { session, send: answer('invalid') }
+
+  const changes = { ...session.changes, [peer]: [...made, message.id].slice(-INTENTS_REMEMBERED) }
+  // A rest is over once its player has chosen.
+  const resting = message.change.do === 'reselect' ? (session.resting ?? []).filter((id) => id !== member.character.id) : session.resting
+  const next = { ...withCopies(session, result.characters), changes, ...(resting ? { resting } : {}) }
+  return changed(next, answer())
 }
 
 /**
@@ -347,6 +442,7 @@ function heard(session: HostSession, peer: string, body: unknown, pack: DataPack
   const message = decoded.message
 
   if (message.t === 'intent') return intended(session, peer, message, pack, table)
+  if (message.t === 'change') return asked(session, peer, message, pack)
 
   if (message.t === 'hello') {
     // What a creation link of the campaign would hold, as it stands now.

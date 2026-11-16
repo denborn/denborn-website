@@ -7,6 +7,7 @@
  */
 import { BattleRuleError, type BattleSetup, type BattleSnapshot, type RoundResult } from '../../battle/contract.ts'
 import type { DataPack } from '../../data/types.ts'
+import type { Grant } from '../../domain/grants.ts'
 import type { RewardDefaults } from '../../domain/rewards.ts'
 import { type RelayLink, type RelayLinkOptions, openRelayLink, roomUrl } from '../../network/relay-link.ts'
 import { CLOSED } from '../../shared/protocol/relay.ts'
@@ -94,6 +95,10 @@ export interface HostRun {
   rewards(): RewardDefaults | undefined
   /** Ends the encounter: everyone who fought is left as the fight left them, and each character named is awarded its amounts. */
   closeFight(awards: Readonly<Record<string, { exp: number; money: number }>>): void
+  /** Starts a rest at a Pokémon Center for one character of the party (decision 11). Gives back why it did nothing, when it did not. */
+  rest(character: string): string | undefined
+  /** Gives one character of the party items, Pokédollars or EXP, or takes items or Pokédollars from it. Gives back why it did nothing, when it did not. */
+  grant(character: string, grant: Grant): string | undefined
   /** Ends the session for everyone: the code stops working. */
   end(): void
   /** Leaves the hosting without ending it: players wait, and the session can be taken up again. */
@@ -224,6 +229,8 @@ export function runHost(options: HostRunOptions): HostRun {
     },
     rewards: () => rewardsOf(session, options.pack, table()),
     closeFight: (awards) => void apply({ on: 'closeFight', awards }),
+    rest: (character) => apply({ on: 'rest', character }).refused,
+    grant: (character, grant) => apply({ on: 'grant', character, grant }).refused,
     end: () => {
       // Said to the relay when it can be heard; either way this device hosts that room no more.
       link.send({ t: 'end' })

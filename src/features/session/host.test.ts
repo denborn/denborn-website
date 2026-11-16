@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { progressPack } from '../../domain/progress-pack'
 import { newcomer, testPack, testRules } from '../../domain/test-pack'
 import { PARTY_MAX } from '../../game-rules/party'
 import { type GuestMessage, encodeMessage } from '../../shared/protocol/session'
@@ -202,5 +203,39 @@ describe('a session taken up again (decision 122)', () => {
     expect(dropped.session.party.map((member) => member.present)).toEqual([false, false])
     expect(dropped.session.requests).toEqual([])
     expect(dropped.sent).toEqual([])
+  })
+})
+
+describe('a change asked of a sheet (milestone 7)', () => {
+  const change = (id: string, change: Extract<GuestMessage, { t: 'change' }>['change']): unknown => encodeMessage({ t: 'change', id, change })
+  const raise = { do: 'points', ivs: { hp: 1, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, evs: hero('x').evs, gained: hero('x').attributes.gained } as const
+
+  it('is a member\'s to ask: anyone else is not answered', () => {
+    const step = hostStep(withParty('ann'), from('zed', change('change-0001', raise)), progressPack)
+    expect(step.send).toEqual([])
+    expect(step.session).toEqual(withParty('ann'))
+  })
+
+  it('is not kept when the sheet it makes would not pass its campaign\'s rules', () => {
+    // A member whose sheet names rules the campaign does not have: nothing made from it can be checked.
+    const session = withParty('ann')
+    const odd: HostSession = { ...session, party: session.party.map((member) => ({ ...member, character: { ...member.character, campaign: { ...member.character.campaign, rulesVersion: 9 } } })) }
+    const step = hostStep(odd, from('ann', change('change-0001', raise)), progressPack)
+    expect(step.send).toEqual([{ to: ['ann'], message: { t: 'changeAnswer', id: 'change-0001', refused: 'invalid' } }])
+    expect(step.session).toEqual(odd)
+  })
+
+  it('remembers what it made for each device: another device\'s request of the same name is its own', () => {
+    const first = hostStep(withParty('ann', 'bob'), from('ann', change('change-0001', raise)), progressPack)
+    const second = hostStep(first.session, from('bob', change('change-0001', raise)), progressPack)
+    expect(second.session.party.map((member) => member.character.ivs.hp)).toEqual([1, 1])
+  })
+
+  it('does nothing for a dead character at a rest, and says why (decision 173)', () => {
+    const session = withParty('ann')
+    const dead: HostSession = { ...session, party: session.party.map((member) => ({ ...member, character: { ...member.character, hp: 0, condition: { state: 'dead' } } })) }
+    const step = hostStep(dead, { on: 'rest', character: 'hero-ann' }, progressPack)
+    expect(step).toMatchObject({ refused: 'dead', send: [] })
+    expect(step.session).toEqual(dead)
   })
 })

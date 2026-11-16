@@ -11,7 +11,7 @@ import { campaignRules } from './rules.ts'
 export const CHARACTER_KIND = 'denborn.character'
 export const CHARACTER_SCHEMA_VERSION = 1
 
-const attributePoints = z.object({
+export const attributePoints = z.object({
   strength: whole(0, 95),
   dexterity: whole(0, 95),
   endurance: whole(0, 95),
