@@ -4,6 +4,10 @@ What only the owner can check, on real phones. Nothing here is reported as done 
 
 Site: https://denborn-website.kori-san.workers.dev
 
+The preferred way to play, and so to check: the game master on a computer, each player on a phone (the owner, 2026-11-16).
+
+**2026-11-16**: the owner reported having tested on phones that way. The result of each check below is still theirs to write down.
+
 ## A fight on two phones (milestone 6)
 
 One device hosts (a laptop, a tablet or a phone), two phones play. About 15 minutes.
