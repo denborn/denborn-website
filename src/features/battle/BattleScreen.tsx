@@ -418,12 +418,14 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
               <CornerButton side="left" disabled={pending} onClick={() => lock({ do: 'wait' })}>
                 {text.wait}
               </CornerButton>
-              <button type="button" className="dn-order" aria-label={orderWords} onClick={() => show({ at: 'party' })}>
+              {/* Named by what it shows, with each Pokémon's name said after its rank: a voice command finds it by its visible word. */}
+              <button type="button" className="dn-order" onClick={() => show({ at: 'party' })}>
                 <span className="dn-order__title">{text.order}</span>
                 {ordered.map((fighter, index) => (
                   <span key={fighter.id} className={`dn-order__entry${fighter.id === me ? ' dn-order__entry--mine' : ''}`}>
                     <span className="dn-order__rank">{index + 1}</span>
                     <PokemonIcon num={fighter.species?.num ?? 0} scale={0.5} />
+                    <span className="dn-visually-hidden">{fighter.name}</span>
                     {fight.locked[fighter.id] && <span className="dn-tick" />}
                   </span>
                 ))}

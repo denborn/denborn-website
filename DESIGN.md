@@ -214,7 +214,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 - **Keyboard**: every action works with Tab, Enter and Space. Nothing needs a drag.
 - **Names**: a sprite or icon next to its name is decorative; alone, it carries a label. Meters expose their values. Status badges carry the condition's full name.
 - **Announcements**: battle messages are read whole, once, politely. The typewriter is for the eyes only.
-- **Colour**: no state rests on colour alone. Text over the scene has an outline, text on colour a shadow.
+- **Colour**: no state rests on colour alone. Text over the scene has an outline, text on colour a shadow. Text reaches 4.5 to 1 against what is behind it (decisions 196 to 198): four colours measured on the games were moved a shade for that (`--dn-text-muted`, `--dn-option-selected-band`, `--dn-slot-ok`, `--dn-status-par`; each token says what was measured), and text never sits on a row's arrows, which are brighter than its middle. Axe checks what a machine can in the browser tests; text over a painted shape was measured by hand.
 - **Motion**: everything in section 6's right-hand column.
 - **Language**: components receive their words; none is written in a component.
 
@@ -274,5 +274,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
 | 191 to 194 | The app's icon is the den on the ground of the Pokémon Black icon, its light animated; the animated one shows on the home screen and on the loading screen. |
 | 184, 195 | The credits are a screen of their own, opened by a CREDITS button under the notice on the home screen and in the Options: the app's emblem, a sentence on what the project is, then people and teams, each with what of theirs is in the app and links to their pages. No list of packages. |
+| 196 to 198 | For contrast: the muted grey a shade lighter and the main button's band a shade deeper; text clear of a row's arrows, a selected or confirmed row's second line as bright as its first, the confirmed green a shade deeper; the panel beside a Pokémon darker with a lighter red for a raised stat, the PAR badge a shade deeper. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

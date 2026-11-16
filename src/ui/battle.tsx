@@ -288,8 +288,10 @@ export function MessageBox({ text, onAdvance, advanceLabel, lettersPerSecond = L
   )
   if (!onAdvance) return <div className="dn-message dn-text-shadow">{body}</div>
   return (
-    <button type="button" className="dn-message dn-text-shadow" aria-label={advanceLabel} onClick={advance}>
+    // Named by its message, then by what a press does: a name that left the visible words out could not be spoken to.
+    <button type="button" className="dn-message dn-text-shadow" onClick={advance}>
       {body}
+      <span className="dn-visually-hidden">{advanceLabel}</span>
     </button>
   )
 }

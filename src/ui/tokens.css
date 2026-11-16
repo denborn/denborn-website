@@ -18,7 +18,7 @@
   --dn-text: #f3f3f3; /* text on dark */
   --dn-text-shadow: #9a929a; /* its one-pixel shadow */
   --dn-text-dark: #212121; /* text on light */
-  --dn-text-muted: #9c9cad; /* unselected label (B2W2 options) */
+  --dn-text-muted: #a8a8b8; /* unselected label. Measured #9c9cad on the B2W2 options; a shade lighter so that it reaches 4.5 to 1 on an option's grey (decision 196) */
 
   /* --- Selection and menus (measured: BW party screen, B2W2 options) ------- */
   --dn-select: #48f8f0; /* selection outline */
@@ -33,12 +33,12 @@
   --dn-slot-down-band: #a84028;
   --dn-slot-down-tail: #801010;
   --dn-slot-down-outline: #f88898;
-  --dn-slot-ok: #088068; /* confirmed slot */
+  --dn-slot-ok: #087a63; /* confirmed slot. Measured #088068; a shade deeper so that white text reaches 4.5 to 1 on it (decision 197) */
   --dn-slot-ok-band: #10d8b0;
   --dn-slot-ok-tail: #08c0a0;
   --dn-option: #393952; /* unselected option button */
   --dn-option-selected: #085a8c;
-  --dn-option-selected-band: #088cb5;
+  --dn-option-selected-band: #07749a; /* measured #088cb5; a shade deeper so that white text reaches 4.5 to 1 where it crosses it (decision 196) */
   --dn-select-line: #63b5b5; /* outline of the selected option */
   --dn-backdrop: #000000; /* menu background */
   --dn-backdrop-mark: #183931; /* its faint pattern */
@@ -65,6 +65,10 @@
   --dn-message-band: rgb(0 0 0 / 0.6);
   --dn-message-line: rgb(122 2 0 / 0.6);
   --dn-message-line-2: rgb(52 2 0 / 0.6);
+
+  /* --- The facts beside a Pokémon on the top screen (Denborn's own; decision 198) --- */
+  --dn-preview-panel: rgb(0 0 0 / 0.8); /* darker than the message band: coloured figures are read on it */
+  --dn-stat-up-on-panel: #ff6b78; /* a stat its nature raises, on that panel: the games' red (#fb3041) is too dark there */
 
   /* --- Ability band (Denborn's own drawing, after the band the games slide in when an Ability acts) --- */
   /* The party's is in the blues of a slot, the foes' in the reds of a downed one, both let the scene show through. */
@@ -100,7 +104,7 @@
   --dn-status-tox-text: #d631de;
   --dn-status-brn: #b50000;
   --dn-status-frz: #005a8c;
-  --dn-status-par: #ad6b00;
+  --dn-status-par: #a56600; /* measured #ad6b00; a shade deeper so that its white letters reach 4.5 to 1 (decision 198) */
   /* Denborn's own: Agony has no counterpart in the games. */
   --dn-agony: #2b0a12;
   --dn-agony-pip: #fb3041;

@@ -18,7 +18,7 @@ Read with `tools/sheet-colors.ts` on the sheets in `tmp/`. The token names are t
 | EXP | `#00baf3`, `#00799a` | `--dn-exp*` |
 | "Lv." and "HP" gold | `#f3b200`, `#9a6110` | `--dn-label-gold*` |
 | Male mark, female mark (example boxes) | `#00baf3`, `#fb3041` | `--dn-male`, `--dn-female` |
-| Status: SLP, PSN, bad PSN (and its text), BRN, FRZ, PAR | `#4a4a4a`, `#6b2942`, `#391042` (`#d631de`), `#b50000`, `#005a8c`, `#ad6b00` | `--dn-status-*` |
+| Status: SLP, PSN, bad PSN (and its text), BRN, FRZ, PAR | `#4a4a4a`, `#6b2942`, `#391042` (`#d631de`), `#b50000`, `#005a8c`, `#ad6b00` (used: `#a56600`, see "Moved for contrast") | `--dn-status-*` |
 
 Example boxes (sheet rows 254 to 273): the name and level sit just above a plate 9 px tall for the foe, 13 px for the player (with the HP numbers); frame 1 px, shadow 2 px.
 
@@ -31,7 +31,7 @@ Read at the middle row of each slot (y = 222, 270, 318), at x = 10 (left band), 
 | Normal | `#386890` | `#002038` | `#004060` | `#88f8f0` |
 | Selected | `#00a8f8` | `#086890` | `#0088d8` | white over `#48f8f0` (the kit draws white) |
 | Fainted (Denborn: downed) | `#a84028` | `#601810` | `#801010` | `#f88898` |
-| Confirmed | `#10d8b0` | `#088068` | `#08c0a0` | white |
+| Confirmed | `#10d8b0` | `#088068` (used: `#087a63`) | `#08c0a0` | white |
 
 The bands are split by two arrowheads pointing left; the corners are cut at 45°.
 
@@ -40,8 +40,8 @@ The bands are split by two arrowheads pointing left; the corners are cut at 45°
 | What | Value | Token |
 |---|---|---|
 | Backdrop, and its plus marks | `#000000`, `#183931` | `--dn-backdrop`, `--dn-backdrop-mark` |
-| Unselected button, and its text | `#393952`, `#9c9cad` | `--dn-option`, `--dn-text-muted` |
-| Selected button, upper band and body | `#088cb5`, `#085a8c` | `--dn-option-selected-band`, `--dn-option-selected` |
+| Unselected button, and its text | `#393952`, `#9c9cad` (used: `#a8a8b8`) | `--dn-option`, `--dn-text-muted` |
+| Selected button, upper band and body | `#088cb5` (used: `#07749a`), `#085a8c` | `--dn-option-selected-band`, `--dn-option-selected` |
 | Selected button's outline | `#63b5b5` | `--dn-select-line` |
 
 ## BW "Battle HUD" sheet
@@ -61,3 +61,17 @@ BW's own HP bar colours (green `#00ff4a` / `#00bd21`, yellow `#eaff00` / `#adbd0
 ## Types
 
 Fill and shade of each BW type label, as published in PokéAPI's sprite repository; Fairy from Showdown's label. Values in `tokens.css` (`--dn-type-*`).
+
+## Moved for contrast (2026-11-16, decisions 196 to 198)
+
+Four measured colours fell short of 4.5 to 1 with the text they carry, and were moved a shade. The tables above keep what was measured; the tokens hold what is used.
+
+| Token | Measured | Used | Why |
+|---|---|---|---|
+| `--dn-text-muted` | `#9c9cad` | `#a8a8b8` | 4.1 to 1 on an unselected button's grey; now 4.8 |
+| `--dn-option-selected-band` | `#088cb5` | `#07749a` | white text crossed it at 3.5; now 4.8 |
+| `--dn-slot-ok` | `#088068` | `#087a63` | white text at 4.4; now 4.8 |
+| `--dn-status-par` | `#ad6b00` | `#a56600` | its white letters at 4.3; now 4.7 |
+
+A row's arrows (`…-band`, `…-tail`) are brighter than its middle and are not moved: text keeps clear of them instead. Before adding a text colour or a ground, work out their contrast; axe cannot see a ground painted by `::before` or `::after`.
+

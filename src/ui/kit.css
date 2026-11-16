@@ -197,9 +197,22 @@
   gap: calc(4 * var(--dn-u));
   width: 100%;
   min-height: max(calc(24 * var(--dn-u)), var(--dn-target));
-  padding: calc(3 * var(--dn-u)) calc(10 * var(--dn-u));
+  /* Text keeps clear of the arrow at the right end, which is brighter than the middle (decision 197). */
+  padding: calc(3 * var(--dn-u)) calc(26 * var(--dn-u)) calc(3 * var(--dn-u)) calc(10 * var(--dn-u));
   text-align: left;
   transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-quick) var(--dn-ease-out);
+}
+
+/* A row with no icon in its left arrow: its text starts after that arrow instead of over it (decision 197). */
+.dn-slot:not(:has(> .dn-icon, > .dn-slot__icon)) {
+  padding-left: calc(28 * var(--dn-u));
+}
+
+/* In a selected or a confirmed row the middle is lighter: its second line is as bright as its first (decision 197). */
+.dn-slot[aria-pressed='true'] .dn-note,
+.dn-slot[aria-selected='true'] .dn-note,
+.dn-slot--ok .dn-note {
+  color: var(--dn-text);
 }
 
 /* The cut corners of the games' party slots: the rim, then the face. */
@@ -1779,8 +1792,14 @@
   align-content: start;
   gap: calc(1 * var(--dn-u));
   padding: calc(4 * var(--dn-u)) calc(5 * var(--dn-u));
-  background: var(--dn-message-band);
+  background: var(--dn-preview-panel);
   border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+/* On that panel the games' red for a raised stat is too dark to read: a lighter one (decision 198). */
+.dn-preview__facts .dn-stat--up .dn-stat__name,
+.dn-preview__facts .dn-stat--up .dn-stat__value {
+  color: var(--dn-stat-up-on-panel);
 }
 
 .dn-preview__types {

@@ -31,7 +31,7 @@ export function Preview({ pack, draft, level, view, language, text, levelText }:
   if (!species) {
     return (
       <div className="dn-preview dn-preview--empty">
-        <p className="dn-note">{text.previewEmpty}</p>
+        <p className="dn-note dn-text-outline">{text.previewEmpty}</p>
       </div>
     )
   }

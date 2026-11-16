@@ -109,14 +109,23 @@ export function Options({ offline, onCredits, onBack }: OptionsProps) {
               <dt>{t.system.engineVersion}</dt>
               <dd>@pkmn/sim {__ENGINE_VERSION__}</dd>
               <dt>{t.system.dataPack}</dt>
-              <dd role="status">{packText}</dd>
+              {/* The value itself is the list's; what is read out when it changes is inside it. */}
+              <dd>
+                <span role="status">{packText}</span>
+              </dd>
               <dt>{t.system.offline}</dt>
               {/* The count of sprites is not read out as it moves; the two states around it are. */}
-              <dd role={offline.status === 'sprites' ? undefined : 'status'}>{offlineText}</dd>
+              <dd>
+                <span role={offline.status === 'sprites' ? undefined : 'status'}>{offlineText}</span>
+              </dd>
               <dt>{t.system.engine}</dt>
-              <dd role="status">{engineText}</dd>
+              <dd>
+                <span role="status">{engineText}</span>
+              </dd>
               <dt>{t.system.relay}</dt>
-              <dd role="status">{relayText}</dd>
+              <dd>
+                <span role="status">{relayText}</span>
+              </dd>
             </dl>
             <div className="dn-row">
               <OptionButton onClick={checkEngine} disabled={engine.state === 'checking'}>

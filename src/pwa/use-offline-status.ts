@@ -3,7 +3,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
 import { loadDataPack } from '../data/pack'
 import { battleSpriteUrls } from '../data/sprites'
 import { browserSpriteStore, dropOlderSprites } from './sprite-cache'
-import { type WarmupProgress, warmSprites } from './sprite-warmup'
+import { type KeptSprites, keepSprites } from './sprite-keeper'
 
 /**
  * How far the app is from working offline (decision 181). `preparing`: the
@@ -15,7 +15,7 @@ export type OfflineStatus = 'unsupported' | 'preparing' | 'sprites' | 'ready'
 export interface OfflineState {
   status: OfflineStatus
   /** While the sprites are being fetched: how many are kept, and whether the fetching stopped for want of a network. */
-  sprites?: WarmupProgress & { stalled: boolean }
+  sprites?: KeptSprites
   /** A newer app version has been downloaded and is waiting for the user's go-ahead. */
   updateAvailable: boolean
   /** Activates the waiting version and reloads. Never call it during a battle. */
@@ -33,6 +33,8 @@ const GIVE_UP_AFTER = 5
 const PASSES = 3
 /** The count on screen moves every few sprites, not at each one. */
 const TOLD_EVERY = 8
+/** After a try that brought nothing in while the device says it has a network: the waits before the next ones. */
+const RETRY_AFTER_MS = [3_000, 10_000, 30_000, 120_000]
 
 /**
  * Tracks whether the app has finished keeping itself for offline use, in its
@@ -45,7 +47,7 @@ const TOLD_EVERY = 8
  */
 export function useOfflineStatus(): OfflineState {
   const [active, setActive] = useState(false)
-  const [sprites, setSprites] = useState<WarmupProgress & { stalled: boolean }>()
+  const [sprites, setSprites] = useState<KeptSprites>()
   const {
     needRefresh: [updateAvailable],
     updateServiceWorker,
@@ -64,55 +66,27 @@ export function useOfflineStatus(): OfflineState {
 
   useEffect(() => {
     if (!active || !store) return
-    /** `again`: the network came back while sprites were being fetched; what failed before that is fetched once they are done. */
-    const run = { stopped: false, fetching: false, again: false }
-    // Asked through a function: the flag is raised from the network's event, between two awaits.
-    const networkCameBack = (): boolean => run.again
-    const fetchSprites = async (): Promise<void> => {
-      if (run.fetching) {
-        run.again = true
-        return
-      }
-      run.fetching = true
-      try {
-        const urls = battleSpriteUrls(Object.values((await loadDataPack()).species))
-        do {
-          run.again = false
-          let told = false
-          const kept = await warmSprites(urls, store, {
-            atOnce: AT_ONCE,
-            giveUpAfter: GIVE_UP_AFTER,
-            passes: PASSES,
-            stopped: () => run.stopped,
-            onProgress: (progress) => {
-              // Said at once the first time, then every few sprites.
-              if (run.stopped || (told && progress.done % TOLD_EVERY !== 0 && progress.done !== progress.of)) return
-              told = true
-              setSprites({ ...progress, stalled: false })
-            },
-          })
-          if (run.stopped) return
-          const complete = kept.done === kept.of
-          setSprites({ ...kept, stalled: !complete && !networkCameBack() })
-          if (complete) {
-            await dropOlderSprites()
-            return
-          }
-        } while (networkCameBack())
-      } catch {
-        // The game data or the browser's cache could not be read: nothing more is kept for now, and the next try starts over.
-        if (!run.stopped) setSprites((before) => ({ done: before?.done ?? 0, of: before?.of ?? 0, stalled: true }))
-      } finally {
-        run.fetching = false
-      }
-    }
-    void fetchSprites()
+    const keeper = keepSprites({
+      urls: async () => battleSpriteUrls(Object.values((await loadDataPack()).species)),
+      store,
+      online: () => navigator.onLine,
+      retryAfter: RETRY_AFTER_MS,
+      later: (run, ms) => {
+        const timer = setTimeout(run, ms)
+        return () => clearTimeout(timer)
+      },
+      onState: setSprites,
+      onComplete: () => void dropOlderSprites(),
+      atOnce: AT_ONCE,
+      giveUpAfter: GIVE_UP_AFTER,
+      passes: PASSES,
+      toldEvery: TOLD_EVERY,
+    })
     // What a lost network left unfetched is fetched when it comes back.
-    const networkBack = (): void => void fetchSprites()
-    window.addEventListener('online', networkBack)
+    window.addEventListener('online', keeper.networkBack)
     return () => {
-      run.stopped = true
-      window.removeEventListener('online', networkBack)
+      keeper.stop()
+      window.removeEventListener('online', keeper.networkBack)
     }
   }, [active])
 
