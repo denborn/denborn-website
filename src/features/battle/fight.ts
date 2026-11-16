@@ -141,6 +141,8 @@ export interface FightContext {
   engine: FightEngine
   /** What an item does when used from a Bag; nothing for an item that does nothing there. */
   bagEffect: (item: string) => BagEffect | undefined
+  /** Whether using the item leaves it in the Bag (the flutes). */
+  isReusable: (item: string) => boolean
   /** The characters whose player is away right now. */
   absent: ReadonlySet<string>
   /** The game master's clock, in milliseconds. */
@@ -459,7 +461,7 @@ function played(fight: Fight, context: FightContext): FightStep {
   // An item leaves the Bag only when it was used: one that could not be, or whose user was stopped, stays (decision 21).
   let { bags, enemyBag } = fight
   for (const event of result.events) {
-    if (event.type !== 'bag' || event.outcome !== 'used') continue
+    if (event.type !== 'bag' || event.outcome !== 'used' || context.isReusable(event.item)) continue
     const choice = fight.locked[event.user]?.choice
     // The item leaves the Bag it came from: the enemies' one, a fallen teammate's (decision 175), or the user's own.
     const owner = choice?.do === 'bag' && choice.from !== undefined ? choice.from : event.user

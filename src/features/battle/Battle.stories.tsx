@@ -54,14 +54,14 @@ function openTable(pack: DataPack, timerSeconds: number, carrierDown = false): L
       timerSeconds: timerSeconds > 0 ? timerSeconds : undefined,
       opening: engine.opening,
     },
-    { engine, bagEffect: (item) => pack.items[item]?.bag, absent: new Set(), now },
+    { engine, bagEffect: (item) => pack.items[item]?.bag, isReusable: (item) => pack.items[item]?.reusable === true, absent: new Set(), now },
   )
   return { engine, fight: carrierDown ? withMousseDown(pack, engine, fight, now) : fight, party, answers: {}, now }
 }
 
 /** Plays rounds in which the enemies go for Mousse and nobody else does anything, until Mousse is down. */
 function withMousseDown(pack: DataPack, engine: DenbornBattle, opened: Fight, now: number): Fight {
-  const context: FightContext = { engine, bagEffect: (item) => pack.items[item]?.bag, absent: new Set(), now }
+  const context: FightContext = { engine, bagEffect: (item) => pack.items[item]?.bag, isReusable: (item) => pack.items[item]?.reusable === true, absent: new Set(), now }
   const mousse = 'hero-mousse-0001'
   let fight = opened
   for (let round = 0; round < 4 && !engine.combatant(mousse).downed && fight.outcome === undefined; round++) {
@@ -114,7 +114,7 @@ function Table({ timer, seat, carrierDown = false }: { timer: number; seat: 'pla
   /** Whether the first player's device is away: the game master may then choose for them. */
   const [away, setAway] = useState(false)
   const absent = new Set(away ? [table.party[0]?.id ?? ''] : [])
-  const context = (now: number): FightContext => ({ engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, absent, now })
+  const context = (now: number): FightContext => ({ engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, isReusable: (item) => pack.items[item]?.reusable === true, absent, now })
 
   /** Carries commands out one after the other, as the game master's side would; gives back why the last one changed nothing. */
   const carryOut = (commands: { author: Author; command: FightCommand; intent?: string }[]): string | undefined => {

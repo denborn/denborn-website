@@ -7,7 +7,7 @@ import type { Enemy } from '../../shared/schema/encounter'
 import { type Author, type Choice, type FightCommand, type FightContext, type FightEngine, type FightStep, fightStep, isReady, openFight, partyView, tableView } from './fight'
 
 // Made up for the tests: real items get their effects from the data pack.
-const EFFECTS: Record<string, BagEffect> = { medicine: { heal: 20 }, phoenix: { revive: 'half' } }
+const EFFECTS: Record<string, BagEffect> = { medicine: { heal: 20 }, phoenix: { revive: 'half' }, flute: { heal: 20 } }
 
 interface TableOptions {
   timerSeconds?: number
@@ -24,7 +24,7 @@ function table(players: CombatantSetup[], enemies: CombatantSetup[], options: Ta
   const engine = options.wrap ? options.wrap(battle) : battle
   const absent = new Set<string>()
   let now = 0
-  const context = (): FightContext => ({ engine, bagEffect: (item) => EFFECTS[item], absent, now })
+  const context = (): FightContext => ({ engine, bagEffect: (item) => EFFECTS[item], isReusable: (item) => item === 'flute', absent, now })
   let fight = openFight(
     { encounter: { id: 'encounter-0001', name: 'Test' }, enemies: options.sheets ?? [], bags: options.bags ?? {}, enemyBag: options.enemyBag ?? [], timerSeconds: options.timerSeconds, opening: battle.opening },
     context(),
@@ -216,6 +216,14 @@ describe('the Bag', () => {
     game.gmLocks('foe', splash)
     expect(game.fight().bags.ann).toEqual([])
     expect(game.locks('ann', medicine('ann')).refused).toBe('no-item')
+  })
+
+  it('keeps an item that using does not use up', () => {
+    const game = table(hurt(), [enemy('foe', 'Chansey', ['tackle'])], { bags: { ann: [{ item: 'flute', quantity: 1 }] } })
+    game.locks('ann', { do: 'bag', item: 'flute', target: 'ann' })
+    game.gmLocks('foe', splash)
+    expect(game.battle.combatant('ann').hp).toBe(70)
+    expect(game.fight().bags.ann).toEqual([{ item: 'flute', quantity: 1 }])
   })
 
   it('refuses an item the Pokémon\'s side does not have, or that does nothing from a Bag', () => {

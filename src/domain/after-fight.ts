@@ -25,7 +25,8 @@ export interface FightLeft {
 }
 
 const STATUSES = ['psn', 'tox', 'brn', 'par', 'slp', 'frz'] as const
-const MONEY_MAX = 999_999_999
+/** The most Pokédollars a sheet holds (the saved form's own limit). */
+export const MONEY_MAX = 999_999_999
 
 /**
  * The character as the fight left it: its HP, PP and status stay as they

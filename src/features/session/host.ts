@@ -162,7 +162,7 @@ function contextOf(session: HostSession, pack: DataPack, table: FightTable): Fig
       .filter((combatant) => combatant.side === 'players' && !there.has(combatant.id))
       .map((combatant) => combatant.id),
   )
-  return { engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, absent, now: table.now }
+  return { engine: table.engine, bagEffect: (item) => pack.items[item]?.bag, isReusable: (item) => pack.items[item]?.reusable === true, absent, now: table.now }
 }
 
 /** The fight as the game master is shown it, when one is on. */
