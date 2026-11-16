@@ -109,6 +109,7 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `StatRow` | One stat: name, bar, value | BW summary | A stat raised by the nature is red with an arrow up, a lowered one blue with an arrow down, as in the games. |
 | `StepHeader` | The title of a step of a flow | — | With "Step 2 of 7". It takes focus when the step changes, so the change is announced. |
 | `.dn-foot`, `.dn-foot--said` | The foot of a page: its buttons, kept in sight | Denborn's own | BACK on the left, the main action on the right. With `--said`, a line of text sits over the buttons on the page's black: the question they answer, or what the last one did (decisions 177 to 180). It stays in sight wherever the list above is scrolled. |
+| `.dn-credits`, `.dn-credit`, `.dn-anchor` | The credits: who, what of theirs is in the app, their pages | Denborn's own | The name in the colour of a slot's outline, what is theirs in the muted text, then links underlined in that same colour (`.dn-anchor`, the kit's link out of the app). A link is never smaller than `--dn-target-min`. |
 | `Tabs` | A row of tabs and the part the current one shows | BW summary pages | Equal widths, the current one lit and underlined. The arrow keys, Home and End move between the tabs; the Tab key goes on to the part. Used by the character sheet. |
 | `.dn-figures` | A small table of numbers | BW summary | Names on the left, figures on the right; the last column, the value, stands out from the figures it is made from. A stat its nature raises is red with an arrow up, a lowered one blue with an arrow down. |
 | `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |
@@ -272,5 +273,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 181, 185 to 188 | A battle sprite that is not there shows MissingNo., animated, at its own 45 × 50 pixels; mirrored for a Pokémon seen from behind. |
 | 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
 | 191 to 194 | The app's icon is the den on the ground of the Pokémon Black icon, its light animated; the animated one shows on the home screen and on the loading screen. |
+| 184, 195 | The credits are a screen of their own, opened by a CREDITS button under the notice on the home screen and in the Options: the app's emblem, a sentence on what the project is, then people and teams, each with what of theirs is in the app and links to their pages. No list of packages. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

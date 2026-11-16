@@ -19,6 +19,7 @@ import { EncounterList } from '../features/encounters/EncounterList'
 import { withEncounter, withoutEncounter } from '../features/encounters/encounter-draft'
 import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
 import { CreationFlow } from '../features/creation/CreationFlow'
+import { Credits } from '../features/credits/Credits'
 import { Home } from '../features/home/Home'
 import { ImportCharacter } from '../features/import/ImportCharacter'
 import { QrCamera } from '../features/import/QrCamera'
@@ -55,7 +56,16 @@ import { usePageTitle } from './page-title'
 export function HomePage() {
   const navigate = useNavigate()
   usePageTitle(undefined)
-  return <Home pack={usePack()} entries={['characters', 'session', 'campaigns', 'options']} offline={useOffline()} onOpen={(entry) => void navigate(`/${entry}`)} />
+  return <Home pack={usePack()} entries={['characters', 'session', 'campaigns', 'options']} offline={useOffline()} onOpen={(entry) => void navigate(`/${entry}`)} onCredits={() => void navigate('/credits')} />
+}
+
+/** The credits inside the app (decision 184). */
+export function CreditsPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  usePageTitle(useMessages().credits.title)
+  // Back to the screen it was opened from, the home or the Options, when it is in this visit's history.
+  return <Credits onBack={() => void (location.key !== 'default' ? navigate(-1) : navigate('/'))} />
 }
 
 export function CampaignsPage() {
@@ -546,7 +556,7 @@ export function JoinSessionPage() {
 export function OptionsPage() {
   const navigate = useNavigate()
   usePageTitle(useMessages().options.title)
-  return <Options offline={useOffline()} onBack={() => void navigate('/')} />
+  return <Options offline={useOffline()} onCredits={() => void navigate('/credits')} onBack={() => void navigate('/')} />
 }
 
 export function CharactersPage() {

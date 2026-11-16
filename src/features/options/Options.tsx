@@ -12,11 +12,13 @@ type EngineCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; ro
 
 export interface OptionsProps {
   offline: OfflineState
+  /** Opens the credits (decision 184). */
+  onCredits: () => void
   onBack: () => void
 }
 
 /** The language, and a check of everything the app relies on: its data, the battle engine, the offline cache, the relay. */
-export function Options({ offline, onBack }: OptionsProps) {
+export function Options({ offline, onCredits, onBack }: OptionsProps) {
   const t = useMessages()
   const language = useLanguage()
   const textSpeed = useTextSpeed()
@@ -134,6 +136,9 @@ export function Options({ offline, onBack }: OptionsProps) {
             )}
           </section>
           <p className="dn-note">{t.app.notice}</p>
+          <div className="dn-row">
+            <OptionButton onClick={onCredits}>{t.credits.open}</OptionButton>
+          </div>
         </div>
         <div className="dn-foot">
           <OptionButton onClick={onBack}>{t.nav.back}</OptionButton>

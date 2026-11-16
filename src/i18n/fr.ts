@@ -564,6 +564,31 @@ export const fr: Messages = {
       },
     },
   },
+  credits: {
+    open: 'CRÉDITS',
+    title: 'Crédits',
+    intro: 'Denborn est un projet de fans non officiel et non commercial, fait par des fans. Il n’est pas vendu et ne contient aucune publicité. Il repose sur le travail de ces personnes.',
+    entries: {
+      pokemon: {
+        who: 'Nintendo, Creatures Inc. et GAME FREAK inc.',
+        theirs: 'Pokémon\u00a0: les jeux, leurs Pokémon et leurs noms, leurs sprites et leurs icônes, leurs textes, et l’aspect de Pokémon Noir et Blanc d’après lequel cette application est redessinée. Tout cela est à eux\u00a0; Denborn n’est affilié ni à eux ni à The Pokémon Company.',
+      },
+      showdown: {
+        who: 'L’équipe de Pokémon Showdown',
+        theirs: 'Smogon et ses nombreux contributeurs\u00a0: le simulateur sur lequel tourne chaque combat, ses données de jeu, la collection de sprites et d’icônes, et la façon dont un combat est raconté ligne par ligne.',
+      },
+      pokeapi: { who: 'Les contributeurs de PokéAPI', theirs: 'La liste des objets du sac, les noms français et les icônes des objets que Showdown n’a pas.' },
+      corpus: { who: 'abcboy101 et les contributeurs de Poké Corpus', theirs: 'Le texte des jeux conservé ligne par ligne dans chaque langue\u00a0: c’est de là que viennent les messages de combat, en anglais et en français.' },
+      checked: { who: 'Serebii et PokémonDB', theirs: 'Là où les valeurs des objets du sac ont été vérifiées, et les captures d’écran des jeux publiées par Serebii.' },
+      missingno: { who: 'Pokemon-Ranger-Sumi', theirs: '«\u00a0MissingNo. GIF\u00a0» (2017)\u00a0: le MissingNo. affiché à la place d’un sprite absent.' },
+      sheets: {
+        who: 'Les «\u00a0rippers\u00a0» de The Spriters Resource',
+        theirs: (rippers) => `Les planches de sprites sur lesquelles l’aspect des jeux a été étudié\u00a0: ${rippers}, avec le projet de sprites de Smogon et Pokémon Essentials BW de KleinStudio.`,
+      },
+      font: { who: 'Peter Hull et les auteurs du projet VT323', theirs: 'VT323, la police de l’interface.' },
+    },
+    more: 'Les licences, les versions et les bibliothèques avec lesquelles l’application est construite sont listées dans CREDITS.md, dans le dépôt du projet.',
+  },
   import: {
     title: 'Importer un personnage',
     entry: 'IMPORTER',

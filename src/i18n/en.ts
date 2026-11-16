@@ -583,6 +583,33 @@ export const en = {
       },
     },
   },
+  /** The credits inside the app (decisions 184 and 195): people and teams. The fuller record is CREDITS.md, at the root of the repository. */
+  credits: {
+    open: 'CREDITS',
+    title: 'Credits',
+    intro: 'Denborn is an unofficial, non-commercial fan project, made by fans. It is not sold and carries no advertising. It stands on the work of these people.',
+    /** Who is credited, and what of theirs is in the app. */
+    entries: {
+      pokemon: {
+        who: 'Nintendo, Creatures Inc. and GAME FREAK inc.',
+        theirs: 'Pokémon: the games, their Pokémon and their names, their sprites and icons, their texts, and the look of Pokémon Black and White that this app is redrawn after. All of it is theirs; Denborn is not affiliated with them or with The Pokémon Company.',
+      },
+      showdown: {
+        who: 'The Pokémon Showdown team',
+        theirs: 'Smogon and its many contributors: the battle simulator every fight runs on, its game data, the collection of sprites and icons, and the way a fight is told line by line.',
+      },
+      pokeapi: { who: 'The PokéAPI contributors', theirs: 'The list of Bag items, the French names, and the icons of the items Showdown does not have.' },
+      corpus: { who: 'abcboy101 and the Poké Corpus contributors', theirs: 'The games’ text kept line by line in every language: where the battle messages, in English and French, are read from.' },
+      checked: { who: 'Serebii and PokémonDB', theirs: 'Where the values of the Bag items were checked, and Serebii’s screenshots of the games.' },
+      missingno: { who: 'Pokemon-Ranger-Sumi', theirs: '“MissingNo. GIF” (2017): the MissingNo. shown in the place of a sprite that is not there.' },
+      sheets: {
+        who: 'The rippers of The Spriters Resource',
+        theirs: (rippers: string) => `The sprite sheets the games’ look was studied on: ${rippers}, with Smogon’s sprite project and KleinStudio’s Pokémon Essentials BW.`,
+      },
+      font: { who: 'Peter Hull and the VT323 Project Authors', theirs: 'VT323, the interface’s font.' },
+    },
+    more: 'Licences, versions and the libraries the app is built with are listed in CREDITS.md, in the project’s repository.',
+  },
   import: {
     title: 'Import a character',
     entry: 'IMPORT',

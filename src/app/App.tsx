@@ -10,7 +10,7 @@ import { joinCodeIn } from '../shared/protocol/room-code'
 import { OptionButton, Screen } from '../ui'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CampaignPage, CampaignsPage, EncounterPage, EncountersPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
+import { CampaignPage, CampaignsPage, EncounterPage, EncountersPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, CreditsPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
 
 function LoadFailed() {
   const messages = useMessages()
@@ -129,6 +129,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'options', element: <OptionsPage /> },
+      { path: 'credits', element: <CreditsPage /> },
       { path: 'campaigns', element: <CampaignsPage /> },
       { path: 'campaigns/new', element: <CampaignPage /> },
       { path: 'campaigns/import', element: <ImportCampaignPage /> },

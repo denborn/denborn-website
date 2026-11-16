@@ -1378,6 +1378,49 @@
   color: var(--dn-slot-down-outline);
 }
 
+/* A link out of the app: underlined, in the colour of a slot's outline. */
+.dn-anchor {
+  color: var(--dn-select-soft);
+  text-decoration: underline;
+  text-underline-offset: calc(2 * var(--dn-u));
+}
+
+/* The credits: who, what of theirs is in the app, and their pages. */
+.dn-credits {
+  display: grid;
+  gap: calc(6 * var(--dn-u));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dn-credit {
+  display: grid;
+  gap: calc(1 * var(--dn-u));
+}
+
+.dn-credit__who {
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  color: var(--dn-select-soft);
+}
+
+.dn-credit__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 calc(10 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+/* A link is a target for a finger too: never under the least a small target may be. */
+.dn-credit__links .dn-anchor {
+  display: inline-flex;
+  align-items: center;
+  min-height: max(calc(15 * var(--dn-u)), var(--dn-target-min));
+}
+
 /* A text field or a group of choices under its label. */
 .dn-entry {
   display: grid;

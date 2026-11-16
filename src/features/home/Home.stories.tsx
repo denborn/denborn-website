@@ -30,6 +30,7 @@ function HomeScreen({ offline, update }: HomeArgs) {
         entries={['characters', 'session', 'campaigns', 'options']}
         offline={{ ...OFFLINE[offline], updateAvailable: update, applyUpdate: () => setOpened('update') }}
         onOpen={setOpened}
+        onCredits={() => setOpened('credits')}
       />
       <Note>
         The app’s first screen: its name, the app’s emblem (the den, its light climbing; decision 192), three Pokémon, and its ways in. Under

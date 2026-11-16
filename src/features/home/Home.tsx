@@ -12,6 +12,8 @@ export interface HomeProps {
   /** How far the app is from working offline, and whether a new version waits (decisions 182 and 183). */
   offline: OfflineState
   onOpen: (entry: HomeEntry) => void
+  /** Opens the credits (decision 184). */
+  onCredits: () => void
 }
 
 /** The three that stand on the first screen, and the icon of each entry: Pokédex numbers. */
@@ -23,7 +25,7 @@ const ICONS: Record<HomeEntry, number> = { characters: 25, session: 81, campaign
  * version that waits is offered first; under the ways in, a line says how far
  * the app is from working with no network.
  */
-export function Home({ pack, entries: shown, offline, onOpen }: HomeProps) {
+export function Home({ pack, entries: shown, offline, onOpen, onCredits }: HomeProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.home
@@ -87,6 +89,9 @@ export function Home({ pack, entries: shown, offline, onOpen }: HomeProps) {
           {/* Not read out as it counts: it is there to be looked at. */}
           {offlineLine && <p className="dn-note">{offlineLine}</p>}
           <p className="dn-note">{messages.app.notice}</p>
+          <div className="dn-row">
+            <OptionButton onClick={onCredits}>{messages.credits.open}</OptionButton>
+          </div>
         </nav>
       </Screen>
     </div>

@@ -185,5 +185,6 @@
   /* One DS pixel of text: every font size is a multiple of it. */
   --dn-t: calc(var(--dn-u) * var(--dn-font-scale));
   --dn-target: 44px; /* smallest touch target */
+  --dn-target-min: 24px; /* the least a small target, such as a link in a line, may be (WCAG 2.2, 2.5.8) */
   --dn-focus-ring: #ffffff;
 }
