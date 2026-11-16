@@ -8,7 +8,7 @@
 | `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`. |
 | `src/ui/controls.tsx` | `Panel`, `Slot`, `OptionButton`, `CommandMenu`, `CornerButton`, `Tabs` (it draws the part it shows too, so the two are always tied together for screen readers). |
 | `src/ui/battle.tsx` | `HpBar`, `ExpBar`, `StatusBadge`, `AgonyBadge`, `HudBox`, `MoveButton`, `MessageBox`, `AbilityBand`. |
-| `src/ui/sprites.tsx` | `PokemonSprite`, the icons, `TypeLabel`. |
+| `src/ui/sprites.tsx` | `PokemonSprite` (MissingNo. stands in for a sprite that is not there), the icons, `TypeLabel`, `AppEmblem` (the animated den). |
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |
 | `src/ui/field.tsx`, `line.ts` | `LineBrowser`, `FieldPlan` and `FieldEffects`; how the arrows walk a line (pure, tested). |
 | `src/ui/forms.tsx` | `TextField`, `NumberField`, `StatRow`, `StepHeader`. |

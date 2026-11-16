@@ -170,6 +170,7 @@
   --dn-quick: 160ms; /* a selection moving, a badge appearing */
   --dn-move: 280ms; /* a panel sliding in */
   --dn-slow: 480ms; /* a screen wipe */
+  --dn-emblem-loop: 960ms; /* the app's emblem: eight frames of 120 ms. Denborn's own. */
   --dn-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dn-ease-in: cubic-bezier(0.6, 0, 0.9, 0.4);
   --dn-ease-snap: cubic-bezier(0.3, 1.4, 0.5, 1); /* a small overshoot, for arrivals */

@@ -37,6 +37,13 @@ export function battleSpriteUrl(
   return `${ROOT}/${folder}/${species.id}${suffix}.gif`
 }
 
+/**
+ * The app's own emblem: the den with its light, on the ground of the games'
+ * icon. Its frames stand side by side in one picture, each a square of `side`
+ * pixels; the first is the still icon.
+ */
+export const APP_EMBLEM = { url: '/icon-frames.png', side: 32, frames: 8 } as const
+
 /** Every battle sprite of the species given: seen from the front and from behind, and the female ones where there are. */
 export function battleSpriteUrls(all: Iterable<Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>>): string[] {
   const urls: string[] = []

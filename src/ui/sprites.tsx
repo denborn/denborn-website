@@ -1,6 +1,7 @@
 import { useReducedMotion } from 'motion/react'
 import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import {
+  APP_EMBLEM,
   type BattleSpriteOptions,
   MISSING_SPRITE_URL,
   type SheetCell,
@@ -98,6 +99,23 @@ function CellIcon({ cell, scale = 1, label }: IconProps & { cell: SheetCell }) {
     backgroundSize: `${cell.sheetWidth * factor}px auto`,
   }
   return <span className="dn-icon" style={style} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} />
+}
+
+/**
+ * The app's emblem, as the DS showed a game's icon in its menu: the den, with
+ * the light climbing out of it. It plays through its frames; with reduced
+ * motion it stays on the first, which is the app's still icon.
+ */
+export function AppEmblem({ scale = 1, label }: IconProps) {
+  const side = APP_EMBLEM.side * usePixelScale(scale)
+  const style = {
+    width: side,
+    height: side,
+    backgroundImage: `url(${APP_EMBLEM.url})`,
+    backgroundSize: `${side * APP_EMBLEM.frames}px ${side}px`,
+    '--dn-emblem-run': `${-side * APP_EMBLEM.frames}px`,
+  } as CSSProperties
+  return <span className="dn-emblem" style={style} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} />
 }
 
 /** A Pokémon's small menu icon, by Pokédex number. */

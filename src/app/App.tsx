@@ -2,6 +2,7 @@ import { MotionConfig } from 'motion/react'
 import { Component, type ReactNode, Suspense, useEffect, useRef } from 'react'
 import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useNavigate } from 'react-router'
 import { usePack } from '../data/use-pack'
+import { LoadingScreen } from '../features/home/LoadingScreen'
 import { useMessages } from '../i18n'
 import { useOfflineStatus } from '../pwa/use-offline-status'
 import { decodeCreationCode } from '../shared/codec/codes'
@@ -10,20 +11,6 @@ import { OptionButton, Screen } from '../ui'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
 import { CampaignPage, CampaignsPage, EncounterPage, EncountersPage, HostSessionPage, ImportCampaignPage, JoinSessionPage, RemoveCampaignPage, CharacterPage, CharactersPage, CreateCharacterPage, HomePage, ImportCharacterPage, NewCharacterPage, OptionsPage, RemoveCharacterPage } from './pages'
-
-/** Shown while the game data loads. */
-function Loading() {
-  const messages = useMessages()
-  return (
-    <Screen kind="menu" label={messages.nav.loading}>
-      <div className="dn-lineup">
-        <p className="dn-note" role="status">
-          {messages.nav.loading}
-        </p>
-      </div>
-    </Screen>
-  )
-}
 
 function LoadFailed() {
   const messages = useMessages()
@@ -124,7 +111,7 @@ function Shell() {
       <MotionConfig reducedMotion="user">
         <main className="app dn-root">
           <LoadBoundary>
-            <Suspense fallback={<Loading />}>
+            <Suspense fallback={<LoadingScreen />}>
               <IncomingLink />
               <FocusOnNavigation />
               <Outlet />

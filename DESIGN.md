@@ -100,6 +100,7 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `.dn-ask` | A question on the whole touch screen | Denborn's own | An ally's ask to trade places or Speed, with ACCEPT and REFUSE. |
 | `.dn-ability` (`AbilityBand`) | The band that names an Ability when it acts | Denborn's own drawing, after the games' band (decisions 165, 167) | Slides in from its Pokémon's side of the scene: a foe's from the right over its head, in the reds of a downed slot; an ally's from the left over its head, in the blues of a slot. The name on one line, the Ability on the next; its far end cut aslant like the boxes. It hides neither Pokémon nor box. |
 | `.dn-card` | A Pokémon's sheet during a fight | Denborn's own, after the summary | Its box with HP in numbers, its types, five stats with the stages they carry in gold, Ability, held item, moves in their type's colour with PP. |
+| `AppEmblem` (`.dn-emblem`) | The app's emblem: the den, its light climbing | Denborn's own; its ground redrawn after the Pokémon Black game icon (decisions 191 to 194) | Eight frames of 32 × 32 side by side in one picture, played in a second (`--dn-emblem-loop`); it stays on the first frame with reduced motion. On the home screen at one and a half times its size, between the tagline and the three Pokémon; on the loading screen at twice, over the word. The first frame is the app's icon on a phone and in a browser's tab. |
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 | `TextField` | A line of text to type | B2W2 option boxes | Label above, a line of help or of what is wrong underneath, tied to the field for screen readers. |
@@ -270,5 +271,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 180 | The hosting screen: a tapped member shows REST, GIVE OR TAKE and REMOVE FROM THE SESSION; GIVE OR TAKE is a page of its own with the character on the top screen. |
 | 181, 185 to 188 | A battle sprite that is not there shows MissingNo., animated, at its own 45 × 50 pixels; mirrored for a Pokémon seen from behind. |
 | 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
+| 191 to 194 | The app's icon is the den on the ground of the Pokémon Black icon, its light animated; the animated one shows on the home screen and on the loading screen. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

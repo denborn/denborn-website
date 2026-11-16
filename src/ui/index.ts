@@ -10,7 +10,7 @@ export type { FieldEffect, FieldEffectsProps, FieldPlanProps, FieldTile, LineBro
 export type { FieldState } from './line'
 export { Battler } from './battler'
 export type { BattlerHandle, BattlerPose, BattlerProps } from './battler'
-export { CategoryIcon, ItemIconImage, PokemonIcon, PokemonSprite, TypeLabel } from './sprites'
+export { AppEmblem, CategoryIcon, ItemIconImage, PokemonIcon, PokemonSprite, TypeLabel } from './sprites'
 export type { IconProps, PokemonSpriteProps, TypeLabelProps } from './sprites'
 export { DURATION, EASE } from './motion'
 export { PaperQrCode, QrCode } from './qr'

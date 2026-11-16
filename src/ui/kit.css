@@ -1315,6 +1315,14 @@
   padding: calc(10 * var(--dn-u)) calc(8 * var(--dn-u)) calc(26 * var(--dn-u));
 }
 
+/* The loading screen: the app's emblem over the word, both in the middle. */
+.dn-lineup--loading {
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8 * var(--dn-u));
+  padding-bottom: calc(10 * var(--dn-u));
+}
+
 .dn-lineup .dn-note {
   align-self: center;
   max-width: calc(200 * var(--dn-u));
@@ -1856,7 +1864,7 @@
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto 1fr;
   justify-items: center;
   gap: calc(4 * var(--dn-u));
   padding: calc(16 * var(--dn-u)) calc(6 * var(--dn-u)) calc(8 * var(--dn-u));
@@ -1949,6 +1957,22 @@
   image-rendering: pixelated;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* The app's emblem: eight frames side by side in one picture, played one after the other. The component sets the size and the
+   length of the run in whole device pixels. With reduced motion the run does not play, and the first frame stays. */
+.dn-emblem {
+  display: block;
+  flex: none;
+  background-repeat: repeat-x;
+  image-rendering: pixelated;
+  animation: dn-emblem-run var(--dn-emblem-loop) steps(8) infinite;
+}
+
+@keyframes dn-emblem-run {
+  to {
+    background-position-x: var(--dn-emblem-run);
+  }
 }
 
 /* MissingNo. in the place of a Pokémon seen from behind: the same picture, turned the other way. */

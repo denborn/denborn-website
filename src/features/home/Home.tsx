@@ -1,7 +1,7 @@
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import type { OfflineState } from '../../pwa/use-offline-status'
-import { OptionButton, PokemonIcon, PokemonSprite, Screen, Slot } from '../../ui'
+import { AppEmblem, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot } from '../../ui'
 
 export type HomeEntry = 'characters' | 'session' | 'campaigns' | 'options'
 
@@ -50,6 +50,8 @@ export function Home({ pack, entries: shown, offline, onOpen }: HomeProps) {
               {messages.app.name}
             </h1>
             <p className="dn-home__tagline dn-text-outline">{messages.app.tagline}</p>
+            {/* The app's emblem, as the DS menu showed a game's icon (decision 192). The title beside it names it. */}
+            <AppEmblem scale={1.5} />
             <div className="dn-home__faces">
               {FACES.map((id) => {
                 const species = pack.species[id]

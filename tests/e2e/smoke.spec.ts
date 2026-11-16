@@ -66,6 +66,16 @@ test('the battle engine is fetched on demand and runs with no network once cache
   await expect(page.getByText(/^Working \(\d+ rounds in \d+ ms\)$/)).toBeVisible()
 })
 
+test('every icon the app names for a phone and for a browser is a picture that is there', async ({ page }) => {
+  await page.goto('/')
+  const manifest = (await (await page.request.get('/manifest.webmanifest')).json()) as { icons: { src: string }[] }
+  const linked = [await page.locator('link[rel="icon"]').getAttribute('href'), await page.locator('link[rel="apple-touch-icon"]').getAttribute('href')]
+  const named = [...manifest.icons.map((icon) => icon.src), ...linked.map((href) => href ?? '')]
+  expect(named).toEqual(['/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/icon-32.png', '/apple-touch-icon.png'])
+  // A file that is missing would be answered with the app's own page: its type tells.
+  for (const src of named) expect((await page.request.get(src)).headers()['content-type'], src).toBe('image/png')
+})
+
 test('a frame makes the round trip through the Worker and Durable Object', async ({ page }) => {
   await page.goto('/options')
   await page.getByRole('button', { name: 'Check the relay' }).click()

@@ -38,10 +38,15 @@ export default defineConfig({
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
-        background_color: '#101018',
+        background_color: '#000000',
         theme_color: '#101018',
-        // Provisional icon; the real set comes with the art direction (milestone 3).
-        icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+        // The den (decision 191), each of its pixels a whole number of the picture's. The round-cut one keeps a margin:
+        // Android may cut an icon to a circle.
+        icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
       },
       workbox: {
         // The first stage of working offline (decision 181): the app, the game data, the icon sheets and the

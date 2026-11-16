@@ -28,6 +28,12 @@ Not stored in this repository, with one exception (MissingNo., last row). `scrip
 | Icons of the 45 items Showdown does not have (Potion, Revive, Linking Cord…) | [PokéAPI sprites](https://github.com/PokeAPI/sprites), commit `1dd55c0` | "All image contents within are Copyright The Pokémon Company" (PokéAPI sprites licence file) |
 | MissingNo., shown in the place of a Pokémon whose sprite is not there (`public/missingno.gif`, the one piece of artwork stored in this repository) | "MissingNo. GIF" by Pokemon-Ranger-Sumi, published 5 March 2017, supplied by the project's owner. Changed for the app: brought back from 1100 × 1100 to its own pixels (45 × 50), the white around it made see-through, its colours brought down to 31, frames that repeat merged into longer ones (same animation). | "© 2017 - 2026 Pokemon-Ranger-Sumi" (the picture's page, which shows no licence to reuse it; used by the owner's decision, `DECISIONS.md` 187). MissingNo. itself is from Pokémon Red and Blue, © Nintendo, Creatures Inc., GAME FREAK inc. |
 
+## The app's icon
+
+| What | Source | Rights |
+|---|---|---|
+| The den with its light (`public/icon-*.png`, `public/apple-touch-icon.png`, and the eight frames of `public/icon-frames.png`) | A picture supplied by the project's owner, who made it or had an AI make it (`DECISIONS.md` 193), brought down to the icon's 32 × 32 pixels; its light is redrawn and animated by the project. The ground behind it is the project's own redrawing of the ground of the Pokémon Black game icon (see "Design references"). | The project's own. |
+
 ## Design references
 
 Used only to study the look of Pokémon Black / White and Black 2 / White 2 (Nintendo DS, © 2010–2012 Nintendo, Creatures Inc., GAME FREAK inc.). They are kept in a git-ignored folder and are **not redistributed**. The app's interface is redrawn from scratch; it copies no pixels from them.
@@ -46,8 +52,9 @@ Sprite sheets from [The Spriters Resource](https://www.spriters-resource.com/) (
 | Options Screen | Black 2 / White 2 | PikachuMazzinga |
 | Save Menu | Black 2 / White 2 | Ikard |
 | VS Backgrounds | Black 2 / White 2 | redblueyellow |
+| Game Icons | Black / White | lavistardust |
 
-The art direction (milestone 3) was measured on four of them: Battle HUD, HP Bars, Party Screen and the Black 2 / White 2 Options Screen. The other sheets in the folder were not used.
+The art direction (milestone 3) was measured on four of them: Battle HUD, HP Bars, Party Screen and the Black 2 / White 2 Options Screen. The ground of the app's icon was measured on a fifth, Game Icons (the Pokémon Black icon: black, with a chequer of small blocks that fades downwards) and redrawn; its ball is not used. The other sheets in the folder were not used.
 
 Other references, consulted and not redistributed: the official Pokémon White and White 2 instruction manuals (Nintendo), and screenshots published by [Serebii.net](https://www.serebii.net/).
 
