@@ -3,7 +3,6 @@ import type { Messages } from './en'
 export const fr: Messages = {
   app: {
     name: 'Denborn',
-    tagline: 'Un compagnon de JDR sur table Pokémon',
     notice:
       'Projet de fans non officiel et non commercial. Pokémon et ses illustrations appartiennent à Nintendo, Creatures Inc. et GAME FREAK inc.',
   },
@@ -49,6 +48,9 @@ export const fr: Messages = {
     textSpeed: 'Vitesse du texte',
     textSpeedHint: 'La vitesse à laquelle défilent les messages d’un combat.',
     textSpeeds: { slow: 'LENTE', normal: 'NORMALE', fast: 'RAPIDE' },
+    titleAnimation: 'Animation de l’écran titre',
+    titleAnimationHint: 'La pluie et les éclairs du premier écran. Sur NON, la scène reste immobile.',
+    titleAnimations: { on: 'OUI', off: 'NON' },
   },
   characters: {
     title: 'Personnages',
@@ -575,7 +577,7 @@ export const fr: Messages = {
       },
       showdown: {
         who: 'L’équipe de Pokémon Showdown',
-        theirs: 'Smogon et ses nombreux contributeurs\u00a0: le simulateur sur lequel tourne chaque combat, ses données de jeu, la collection de sprites et d’icônes, et la façon dont un combat est raconté ligne par ligne.',
+        theirs: 'Smogon et ses nombreux contributeurs\u00a0: le simulateur sur lequel tourne chaque combat, ses données de jeu, la collection de sprites et d’icônes, et la façon dont un combat est raconté ligne par ligne. La prairie du premier écran est l’un de ses décors de combat, dessiné par Kyle Dove.',
       },
       pokeapi: { who: 'Les contributeurs de PokéAPI', theirs: 'La liste des objets du sac, les noms français et les icônes des objets que Showdown n’a pas.' },
       corpus: { who: 'abcboy101 et les contributeurs de Poké Corpus', theirs: 'Le texte des jeux conservé ligne par ligne dans chaque langue\u00a0: c’est de là que viennent les messages de combat, en anglais et en français.' },
@@ -659,6 +661,7 @@ export const fr: Messages = {
       ready: 'Prête à fonctionner hors ligne.',
     },
     update: 'METTRE À JOUR',
+    start: 'TOUCHEZ POUR COMMENCER',
   },
   creation: {
     title: 'Nouveau personnage',

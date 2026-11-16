@@ -20,8 +20,8 @@ export const DURATION = {
  * frames and the rain. Apart from DURATION, the interface's own moves.
  */
 export const TITLE = {
-  /** The den in daylight, before its light rises. */
-  day: 1.2,
+  /** The den in daylight, before its light rises: short, as the owner asked (decision 211). */
+  day: 0.8,
   /** The light rising out of the den. */
   rise: 1,
   /** The first strike, while the plain turns dark. */

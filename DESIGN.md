@@ -31,7 +31,9 @@ On a phone 393 px wide a DS pixel is about 1.5 px; on a 768 px tablet, 3 px. Sha
 
 A **tall** screen (`Screen tall`) keeps the width and the grid but is as long as what it holds. Menus and forms are a **page** of two screens (`.dn-page`): a 4:3 screen that stays at the top, showing what is being worked on, and a tall one under it that the page scrolls. The battle keeps its two 4:3 screens.
 
-`Screen` comes in three kinds: `scene` (the battle, with Denborn's own sky-and-grass backdrop), `touch` (the brown shell of the games' touch screen) and `menu` (black with the options screen's faint plus marks).
+`Screen` comes in four kinds: `scene` (the battle, with Denborn's own sky-and-grass backdrop), `touch` (the brown shell of the games' touch screen), `menu` (black with the options screen's faint plus marks) and `blank` (black, with nothing on it: the bottom screen while the title shows).
+
+The title screen's scene is the one thing not drawn on the DS pixel: it is pixel art of its own size (Showdown's meadow, 238 × 158), each of its pixels a whole number of the device's, enough for its rows to cover the 4:3 screen. It stands on the screen's bottom edge with the den in the middle, and the screen cuts what is left over at its sides and top (`fitScene` in `src/ui/scene-fit.ts`, tested). The name on it is placed in DS pixels, on the screen.
 
 ## 3. Colour
 
@@ -48,7 +50,7 @@ All colours are tokens in `src/ui/tokens.css`; components use tokens only. The S
 | Status badges | `--dn-status-*` | B2W2 "HP Bars" sheet (the dark PSN is bad poison) |
 | Types, fill and shade | `--dn-type-*` | BW type labels as published by PokéAPI; Fairy (not a Gen 5 type) from Showdown's label |
 
-Denborn's own, with no counterpart in the games: the Agony colours (`--dn-agony*`), the battle backdrop (`--dn-scene-*`), the focus ring (`--dn-focus-ring`).
+Denborn's own, with no counterpart in the games: the Agony colours (`--dn-agony*`), the battle backdrop (`--dn-scene-*`), the focus ring (`--dn-focus-ring`), and the title screen's (`--dn-title-*`): the night's veil, the rain, the red of the lightning, and the four golds and the deep red of the app's name.
 
 HP bars are green above half, yellow down to a fifth, red at a fifth or less (`hpTone`, tested).
 
@@ -78,7 +80,7 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 
 | Component | What it is | After | States and notes |
 |---|---|---|---|
-| `Screen` | One DS screen; defines the DS pixel | — | `scene`, `touch`, `menu`. Has an accessible label. |
+| `Screen` | One DS screen; defines the DS pixel | — | `scene`, `touch`, `menu`, `blank`. Has an accessible label. |
 | `Panel` | Box for text and values | B2W2 HP box bodies | `dark` (dithered), `light`. Hard shadow down-right. |
 | `Slot` | A row that can be chosen | BW party slots | resting, selected, `ok` (confirmed), `down` (downed), disabled. Cut corners, three bands split by two arrowheads; the outline changes with the state. |
 | `OptionButton` | A small choice or action | B2W2 options buttons | resting, selected / primary, disabled. Pointed at both ends. |
@@ -101,6 +103,9 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `.dn-ability` (`AbilityBand`) | The band that names an Ability when it acts | Denborn's own drawing, after the games' band (decisions 165, 167) | Slides in from its Pokémon's side of the scene: a foe's from the right over its head, in the reds of a downed slot; an ally's from the left over its head, in the blues of a slot. The name on one line, the Ability on the next; its far end cut aslant like the boxes. It hides neither Pokémon nor box. |
 | `.dn-card` | A Pokémon's sheet during a fight | Denborn's own, after the summary | Its box with HP in numbers, its types, five stats with the stages they carry in gold, Ability, held item, moves in their type's colour with PP. |
 | `AppEmblem` (`.dn-emblem`) | The app's emblem: the den, its light climbing | Denborn's own; its ground redrawn after the Pokémon Black game icon (decisions 191 to 194) | Eight frames of 32 × 32 side by side in one picture, played in a second (`--dn-emblem-loop`); it stays on the first frame with reduced motion. On the home screen at one and a half times its size, between the tagline and the three Pokémon; on the loading screen at twice, over the word. The app's icon on a phone and in a browser's tab is the ball instead (decision 209). |
+| `TitleScene` (`.dn-title-scene`) | The title screen: the den in its plain, the storm | Denborn's own, in the manner of a DS game's title screen (decisions 202 to 207, 210) | Layers from the back to the front: the plain, the light on its ground, the far rain, the rocks behind the light, the light and the bolts, the rocks in front, the near rain; then the name, on the screen. `intro` plays its steps once (the den in daylight, its light rising, a red bolt as the plain turns dark, the name, the storm); without it the storm is there at once. `still` holds everything: no intro, the rain hangs, no lightning. Everything but the name is hidden from assistive technology. Imported from its own file (`src/ui/title-scene.tsx`), not from the kit's one door: the home is among the screens every visit starts from. |
+| `.dn-title` | The app's name on the title screen | Denborn's own (decision 211) | VT323 at 40, gilded: four bands of gold cut to the letters, the ink outline, a deep-red shadow. It is the page's `h1`; the gilding is on its letters (`.dn-title__letters`), so that the heading's focus ring is drawn plain. |
+| `.dn-start` | TOUCH TO START | The DS games' title screens (decision 205) | The whole black bottom screen is one button. Its words are there from the start for whoever reads them out, show once the storm has come, and go on and off once in 1.2 s; they stay on with reduced motion or the switch off. Its focus ring is drawn inside the screen. |
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 | `TextField` | A line of text to type | B2W2 option boxes | Label above, a line of help or of what is wrong underneath, tied to the field for screen readers. |
@@ -183,6 +188,10 @@ What moves, and how:
 | It is out of the fight | Drops and fades | Disappears |
 | A message | Typed out; "more" arrow bobs | Shown whole; arrow still |
 | A badge arrives | Scales in with a small overshoot | Appears |
+| The title screen's intro | The den in daylight for 0.8 s; its light rises in 1 s, one row of the scene at a time; a red bolt as the plain turns dark, 0.8 s; the name fades in, 0.6 s. Then rain falls, and red lightning strikes 2 to 5 s apart, at times twice, each flash 0.32 s | No intro: the storm is there, standing still. The rain hangs, the light holds its first frame, no lightning. The same when the Options' switch is off (decision 206) |
+| TOUCH TO START | On and off once in 1.2 s | Stays on |
+
+The title screen's lengths are apart from the tokens above: `TITLE` in `src/ui/motion.ts` and the `--dn-title-*` durations, kept equal by the same test. Its steps are in `src/ui/title-intro.ts`, and when and where lightning strikes in `src/ui/storm.ts`.
 
 Rules:
 
@@ -202,8 +211,10 @@ Rules:
 | Item icons | Showdown `itemicons-sheet.png`, 24 × 24 cells, 16 a row; PokéAPI's own image for the items Showdown lacks | 24 × 24, 30 × 30 | `ItemIconImage` |
 | Category labels | Showdown `categories/` | 32 × 14 | `CategoryIcon` |
 | MissingNo., in the place of a sprite that is not there | "MissingNo. GIF" by Pokemon-Ranger-Sumi, prepared for the app (see `CREDITS.md`); kept in the repository | 45 × 50 | `PokemonSprite`, by itself |
+| The title screen's plain | Showdown's meadow, `fx/bg-meadow.png`, drawn by Kyle Dove; served at 753 × 500 and taken back to its own pixels by the scene | 238 × 158 | `TitleScene` |
+| The den of the title screen: its rocks in two layers, what its light changes on them and on the ground, and the light's eight frames | Drawn by the project as rectangles (`scripts/assets/draw-den.ts` writes `public/den-*.svg`); kept in the repository | 128 × 60 on the plain's pixels; the light 54 × 135 a frame | `TitleScene` |
 
-Type labels are not artwork: the app draws them (`TypeLabel`), so they can be in French. Paths are built only by `src/data/sprites.ts`, from what the data pack and the sprite lock say exists; a name is never guessed. Order of fallback for a battle sprite: Gen 5 animated, then Showdown's `ani` set, then MissingNo. (`public/missingno.gif`, 45 × 50, animated; decisions 181 and 185 to 188), which also stands in while a device has not fetched a sprite yet; it is mirrored for a Pokémon seen from behind, and read out by the Pokémon's own name. Only if MissingNo. itself cannot be shown is the name shown as text.
+Type labels are not artwork: the app draws them (`TypeLabel`), so they can be in French. Paths are built only by `src/data/sprites.ts`, from what the data pack, the sprite lock and the backdrop lock say exists; a name is never guessed. Order of fallback for a battle sprite: Gen 5 animated, then Showdown's `ani` set, then MissingNo. (`public/missingno.gif`, 45 × 50, animated; decisions 181 and 185 to 188), which also stands in while a device has not fetched a sprite yet; it is mirrored for a Pokémon seen from behind, and read out by the Pokémon's own name. Only if MissingNo. itself cannot be shown is the name shown as text.
 
 ## 8. Accessibility
 
@@ -235,7 +246,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 93 | A duration reads "3 turns left" / "3 tours restants". The plan does not show everything: MORE lists all that is in effect and whom it touches. |
 | 94 | What sits on one Pokémon (stat changes, Leech Seed…) is in MORE under its letter and on its own sheet; a small mark on its tile and HUD box says it carries some. |
 | 99 | No QR code finer than 101 × 101 squares is shown; past that, the file. |
-| 100 | The home: the app's name over three Pokémon; Characters, Campaigns, Options. |
+| 100 | The home: the app's name over three Pokémon; Characters, Campaigns, Options. Its top screen is now the title screen (decision 203, below). |
 | 101 | Character creation in seven steps: Pokémon; name, gender, nature and Ability; roleplay attributes; IVs and EVs; moves; item pack; a last look. |
 | 102 | Menus and forms: the top DS screen stays, the lower one is as long as its content and scrolls. |
 | 103 | The character sheet: the Pokémon, its battle box and types on the top screen; five tabs below (INFO, STATS, MOVES, BAG, SHARE). |
@@ -274,6 +285,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
 | 191 to 194 | The app's emblem is the den, its light animated; it shows on the home screen and on the loading screen. |
 | 209 | The app's still icons (a browser's tab, an iPhone, Android) are the pink grid ball seen from the front, with a margin, on the ground of the Pokémon Black icon: black, a chequer of blocks that darkens downwards. |
+| 203 to 207, 210, 211 | The home's top screen is the title screen: the den in Showdown's meadow and nothing else, the app's name gilded a little above the middle. Each time the app starts its intro plays over a black bottom screen (the den in daylight, its light rising, a red bolt as the plain turns dark, the name, then rain and red lightning at uneven gaps); TOUCH TO START / TOUCHEZ POUR COMMENCER shows once the storm has come, and one tap at any moment puts the menu in its place, the storm going on above it. The Options hold it still ("Title screen animation", ON / OFF; OUI / NON). On the home screen this replaces the three Pokémon of decision 100 and the den's tile of decision 194. |
 | 184, 195 | The credits are a screen of their own, opened by a CREDITS button under the notice on the home screen and in the Options: the app's emblem, a sentence on what the project is, then people and teams, each with what of theirs is in the app and links to their pages. No list of packages. |
 | 199, 200 | A type's label and a move's button: their white letters edged all around in the type's dark shade. |
 | 196 to 198 | For contrast: the muted grey a shade lighter and the main button's band a shade deeper; text clear of a row's arrows, a selected or confirmed row's second line as bright as its first, the confirmed green a shade deeper; the panel beside a Pokémon darker with a lighter red for a raised stat, the PAR badge a shade deeper. |

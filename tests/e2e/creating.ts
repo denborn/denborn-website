@@ -6,6 +6,7 @@ import { sampleRules } from '../../src/domain/samples.ts'
 import { type DraftChoice, choose, emptyDraft, toCharacter } from '../../src/features/creation/draft.ts'
 import { encodeCreationCode } from '../../src/shared/codec/codes.ts'
 import type { CharacterDocument } from '../../src/shared/schema/character.ts'
+import { openHome } from './home.ts'
 
 // The game data the build made: the link below is written with it, as a game master's app would.
 const pack = JSON.parse(readFileSync(new URL('../../src/data/generated/pack.json', import.meta.url), 'utf8')) as DataPack
@@ -73,7 +74,7 @@ export async function createPikachu(page: Page, nickname: string, itemPack = 'Sa
 export async function setCampaign(page: Page, name: string): Promise<void> {
   const done = page.getByRole('button', { name: 'DONE' })
   const save = page.getByRole('button', { name: 'SAVE THE RULES' })
-  await page.goto('/')
+  await openHome(page)
   await page.getByRole('button', { name: /CAMPAIGNS/ }).click()
   await page.getByRole('button', { name: 'NEW' }).click()
   // Natures and moves have no default, and a pack is needed: nothing can be saved yet.

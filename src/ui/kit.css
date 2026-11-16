@@ -1927,31 +1927,7 @@
   padding-left: calc(7 * var(--dn-u));
 }
 
-/* The app's first screen. */
-.dn-home {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-rows: auto auto auto 1fr;
-  justify-items: center;
-  gap: calc(4 * var(--dn-u));
-  padding: calc(16 * var(--dn-u)) calc(6 * var(--dn-u)) calc(8 * var(--dn-u));
-}
-
-.dn-home__tagline {
-  margin: 0;
-  font-size: calc(9 * var(--dn-t));
-  text-align: center;
-}
-
-.dn-home__faces {
-  display: flex;
-  align-items: end;
-  gap: calc(10 * var(--dn-u));
-  align-self: end;
-}
-
-/* The app's name on its first screen. */
+/* The app's name on its title screen (decision 203). */
 .dn-title {
   margin: 0;
   font-size: calc(40 * var(--dn-t));
@@ -1959,17 +1935,25 @@
   line-height: 1;
   letter-spacing: calc(3 * var(--dn-u));
   text-align: center;
-  color: var(--dn-text);
-  text-shadow:
-    calc(2 * var(--dn-u)) 0 0 var(--dn-ink),
-    calc(-2 * var(--dn-u)) 0 0 var(--dn-ink),
-    0 calc(2 * var(--dn-u)) 0 var(--dn-ink),
-    0 calc(-2 * var(--dn-u)) 0 var(--dn-ink),
-    calc(2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-ink),
-    calc(-2 * var(--dn-u)) calc(2 * var(--dn-u)) 0 var(--dn-ink),
-    calc(2 * var(--dn-u)) calc(-2 * var(--dn-u)) 0 var(--dn-ink),
-    calc(-2 * var(--dn-u)) calc(-2 * var(--dn-u)) 0 var(--dn-ink),
-    calc(4 * var(--dn-u)) calc(4 * var(--dn-u)) 0 var(--dn-cmd-fight);
+}
+
+/* Its letters, gilded (decision 211): filled with four bands of gold cut to their shape, then the ink outline and the deep-red
+   shadow are drawn around the cut letters. The paint is on the letters and not on the name itself, which is the page's heading:
+   its focus ring would be outlined and shadowed with them. */
+.dn-title__letters {
+  display: inline-block;
+  color: transparent;
+  background-image: linear-gradient(
+    var(--dn-title-gold-light) 0 34%,
+    var(--dn-title-gold) 34% 50%,
+    var(--dn-title-gold-deep) 50% 64%,
+    var(--dn-title-gold-dark) 64% 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(calc(2 * var(--dn-u)) 0 0 var(--dn-ink)) drop-shadow(calc(-2 * var(--dn-u)) 0 0 var(--dn-ink))
+    drop-shadow(0 calc(2 * var(--dn-u)) 0 var(--dn-ink)) drop-shadow(0 calc(-2 * var(--dn-u)) 0 var(--dn-ink))
+    drop-shadow(calc(3 * var(--dn-u)) calc(3 * var(--dn-u)) 0 var(--dn-title-shadow));
 }
 
 /* --- Message band ---------------------------------------------------------------- */

@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
+import { openHome } from './home.ts'
 
 test('the credits open from the home screen and from the Options, thank those whose work the app stands on, and lead back', async ({ page }) => {
-  await page.goto('/')
+  await openHome(page)
   await page.getByRole('button', { name: 'CREDITS' }).click()
   await expect(page.getByRole('heading', { name: 'Credits', level: 2 })).toBeVisible()
   // Their page is a link out of the app, opened beside it.

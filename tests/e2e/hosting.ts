@@ -1,6 +1,7 @@
 /** What the browser tests of a session share: a game master hosting on one phone, a player with a character on another. */
 import { type Page, devices, expect } from '@playwright/test'
 import { createPikachu, setCampaign } from './creating.ts'
+import { openHome } from './home.ts'
 
 /**
  * A game master hosting a campaign on one phone and a player with a character
@@ -27,7 +28,7 @@ export async function newPlayer(gm: Page, link: string, name: string): Promise<P
 
 /** The player joins with the code and asks to come in with their character, Volt unless named otherwise. */
 export async function ask(player: Page, code: string, name = 'Volt'): Promise<void> {
-  await player.goto('/')
+  await openHome(player)
   await player.getByRole('button', { name: /JOIN A SESSION/ }).click()
   await player.getByRole('textbox', { name: 'Join code' }).fill(code)
   await player.getByRole('button', { name: 'JOIN', exact: true }).click()

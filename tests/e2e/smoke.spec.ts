@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test'
+import { openHome } from './home.ts'
 
 // The first visit keeps the app for offline use in two stages (decision 181): the app, the game data and the battle
 // engine, then the sprites in the background. On a real network the second takes a while, so "Ready" is waited for patiently.
 const CACHED = { timeout: 120_000 }
 
 test('the app caches itself and reloads with no network', async ({ page, context }) => {
-  await page.goto('/')
+  await openHome(page)
   await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeVisible()
   // The home screen says where it stands, and ends on this.
   await expect(page.getByText('Ready to work offline.')).toBeVisible(CACHED)
@@ -28,23 +29,30 @@ test('the app caches itself and reloads with no network', async ({ page, context
 test('a first visit with no sprites to be had works offline with MissingNo. in their place, and fetches them once the network is back', async ({ page, context }) => {
   // The sprites cannot be fetched: the first stage alone gets through.
   await page.route('**/sprites/**/*.gif', (route) => route.abort())
-  await page.goto('/')
+  await openHome(page)
   await expect(page.getByText(/^Works offline, with 0 of \d+ Pokémon sprites\. The rest are fetched when the connection is back\.$/)).toBeVisible(CACHED)
-  // The three Pokémon of the home screen are MissingNo. for now.
+  // A new campaign shows three Pokémon on its top screen: they are MissingNo. for now.
+  const newCampaign = page.getByRole('heading', { name: 'New campaign' })
+  await page.getByRole('button', { name: /CAMPAIGNS/ }).click()
+  await page.getByRole('button', { name: 'NEW' }).click()
+  await expect(newCampaign).toBeVisible()
   await expect(page.locator('img[src="/missingno.gif"]')).toHaveCount(3)
 
-  // With no network at all the app still opens, with the game data, and a character can be looked for.
+  // With no network at all the app still opens, with the game data.
   await context.setOffline(true)
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeVisible()
+  await expect(newCampaign).toBeVisible()
   await expect(page.locator('img[src="/missingno.gif"]')).toHaveCount(3)
 
   // The network comes back: what was missing is fetched without being asked, and the real sprites are kept.
   await page.unroute('**/sprites/**/*.gif')
   await context.setOffline(false)
+  await page.getByRole('button', { name: 'BACK' }).click()
+  await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
+  await page.getByRole('button', { name: 'BACK' }).click()
   await expect(page.getByText('Ready to work offline.')).toBeVisible(CACHED)
   await context.setOffline(true)
-  await page.reload()
+  await page.goto('/campaigns/new')
   await expect(page.locator('img[src="/sprites/gen5ani/bulbasaur.gif"]')).toBeVisible()
   await expect(page.locator('img[src="/missingno.gif"]')).toHaveCount(0)
 })
@@ -67,7 +75,7 @@ test('the battle engine is fetched on demand and runs with no network once cache
 })
 
 test('a part of the app that is fetched when first opened takes the focus on its title once it is there', async ({ page }) => {
-  await page.goto('/')
+  await openHome(page)
   // A game master's pages are not part of what a visit starts with: the first click fetches them.
   await page.getByRole('button', { name: /CAMPAIGNS/ }).click()
   await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeFocused()

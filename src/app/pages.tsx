@@ -8,18 +8,30 @@
  * session.
  */
 import { useLocation, useNavigate } from 'react-router'
-import { usePack } from '../data/use-pack'
 import { Credits } from '../features/credits/Credits'
 import { Home } from '../features/home/Home'
 import { Options } from '../features/options/Options'
+import { useTitleAnimation } from '../features/options/title-animation'
 import { useMessages } from '../i18n'
 import { useOffline } from './offline'
 import { usePageTitle } from './page-title'
+import { useTitleGate } from './title-gate'
 
 export function HomePage() {
   const navigate = useNavigate()
+  const title = useTitleGate()
   usePageTitle(undefined)
-  return <Home pack={usePack()} entries={['characters', 'session', 'campaigns', 'options']} offline={useOffline()} onOpen={(entry) => void navigate(`/${entry}`)} onCredits={() => void navigate('/credits')} />
+  return (
+    <Home
+      entries={['characters', 'session', 'campaigns', 'options']}
+      offline={useOffline()}
+      titled={title.showing}
+      animated={useTitleAnimation() === 'on'}
+      onStart={title.pass}
+      onOpen={(entry) => void navigate(`/${entry}`)}
+      onCredits={() => void navigate('/credits')}
+    />
+  )
 }
 
 /** The credits inside the app (decision 184). */

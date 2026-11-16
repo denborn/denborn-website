@@ -85,7 +85,7 @@
   --dn-scene-ground-2: #3f8f5a;
   --dn-scene-shadow: rgb(16 16 16 / 0.28); /* the shadow a Pokémon casts */
 
-  /* --- Title screen (Denborn's own: decisions 203 to 207) ------------------ */
+  /* --- Title screen (Denborn's own: decisions 203 to 207, and 211) --------- */
   /* The veil over the plain and the stones once the storm has come; the light keeps its own colours. */
   --dn-title-night: rgb(10 12 36 / 0.62);
   --dn-title-rain: rgb(196 214 242 / 0.6);
@@ -93,6 +93,12 @@
   --dn-title-bolt: #ff2d55; /* the red of the bolt's edges */
   --dn-title-bolt-core: #ffe3ec;
   --dn-title-lightning: #ce0039; /* the flash over the scene: the FIGHT red (measured) */
+  /* The app's name, gilded (decision 211): its four bands of gold from the top of a letter to its foot, and its shadow. */
+  --dn-title-gold-light: #fff6c2;
+  --dn-title-gold: #ffd640;
+  --dn-title-gold-deep: #eaa21c;
+  --dn-title-gold-dark: #a65a0c;
+  --dn-title-shadow: #6a0018;
 
   /* --- Meters (measured: B2W2 HP bars) ------------------------------------ */
   --dn-hp-high: #00fb49;
@@ -185,7 +191,7 @@
   --dn-slow: 480ms; /* a screen wipe */
   --dn-emblem-loop: 960ms; /* the app's emblem: eight frames of 120 ms. Denborn's own. */
   /* The title screen (decision 205), kept equal to TITLE in motion.ts. */
-  --dn-title-day: 1200ms; /* the den in daylight, before its light rises */
+  --dn-title-day: 800ms; /* the den in daylight, before its light rises: short, as the owner asked (decision 211) */
   --dn-title-rise: 1000ms; /* the light rising out of the den */
   --dn-title-darken: 800ms; /* the first strike, while the plain turns dark */
   --dn-title-name: 600ms; /* the name appearing */

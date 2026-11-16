@@ -5,7 +5,7 @@
 | `src/ui/styles.css` | The one import: the font, the tokens, the classes. |
 | `src/ui/tokens.css` | Every colour, duration, easing and base size. The only place a value is written. |
 | `src/ui/kit.css` | The classes (`.dn-*`). Sizes in DS pixels, colours from tokens. |
-| `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`. |
+| `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`, `useScreenMetrics` (the DS pixel and the device's ratio, for art on a grid of its own). |
 | `src/ui/controls.tsx` | `Panel`, `Slot`, `OptionButton`, `CommandMenu`, `CornerButton`, `Tabs` (it draws the part it shows too, so the two are always tied together for screen readers). |
 | `src/ui/battle.tsx` | `HpBar`, `ExpBar`, `StatusBadge`, `AgonyBadge`, `HudBox`, `MoveButton`, `MessageBox`, `AbilityBand`. |
 | `src/ui/sprites.tsx` | `PokemonSprite` (MissingNo. stands in for a sprite that is not there), the icons, `TypeLabel`, `AppEmblem` (the animated den). |
@@ -17,6 +17,7 @@
 | `src/ui/paper.css` | What prints: classes `dn-paper…`, in millimetres and points, black on white, no backgrounds and no icon sheets (printers leave backgrounds out). A paper sheet is `display: none` on screen and replaces `.dn-page` in print; `dn-paper--preview` shows it on the board. See DESIGN.md, "On paper". |
 | `src/ui/motion.ts`, `meter.ts`, `pixel.ts` | Motion numbers; HP maths; pixel-art scaling. Pure, with tests. |
 | `src/ui/reduced-motion.ts` | `usePrefersReducedMotion`: the kit's one answer to "less motion?". Use it, not the animation library's hook. |
+| `src/ui/title-scene.tsx`, `scene-fit.ts`, `title-intro.ts`, `storm.ts` | `TitleScene`, the home's top screen: the den in its plain and the storm. How a scene of its own pixel size fills a screen, the intro's steps, and when and where lightning strikes are pure and tested. Its den is drawn by `scripts/assets/draw-den.ts` (run it after changing the drawing), its places are in `src/data/sprites.ts`. |
 | `src/ui/stories/` | One story per piece, and the battle scene. When a look or a wording needs the owner's ruling, it gets a page under "To decide" with its options side by side, and the undecided wording stays in a file of the stories (`proposals.ts`, created when needed), never in `src/i18n/`, until the owner rules. |
 | `.storybook/` | Storybook's setup: its own Vite config (no Cloudflare, no service worker), the language switch. |
 

@@ -9,9 +9,14 @@ import { joinCodeIn } from '../shared/protocol/room-code'
 // From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
 import { Screen } from '../ui/Screen'
 import { OptionButton } from '../ui/controls'
+import { incomingKind } from './incoming-link'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
 import { CreditsPage, HomePage, OptionsPage } from './pages'
+import { TitleGateContext, createTitleGate, opensOnTitle } from './title-gate'
+
+// Read as the app starts, before anything changes the address: a link's code is taken out of it on arrival.
+const titleGate = createTitleGate(opensOnTitle(window.location.pathname, window.location.hash))
 
 /**
  * The pages a visit does not start from are fetched when first opened, each
@@ -91,16 +96,17 @@ function IncomingLink() {
   useEffect(() => {
     const take = (): void => {
       const code = window.location.hash.slice(1)
-      if (/^dnc\d/i.test(code)) {
+      const kind = incomingKind(code)
+      if (kind === 'character') {
         void navigate('/characters/import', { replace: true, state: { code } })
         return
       }
-      if (/^dnj\d/i.test(code)) {
+      if (kind === 'join') {
         // A session's join link (decision 124): the join screen opens with the code filled in, or empty when the link holds none.
         void navigate(`/session/${joinCodeIn(code) ?? ''}`, { replace: true })
         return
       }
-      if (!/^dnr\d/i.test(code)) return
+      if (kind !== 'creation') return
       const decoded = decodeCreationCode(code, pack.species)
       if (decoded.ok) {
         saveInvitation(decoded.value, pack.species)
@@ -119,11 +125,21 @@ function IncomingLink() {
 /** On a new page, focus goes to its title: a keyboard starts from the top, a screen reader says where it is. */
 function FocusOnNavigation() {
   const { pathname } = useLocation()
-  const first = useRef(true)
+  const shown = useRef(pathname)
   useEffect(() => {
-    if (first.current) first.current = false
-    else document.querySelector<HTMLElement>('[data-page-heading]')?.focus()
+    // Only once the page has changed: on the one a visit opens on, the focus stays where the browser put it.
+    if (shown.current !== pathname) document.querySelector<HTMLElement>('[data-page-heading]')?.focus()
+    shown.current = pathname
     window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
+
+/** The title screen belongs to the home: leaving the home some other way than by its one tap, on a link's code for one, passes it too. */
+function TitleEndsOffHome() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    if (pathname !== '/') titleGate.pass()
   }, [pathname])
   return null
 }
@@ -139,15 +155,18 @@ function OfflineProvider({ children }: { children: ReactNode }) {
 function Shell() {
   return (
     <OfflineProvider>
-      <main className="app dn-root">
-        <LoadBoundary>
-          <Suspense fallback={<LoadingScreen />}>
-            <IncomingLink />
-            <FocusOnNavigation />
-            <Outlet />
-          </Suspense>
-        </LoadBoundary>
-      </main>
+      <TitleGateContext value={titleGate}>
+        <main className="app dn-root">
+          <LoadBoundary>
+            <Suspense fallback={<LoadingScreen />}>
+              <IncomingLink />
+              <FocusOnNavigation />
+              <TitleEndsOffHome />
+              <Outlet />
+            </Suspense>
+          </LoadBoundary>
+        </main>
+      </TitleGateContext>
     </OfflineProvider>
   )
 }

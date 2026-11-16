@@ -1,7 +1,6 @@
 export const en = {
   app: {
     name: 'Denborn',
-    tagline: 'A Pokémon tabletop RPG companion',
     notice:
       'Unofficial, non-commercial fan project. Pokémon and its artwork belong to Nintendo, Creatures Inc. and GAME FREAK inc.',
   },
@@ -49,6 +48,10 @@ export const en = {
     textSpeed: 'Text speed',
     textSpeedHint: 'How fast a fight’s messages go by.',
     textSpeeds: { slow: 'SLOW', normal: 'NORMAL', fast: 'FAST' },
+    /** Holds the title screen's storm still (decisions 206 and 211). */
+    titleAnimation: 'Title screen animation',
+    titleAnimationHint: 'The rain and the lightning of the first screen. Off, the scene stays still.',
+    titleAnimations: { on: 'ON', off: 'OFF' },
   },
   characters: {
     title: 'Characters',
@@ -596,7 +599,7 @@ export const en = {
       },
       showdown: {
         who: 'The Pokémon Showdown team',
-        theirs: 'Smogon and its many contributors: the battle simulator every fight runs on, its game data, the collection of sprites and icons, and the way a fight is told line by line.',
+        theirs: 'Smogon and its many contributors: the battle simulator every fight runs on, its game data, the collection of sprites and icons, and the way a fight is told line by line. The meadow of the first screen is one of its battle backdrops, drawn by Kyle Dove.',
       },
       pokeapi: { who: 'The PokéAPI contributors', theirs: 'The list of Bag items, the French names, and the icons of the items Showdown does not have.' },
       corpus: { who: 'abcboy101 and the Poké Corpus contributors', theirs: 'The games’ text kept line by line in every language: where the battle messages, in English and French, are read from.' },
@@ -682,6 +685,8 @@ export const en = {
     },
     /** The offer to move to a new version of the app (decision 183). */
     update: 'UPDATE',
+    /** The one button of the black bottom screen, while the title shows (decisions 205 and 211). */
+    start: 'TOUCH TO START',
   },
   /** Creating a character, step by step. */
   creation: {

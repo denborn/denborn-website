@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { draftEncounter } from './creating.ts'
+import { openHome } from './home.ts'
 import { ask, newPlayer, table } from './hosting.ts'
 
 test('between two fights a character places points, receives what the game master gives, evolves, rests and changes what it holds', async ({ page: gm }) => {
@@ -94,7 +95,7 @@ test('between two fights a character places points, receives what the game maste
   // Everything asked was the game master's side's to grant, and the device keeps the copy it gave back: a reload shows the same sheet.
   await player.reload()
   await expect(yours.getByRole('button', { name: /^PLACE POINTS/ })).toBeVisible()
-  await player.goto('/')
+  await openHome(player)
   await player.getByRole('button', { name: /CHARACTERS/ }).click()
   await player.getByRole('button', { name: /^Volt/ }).click()
   await expect(player.getByText('Lightning Rod', { exact: true })).toBeVisible()

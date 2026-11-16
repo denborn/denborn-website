@@ -8,6 +8,7 @@ import { Screen } from '../../ui/Screen'
 import { OptionButton } from '../../ui/controls'
 import { StepHeader } from '../../ui/forms'
 import { TEXT_SPEEDS, setTextSpeed, useTextSpeed } from './text-speed'
+import { TITLE_ANIMATIONS, setTitleAnimation, useTitleAnimation } from './title-animation'
 
 type RelayCheck = { state: 'idle' } | { state: 'checking' } | { state: 'ok'; ms: number } | { state: 'failed' }
 type PackState = { state: 'loading' } | { state: 'ok'; version: string; species: number; moves: number } | { state: 'failed' }
@@ -20,11 +21,12 @@ export interface OptionsProps {
   onBack: () => void
 }
 
-/** The language, and a check of everything the app relies on: its data, the battle engine, the offline cache, the relay. */
+/** The device's choices (the language, the speed of a fight's text, whether the title screen moves), and a check of everything the app relies on: its data, the battle engine, the offline cache, the relay. */
 export function Options({ offline, onCredits, onBack }: OptionsProps) {
   const t = useMessages()
   const language = useLanguage()
   const textSpeed = useTextSpeed()
+  const titleAnimation = useTitleAnimation()
   const [relay, setRelay] = useState<RelayCheck>({ state: 'idle' })
   const [engine, setEngine] = useState<EngineCheck>({ state: 'idle' })
   const [pack, setPack] = useState<PackState>({ state: 'loading' })
@@ -97,6 +99,18 @@ export function Options({ offline, onCredits, onBack }: OptionsProps) {
               {TEXT_SPEEDS.map((speed) => (
                 <OptionButton key={speed} role="radio" aria-checked={textSpeed === speed} onClick={() => setTextSpeed(speed)}>
                   {t.options.textSpeeds[speed]}
+                </OptionButton>
+              ))}
+            </div>
+          </div>
+
+          <div role="radiogroup" aria-label={t.options.titleAnimation} className="dn-entry">
+            <span className="dn-label">{t.options.titleAnimation}</span>
+            <p className="dn-note">{t.options.titleAnimationHint}</p>
+            <div className="dn-row">
+              {TITLE_ANIMATIONS.map((animation) => (
+                <OptionButton key={animation} role="radio" aria-checked={titleAnimation === animation} onClick={() => setTitleAnimation(animation)}>
+                  {t.options.titleAnimations[animation]}
                 </OptionButton>
               ))}
             </div>
