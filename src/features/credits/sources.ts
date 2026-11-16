@@ -30,7 +30,10 @@ export const CREDIT_LINKS: Readonly<Record<CreditId, readonly CreditLink[]>> = {
     { name: 'Serebii.net', url: 'https://www.serebii.net/' },
     { name: 'PokémonDB', url: 'https://pokemondb.net/item' },
   ],
-  missingno: [],
+  missingno: [
+    { name: 'MissingNo. GIF', url: 'https://www.deviantart.com/pokemon-ranger-sumi/art/MissingNo-GIF-667189987' },
+    { name: 'Pokemon-Ranger-Sumi', url: 'https://www.deviantart.com/pokemon-ranger-sumi' },
+  ],
   sheets: [{ name: 'The Spriters Resource', url: 'https://www.spriters-resource.com/' }],
   font: [{ name: 'VT323', url: 'https://fonts.google.com/specimen/VT323' }],
 }

@@ -9,7 +9,7 @@ test('the credits open from the home screen and from the Options, thank those wh
   await expect(showdown).toHaveAttribute('href', 'https://github.com/smogon/pokemon-showdown')
   await expect(showdown).toHaveAttribute('target', '_blank')
   await expect(page.getByText('The Pokémon Showdown team')).toBeVisible()
-  await expect(page.getByText('Pokemon-Ranger-Sumi')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'MissingNo. GIF' })).toHaveAttribute('href', 'https://www.deviantart.com/pokemon-ranger-sumi/art/MissingNo-GIF-667189987')
   await page.getByRole('button', { name: 'BACK' }).click()
   await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeVisible()
 
