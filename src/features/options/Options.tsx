@@ -64,7 +64,7 @@ export function Options({ offline, onBack }: OptionsProps) {
     )
   }
 
-  const offlineText = { unsupported: t.system.offlineUnsupported, preparing: t.system.offlinePreparing, ready: t.system.offlineReady }[offline.status]
+  const offlineText = { unsupported: t.system.offlineUnsupported, preparing: t.system.offlinePreparing, sprites: t.system.offlineSprites(offline.sprites?.done ?? 0, offline.sprites?.of ?? 0), ready: t.system.offlineReady }[offline.status]
   const relayText = { idle: '', checking: t.system.relayChecking, ok: relay.state === 'ok' ? t.system.relayOk(relay.ms) : '', failed: t.system.relayFailed }[relay.state]
   const packText = pack.state === 'ok' ? t.system.dataPackOk(pack.version, pack.species, pack.moves) : pack.state === 'loading' ? t.system.dataPackLoading : t.system.dataPackFailed
   const engineText = { idle: '', checking: t.system.engineChecking, ok: engine.state === 'ok' ? t.system.engineOk(engine.rounds, engine.ms) : '', failed: t.system.engineFailed }[engine.state]
@@ -109,7 +109,8 @@ export function Options({ offline, onBack }: OptionsProps) {
               <dt>{t.system.dataPack}</dt>
               <dd role="status">{packText}</dd>
               <dt>{t.system.offline}</dt>
-              <dd role="status">{offlineText}</dd>
+              {/* The count of sprites is not read out as it moves; the two states around it are. */}
+              <dd role={offline.status === 'sprites' ? undefined : 'status'}>{offlineText}</dd>
               <dt>{t.system.engine}</dt>
               <dd role="status">{engineText}</dd>
               <dt>{t.system.relay}</dt>

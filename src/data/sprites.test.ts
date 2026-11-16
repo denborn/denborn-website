@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { battleSpriteUrl, itemIconCell, pokemonIconCell } from './sprites'
+import { battleSpriteUrl, battleSpriteUrls, itemIconCell, pokemonIconCell } from './sprites'
 
 // Made-up species: the point is the choice of file, not any real Pokémon.
 const gen5 = { id: 'testmon', sprite: 'gen5ani', femaleSprite: true } as const
@@ -21,8 +21,19 @@ describe('battle sprites', () => {
     expect(battleSpriteUrl(fallback, { back: true })).toBe('/sprites/ani-back/latemon.gif')
   })
 
-  it('gives nothing for a species without any sprite, so its name is shown instead', () => {
+  it('gives nothing for a species without any sprite, so MissingNo. is shown instead', () => {
     expect(battleSpriteUrl(none)).toBeUndefined()
+  })
+
+  it('lists every sprite there is to fetch: both sides of each species, its female ones too, and none for a species without any', () => {
+    expect(battleSpriteUrls([gen5, fallback, none])).toEqual([
+      '/sprites/gen5ani/testmon.gif',
+      '/sprites/gen5ani-back/testmon.gif',
+      '/sprites/gen5ani/testmon-f.gif',
+      '/sprites/gen5ani-back/testmon-f.gif',
+      '/sprites/ani/latemon.gif',
+      '/sprites/ani-back/latemon.gif',
+    ])
   })
 })
 

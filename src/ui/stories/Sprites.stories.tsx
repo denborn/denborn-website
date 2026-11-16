@@ -17,7 +17,8 @@ function SpritesAndIcons() {
       <Section title="Battle sprites">
         <Note>
           Showdown’s Gen 5 animated sprites, front and back, with the female one where it differs. They are drawn on whole device pixels,
-          so their pixels stay square at any screen size. The last one has no sprite at all: its name is shown.
+          so their pixels stay square at any screen size. The last one has no sprite at all: MissingNo. stands in its place (see “Missing
+          No”).
         </Note>
         <Screen label="Sprites">
           <div className="sb-row sb-pad" style={{ alignItems: 'end' }}>
@@ -115,9 +116,61 @@ function BattlerPoses() {
   )
 }
 
+/** A species the artwork has nothing for, as a sprite that the device has not fetched yet would be. */
+const NO_SPRITE = { id: 'none', sprite: null, femaleSprite: false } as const
+
+function MissingStandIn() {
+  const pack = usePack()
+  const locale = useLocale()
+  const pikachu = pack.species.pikachu
+  const snorlax = pack.species.snorlax
+  if (!pikachu || !snorlax) return null
+  return (
+    <Phone>
+      <Section title="MissingNo., in the place of a sprite that is not there">
+        <Note>
+          A Pokémon whose sprite is not there shows MissingNo. (decisions 181 and 185): on a device that is still fetching the sprites, or for
+          artwork that lacks one. It is the one piece of artwork kept in the repository: “MissingNo. GIF” by Pokemon-Ranger-Sumi, brought back
+          to its own 45×50 pixels with a see-through background, its frames and their timing kept (decision 186). Left to right: Pikachu for
+          size; MissingNo. from the front; from behind, mirrored (decision 188); held still, as for a downed Pokémon or reduced motion; at
+          half size, as in a party’s line-up. It is read out by the Pokémon’s own name.
+        </Note>
+        <Screen label="MissingNo.">
+          <div className="sb-row sb-pad" style={{ alignItems: 'end' }}>
+            <PokemonSprite species={pikachu} name={pikachu.name[locale]} />
+            <PokemonSprite species={NO_SPRITE} name="Front" />
+            <PokemonSprite species={NO_SPRITE} name="Back" back />
+            <PokemonSprite species={NO_SPRITE} name="Still" frozen />
+            <PokemonSprite species={NO_SPRITE} name="Small" scale={0.5} />
+          </div>
+        </Screen>
+      </Section>
+      <Section title="On the field">
+        <Note>As a foe, facing left like every foe, and as an ally, mirrored; Snorlax beside it for size.</Note>
+        <Screen label="Field">
+          <div className="sb-spot" style={{ left: 'calc(150 * var(--dn-u))', top: 'calc(20 * var(--dn-u))' }}>
+            <Battler species={NO_SPRITE} name="Foe" side="foe" />
+          </div>
+          <div className="sb-spot" style={{ left: 'calc(210 * var(--dn-u))', top: 'calc(20 * var(--dn-u))' }}>
+            <Battler species={snorlax} name={snorlax.name[locale]} side="foe" />
+          </div>
+          <div className="sb-spot" style={{ left: 'calc(50 * var(--dn-u))', top: 'calc(96 * var(--dn-u))' }}>
+            <Battler species={NO_SPRITE} name="Ally" side="player" />
+          </div>
+          <div className="sb-spot" style={{ left: 'calc(115 * var(--dn-u))', top: 'calc(96 * var(--dn-u))' }}>
+            <Battler species={snorlax} name={snorlax.name[locale]} side="player" />
+          </div>
+        </Screen>
+      </Section>
+    </Phone>
+  )
+}
+
 const meta = { title: 'Components/Sprites' } satisfies Meta
 export default meta
 
 export const SpritesIcons: StoryObj = { render: () => <SpritesAndIcons /> }
 
 export const OnTheField: StoryObj = { render: () => <BattlerPoses /> }
+
+export const MissingNo: StoryObj = { render: () => <MissingStandIn /> }

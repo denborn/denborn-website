@@ -1,6 +1,7 @@
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
-import { PokemonIcon, PokemonSprite, Screen, Slot } from '../../ui'
+import type { OfflineState } from '../../pwa/use-offline-status'
+import { OptionButton, PokemonIcon, PokemonSprite, Screen, Slot } from '../../ui'
 
 export type HomeEntry = 'characters' | 'session' | 'campaigns' | 'options'
 
@@ -8,6 +9,8 @@ export interface HomeProps {
   pack: DataPack
   /** The ways in to show: only those that lead somewhere. */
   entries: readonly HomeEntry[]
+  /** How far the app is from working offline, and whether a new version waits (decisions 182 and 183). */
+  offline: OfflineState
   onOpen: (entry: HomeEntry) => void
 }
 
@@ -15,8 +18,12 @@ export interface HomeProps {
 const FACES = ['bulbasaur', 'charmander', 'squirtle']
 const ICONS: Record<HomeEntry, number> = { characters: 25, session: 81, campaigns: 150, options: 137 }
 
-/** The app's first screen: its name over three Pokémon, and the ways in. */
-export function Home({ pack, entries: shown, onOpen }: HomeProps) {
+/**
+ * The app's first screen: its name over three Pokémon, and the ways in. A new
+ * version that waits is offered first; under the ways in, a line says how far
+ * the app is from working with no network.
+ */
+export function Home({ pack, entries: shown, offline, onOpen }: HomeProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.home
@@ -27,6 +34,13 @@ export function Home({ pack, entries: shown, onOpen }: HomeProps) {
     { id: 'options', label: text.options, hint: text.optionsHint },
   ]
   const entries = all.filter((entry) => shown.includes(entry.id))
+  const { sprites } = offline
+  // Nothing is said in a browser that cannot keep the app: the Options' system check says so.
+  const offlineLine =
+    offline.status === 'preparing' ? text.offline.preparing
+    : offline.status === 'ready' ? text.offline.ready
+    : offline.status === 'sprites' && sprites ? (sprites.stalled ? text.offline.stalled(sprites.done, sprites.of) : text.offline.sprites(sprites.done, sprites.of))
+    : undefined
   return (
     <div className="dn-page">
       <div className="dn-page__top">
@@ -47,6 +61,18 @@ export function Home({ pack, entries: shown, onOpen }: HomeProps) {
       </div>
       <Screen kind="menu" label={messages.app.name} tall>
         <nav className="dn-stack" aria-label={messages.app.name}>
+          {offline.updateAvailable && (
+            <div className="dn-entry">
+              <p className="dn-note" role="status">
+                {messages.system.updateAvailable}
+              </p>
+              <div className="dn-row">
+                <OptionButton primary onClick={offline.applyUpdate}>
+                  {text.update}
+                </OptionButton>
+              </div>
+            </div>
+          )}
           {entries.map((entry) => (
             <Slot key={entry.id} onClick={() => onOpen(entry.id)}>
               <PokemonIcon num={ICONS[entry.id]} />
@@ -56,6 +82,8 @@ export function Home({ pack, entries: shown, onOpen }: HomeProps) {
               </span>
             </Slot>
           ))}
+          {/* Not read out as it counts: it is there to be looked at. */}
+          {offlineLine && <p className="dn-note">{offlineLine}</p>}
           <p className="dn-note">{messages.app.notice}</p>
         </nav>
       </Screen>

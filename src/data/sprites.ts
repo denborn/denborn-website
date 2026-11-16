@@ -14,9 +14,18 @@ export interface BattleSpriteOptions {
 }
 
 /**
+ * MissingNo., shown in the place of a Pokémon whose sprite is not there
+ * (decisions 181 and 185): one the device has not fetched yet while it gets
+ * ready to work offline, or one the artwork lacks. It is the one piece of
+ * artwork kept in the repository, so it is served from the app's own root and
+ * not from the downloaded sprites.
+ */
+export const MISSING_SPRITE_URL = '/missingno.gif'
+
+/**
  * The battle sprite of a species: Gen 5 animated when Showdown has it, its
  * "ani" set otherwise. Returns nothing when the species has no sprite at all;
- * the interface then shows its name.
+ * the interface then shows MissingNo. in its place.
  */
 export function battleSpriteUrl(
   species: Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>,
@@ -26,6 +35,20 @@ export function battleSpriteUrl(
   const folder = options.back ? `${species.sprite}-back` : species.sprite
   const suffix = options.female && species.femaleSprite ? '-f' : ''
   return `${ROOT}/${folder}/${species.id}${suffix}.gif`
+}
+
+/** Every battle sprite of the species given: seen from the front and from behind, and the female ones where there are. */
+export function battleSpriteUrls(all: Iterable<Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>>): string[] {
+  const urls: string[] = []
+  for (const species of all) {
+    for (const female of species.femaleSprite ? [false, true] : [false]) {
+      for (const back of [false, true]) {
+        const url = battleSpriteUrl(species, { back, female })
+        if (url) urls.push(url)
+      }
+    }
+  }
+  return urls
 }
 
 export interface SheetCell {

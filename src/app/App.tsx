@@ -110,11 +110,17 @@ function FocusOnNavigation() {
   return null
 }
 
+/**
+ * The one place that registers the service worker; the home and the options show its state. It is a component
+ * of its own so that the count of sprites, which moves often, redraws the screens that show it and nothing else.
+ */
+function OfflineProvider({ children }: { children: ReactNode }) {
+  return <OfflineContext value={useOfflineStatus()}>{children}</OfflineContext>
+}
+
 function Shell() {
-  // The one place that registers the service worker; the options page shows its state.
-  const offline = useOfflineStatus()
   return (
-    <OfflineContext value={offline}>
+    <OfflineProvider>
       <MotionConfig reducedMotion="user">
         <main className="app dn-root">
           <LoadBoundary>
@@ -126,7 +132,7 @@ function Shell() {
           </LoadBoundary>
         </main>
       </MotionConfig>
-    </OfflineContext>
+    </OfflineProvider>
   )
 }
 

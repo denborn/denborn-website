@@ -199,8 +199,9 @@ Rules:
 | Pokémon icons | Showdown `pokemonicons-sheet.png`, 40 × 30 cells, 12 a row, by Pokédex number | 40 × 30 | `PokemonIcon` |
 | Item icons | Showdown `itemicons-sheet.png`, 24 × 24 cells, 16 a row; PokéAPI's own image for the items Showdown lacks | 24 × 24, 30 × 30 | `ItemIconImage` |
 | Category labels | Showdown `categories/` | 32 × 14 | `CategoryIcon` |
+| MissingNo., in the place of a sprite that is not there | "MissingNo. GIF" by Pokemon-Ranger-Sumi, prepared for the app (see `CREDITS.md`); kept in the repository | 45 × 50 | `PokemonSprite`, by itself |
 
-Type labels are not artwork: the app draws them (`TypeLabel`), so they can be in French. Paths are built only by `src/data/sprites.ts`, from what the data pack and the sprite lock say exists; a name is never guessed. Order of fallback for a battle sprite: Gen 5 animated, then Showdown's `ani` set, then the Pokémon's name as text.
+Type labels are not artwork: the app draws them (`TypeLabel`), so they can be in French. Paths are built only by `src/data/sprites.ts`, from what the data pack and the sprite lock say exists; a name is never guessed. Order of fallback for a battle sprite: Gen 5 animated, then Showdown's `ani` set, then MissingNo. (`public/missingno.gif`, 45 × 50, animated; decisions 181 and 185 to 188), which also stands in while a device has not fetched a sprite yet; it is mirrored for a Pokémon seen from behind, and read out by the Pokémon's own name. Only if MissingNo. itself cannot be shown is the name shown as text.
 
 ## 8. Accessibility
 
@@ -267,5 +268,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 178 | Placing points: sliders that start where the sheet has each total, the stats as they would be on the top screen. PLACE and EVOLVE ask to confirm over the buttons, the safe answer highlighted. |
 | 179 | The Bag outside a fight: a tapped item shows USE, HOLD or TAKE under it; who it is used on is a list of the party where those it would do nothing for are dimmed. The Pokémon Center: the Ability, then the moves with the known ones first. |
 | 180 | The hosting screen: a tapped member shows REST, GIVE OR TAKE and REMOVE FROM THE SESSION; GIVE OR TAKE is a page of its own with the character on the top screen. |
+| 181, 185 to 188 | A battle sprite that is not there shows MissingNo., animated, at its own 45 × 50 pixels; mirrored for a Pokémon seen from behind. |
+| 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

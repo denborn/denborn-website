@@ -17,6 +17,8 @@ export const en = {
     offline: 'Offline use',
     offlinePreparing: 'Preparing…',
     offlineReady: 'Ready',
+    /** The app works offline; the battle sprites are still being fetched (decision 181). */
+    offlineSprites: (done: number, of: number) => `Ready, sprites ${done} of ${of}`,
     offlineUnsupported: 'Not available in this browser',
     updateAvailable: 'A new version is ready.',
     updateNow: 'Update now',
@@ -644,6 +646,15 @@ export const en = {
     sessionHint: 'Bring a character into a game master’s session',
     options: 'OPTIONS',
     optionsHint: 'Language, system check',
+    /** How far the app is from working with no network (decisions 181 and 182). */
+    offline: {
+      preparing: 'Getting ready to work offline…',
+      sprites: (done: number, of: number) => `Works offline. Fetching the Pokémon sprites: ${done} of ${of}.`,
+      stalled: (done: number, of: number) => `Works offline, with ${done} of ${of} Pokémon sprites. The rest are fetched when the connection is back.`,
+      ready: 'Ready to work offline.',
+    },
+    /** The offer to move to a new version of the app (decision 183). */
+    update: 'UPDATE',
   },
   /** Creating a character, step by step. */
   creation: {

@@ -12,7 +12,7 @@ This repository is a Pokémon-only cooperative tabletop companion PWA, **not** a
 - Pokémon are the characters; there are **no trainers**.
 - D100 is **only for out-of-combat roleplay**, using six independent attributes; Pokémon battle math stays in the simulator.
 - Generation **9 combat rules** are the baseline even in V0; V0 is limited to the first 151 Pokémon species. V1 adds through Gen 9; V2 is for boss balancing.
-- Six equipped moves; Gen 5-inspired animated visuals and actual item icons, Showdown `ani` fallback for missing `gen5ani`; no generic-icon substitution for existing Pokémon assets.
+- Six equipped moves; Gen 5-inspired animated visuals and actual item icons, Showdown `ani` fallback for missing `gen5ani`; no generic-icon substitution for existing Pokémon assets. A battle sprite that is not there (not fetched yet, or missing) shows MissingNo. in its place (decisions 181 and 185).
 - GM-controlled campaigns/encounters, live room and shareable *offline* character-creation link; GM authoritative in live battles.
 - Only JSON files + `localStorage` copies for canonical saves. **No application database**, paid Cloudflare service, server-canonical saves or silent storage changes.
 - PWA installable on iOS/Android; offline UI, character creation and cached data/engine after first successful visit. Live multiplayer still needs connectivity.
@@ -27,7 +27,7 @@ This repository is a Pokémon-only cooperative tabletop companion PWA, **not** a
 - Do not fetch simulator scripts or Pokémon API resources from CDNs at application runtime.
 - Use pnpm. `pnpm verify` runs the type check, lint, every test project, the production build and the end-to-end tests; run it after each change.
 - Test only logic that is ours and can vary. Never write a test that asserts fixed game data; real data is checked by the data-pack generator.
-- Pokémon artwork and the reference sheets in `tmp/` are never committed; credit every source in `CREDITS.md`.
+- Pokémon artwork and the reference sheets in `tmp/` are never committed, with one exception the owner made: `public/missingno.gif` (decisions 181 and 187). Credit every source in `CREDITS.md`. Stage files by name, never with `git add -A`: the owner drops files at the root.
 
 ## Rules organization
 Detailed topic/path-scoped rules are in `.claude/rules/`. See `README.md` for layout and `docs/INTEGRATION_SPIKES.md` for proof-of-concept gates. Claude Code reads unscoped rules at startup and path-scoped rules when matching files are worked on. Run `/doctor prompt-audit` when supported to check instruction conflicts.

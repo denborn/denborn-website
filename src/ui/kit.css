@@ -1951,6 +1951,11 @@
   -webkit-user-drag: none;
 }
 
+/* MissingNo. in the place of a Pokémon seen from behind: the same picture, turned the other way. */
+.dn-sprite--mirrored {
+  transform: scaleX(-1);
+}
+
 .dn-sprite--missing {
   padding: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
   border: calc(1 * var(--dn-u)) dashed var(--dn-text-muted);

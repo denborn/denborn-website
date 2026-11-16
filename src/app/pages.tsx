@@ -55,7 +55,7 @@ import { usePageTitle } from './page-title'
 export function HomePage() {
   const navigate = useNavigate()
   usePageTitle(undefined)
-  return <Home pack={usePack()} entries={['characters', 'session', 'campaigns', 'options']} onOpen={(entry) => void navigate(`/${entry}`)} />
+  return <Home pack={usePack()} entries={['characters', 'session', 'campaigns', 'options']} offline={useOffline()} onOpen={(entry) => void navigate(`/${entry}`)} />
 }
 
 export function CampaignsPage() {

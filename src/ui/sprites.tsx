@@ -2,6 +2,7 @@ import { useReducedMotion } from 'motion/react'
 import { type CSSProperties, useEffect, useRef, useState } from 'react'
 import {
   type BattleSpriteOptions,
+  MISSING_SPRITE_URL,
   type SheetCell,
   battleSpriteUrl,
   categoryIconCell,
@@ -13,7 +14,7 @@ import { usePixelScale } from './Screen'
 
 export interface PokemonSpriteProps extends BattleSpriteOptions {
   species: Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>
-  /** The Pokémon's name, read out and shown if the sprite cannot be. */
+  /** The Pokémon's name, read out; shown only if no picture at all can be. */
   name: string
   /** Size in DS pixels per sprite pixel: 1 is as large as on the DS. */
   scale?: number
@@ -26,7 +27,10 @@ export interface PokemonSpriteProps extends BattleSpriteOptions {
 /**
  * A Pokémon's animated battle sprite, drawn so that its pixels stay square.
  * It stands still when asked to, and for anyone who prefers reduced motion.
- * When there is no sprite, the name is shown instead.
+ * When its sprite is not there (the artwork has none, or the device has not
+ * fetched it yet), MissingNo. stands in its place (decision 181), mirrored
+ * for a Pokémon seen from behind (decision 188); the name it is read out by
+ * stays the Pokémon's own.
  */
 export function PokemonSprite({ species, name, scale = 1, frozen = false, decorative = false, back, female }: PokemonSpriteProps) {
   const factor = usePixelScale(scale)
@@ -34,12 +38,15 @@ export function PokemonSprite({ species, name, scale = 1, frozen = false, decora
   const options: BattleSpriteOptions = {}
   if (back !== undefined) options.back = back
   if (female !== undefined) options.female = female
-  const url = battleSpriteUrl(species, options)
+  const own = battleSpriteUrl(species, options)
+  /** The pictures that could not be loaded. */
+  const [failed, setFailed] = useState<readonly string[]>([])
+  const standIn = own === undefined || failed.includes(own)
+  const url = standIn ? MISSING_SPRITE_URL : own
   const image = useRef<HTMLImageElement>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   // Remembered per file, so that a change of sprite never shows the old one's size.
   const [loaded, setLoaded] = useState<{ url: string; width: number; height: number } | null>(null)
-  const [failedUrl, setFailedUrl] = useState<string | null>(null)
   const size = loaded?.url === url ? loaded : null
 
   // A GIF cannot be paused: to hold it still, its current frame is copied to a canvas shown in its place.
@@ -50,13 +57,14 @@ export function PokemonSprite({ species, name, scale = 1, frozen = false, decora
     canvas.current.getContext('2d')?.drawImage(image.current, 0, 0)
   }, [still, size])
 
-  if (!url || failedUrl === url) {
+  // Not even MissingNo. could be shown: the name is, so that nothing is lost.
+  if (failed.includes(MISSING_SPRITE_URL)) {
     return <span className="dn-sprite dn-sprite--missing">{name}</span>
   }
   const box: CSSProperties = size ? { width: size.width * factor, height: size.height * factor } : { visibility: 'hidden' }
   const fill: CSSProperties = { width: '100%', height: '100%' }
   return (
-    <span className="dn-sprite" style={box} role={decorative ? undefined : 'img'} aria-label={decorative ? undefined : name}>
+    <span className={`dn-sprite${standIn && back ? ' dn-sprite--mirrored' : ''}`} style={box} role={decorative ? undefined : 'img'} aria-label={decorative ? undefined : name}>
       <img
         ref={image}
         className="dn-sprite"
@@ -65,7 +73,7 @@ export function PokemonSprite({ species, name, scale = 1, frozen = false, decora
         style={{ ...fill, display: still ? 'none' : 'block' }}
         draggable={false}
         onLoad={(event) => setLoaded({ url, width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
-        onError={() => setFailedUrl(url)}
+        onError={() => setFailed((before) => (before.includes(url) ? before : [...before, url]))}
       />
       <canvas ref={canvas} className="dn-sprite" style={{ ...fill, display: still ? 'block' : 'none' }} aria-hidden="true" />
     </span>

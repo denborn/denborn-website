@@ -19,6 +19,7 @@ export const fr: Messages = {
     offline: 'Utilisation hors ligne',
     offlinePreparing: 'Préparation…',
     offlineReady: 'Prête',
+    offlineSprites: (done: number, of: number) => `Prête, sprites ${done} sur ${of}`,
     offlineUnsupported: 'Indisponible dans ce navigateur',
     updateAvailable: 'Une nouvelle version est prête.',
     updateNow: 'Mettre à jour',
@@ -626,6 +627,13 @@ export const fr: Messages = {
     campaignsHint: 'Pour le maître du jeu',
     options: 'OPTIONS',
     optionsHint: 'Langue, vérification du système',
+    offline: {
+      preparing: 'Préparation de l’utilisation hors ligne…',
+      sprites: (done, of) => `Fonctionne hors ligne. Récupération des sprites des Pokémon\u00a0: ${done} sur ${of}.`,
+      stalled: (done, of) => `Fonctionne hors ligne, avec ${done} sprites de Pokémon sur ${of}. Le reste sera récupéré au retour de la connexion.`,
+      ready: 'Prête à fonctionner hors ligne.',
+    },
+    update: 'METTRE À JOUR',
   },
   creation: {
     title: 'Nouveau personnage',
