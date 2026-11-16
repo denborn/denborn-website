@@ -2090,10 +2090,16 @@
   color: #ffffff;
   background: var(--dn-type-fill);
   border: calc(1 * var(--dn-u)) solid var(--dn-type-shade);
+  /* The type's dark shade all around each letter (decision 199): white alone does not read on the light types. */
   text-shadow:
-    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-type-shade),
     calc(1 * var(--dn-u)) 0 0 var(--dn-type-shade),
-    0 calc(1 * var(--dn-u)) 0 var(--dn-type-shade);
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-type-shade),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-type-shade),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-type-shade),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-type-shade),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-type-shade),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-type-shade),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-type-shade);
 }
 
 /* A Pokémon standing on the field: its sprite over the shadow it casts. */
