@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { createDeviceChoice } from '../storage/device-choice'
 import { en, type Messages } from './en'
 import { fr } from './fr'
 
@@ -20,41 +21,20 @@ export function pickInitialLanguage(stored: string | null, browserLanguages: rea
   return first.startsWith('fr') ? 'fr' : 'en'
 }
 
-function readStored(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY)
-  } catch {
-    // Storage can be blocked (private mode, site data disabled); the choice then lasts for the visit.
-    return null
-  }
-}
-
-let current: Language = pickInitialLanguage(readStored(), navigator.languages)
-const listeners = new Set<() => void>()
+const choice = createDeviceChoice(STORAGE_KEY, (stored) => pickInitialLanguage(stored, navigator.languages))
 
 export function setLanguage(language: Language): void {
-  if (language === current) return
-  current = language
-  try {
-    localStorage.setItem(STORAGE_KEY, language)
-  } catch {
-    // See readStored.
-  }
+  // The page says which language it is in before the screens are told to change.
   document.documentElement.lang = language
-  for (const listener of listeners) listener()
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
+  choice.set(language)
 }
 
 export function useLanguage(): Language {
-  return useSyncExternalStore(subscribe, () => current)
+  return useSyncExternalStore(choice.subscribe, choice.get)
 }
 
 export function useMessages(): Messages {
   return DICTIONARIES[useLanguage()]
 }
 
-document.documentElement.lang = current
+document.documentElement.lang = choice.get()

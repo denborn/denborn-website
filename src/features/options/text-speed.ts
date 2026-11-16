@@ -4,6 +4,7 @@
  * language.
  */
 import { useSyncExternalStore } from 'react'
+import { createDeviceChoice } from '../../storage/device-choice'
 
 export const TEXT_SPEEDS = ['slow', 'normal', 'fast'] as const
 export type TextSpeed = (typeof TEXT_SPEEDS)[number]
@@ -24,41 +25,17 @@ export const TEXT_PACE: Record<TextSpeed, TextPace> = {
   fast: { lettersPerSecond: 90, saidMs: 1000, quietMs: 300 },
 }
 
-const STORAGE_KEY = 'denborn/text-speed'
-
 /** A stored choice wins; otherwise normal, the games' own default. */
 export function pickTextSpeed(stored: string | null): TextSpeed {
   return TEXT_SPEEDS.find((speed) => speed === stored) ?? 'normal'
 }
 
-function readStored(): string | null {
-  try {
-    return localStorage.getItem(STORAGE_KEY)
-  } catch {
-    // Storage can be blocked (private mode, site data disabled); the choice then lasts for the visit.
-    return null
-  }
-}
-
-let current: TextSpeed = pickTextSpeed(readStored())
-const listeners = new Set<() => void>()
+const choice = createDeviceChoice('denborn/text-speed', pickTextSpeed)
 
 export function setTextSpeed(speed: TextSpeed): void {
-  if (speed === current) return
-  current = speed
-  try {
-    localStorage.setItem(STORAGE_KEY, speed)
-  } catch {
-    // See readStored.
-  }
-  for (const listener of listeners) listener()
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener)
-  return () => listeners.delete(listener)
+  choice.set(speed)
 }
 
 export function useTextSpeed(): TextSpeed {
-  return useSyncExternalStore(subscribe, () => current)
+  return useSyncExternalStore(choice.subscribe, choice.get)
 }
