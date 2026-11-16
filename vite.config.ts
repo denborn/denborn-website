@@ -40,8 +40,8 @@ export default defineConfig({
         scope: '/',
         background_color: '#000000',
         theme_color: '#101018',
-        // The den (decision 191), each of its pixels a whole number of the picture's. The round-cut one keeps a margin:
-        // Android may cut an icon to a circle.
+        // The ball (decision 209), each of its pixels a whole number of the icon's. The round-cut one keeps a wider
+        // margin: Android may cut an icon to a circle.
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

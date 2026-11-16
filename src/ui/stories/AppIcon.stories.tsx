@@ -49,8 +49,10 @@ function TheDen() {
       </Section>
       <Section title="Still, on a phone and in a browser">
         <Note>
-          The first frame. On an iPhone it is cut to a rounded square; Android may cut it to a circle, so that version keeps a black margin
-          around the picture; a browser’s tab shows it very small.
+          The pink grid ball (decision 209), seen from the front, with a margin, on the ground of the Pokémon Black icon: black, with a
+          chequer of 3 × 2 blocks that darkens downwards, drawn in the ball’s own pixels to every edge. The tab has a ball of its own, 28
+          pixels across, so that its 32 keep a margin; Android’s round-cut one keeps the widest, the whole ball inside the circle Android
+          always shows.
         </Note>
         <Row>
           <Still file="/apple-touch-icon.png" size={120} radius="22.5%" name="iPhone" />

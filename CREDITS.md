@@ -32,7 +32,8 @@ Not stored in this repository, with one exception (MissingNo., last row). `scrip
 
 | What | Source | Rights |
 |---|---|---|
-| The den with its light (`public/icon-*.png`, `public/apple-touch-icon.png`, and the eight frames of `public/icon-frames.png`) | A picture supplied by the project's owner, who made it or had an AI make it (`DECISIONS.md` 193), brought down to the icon's 32 × 32 pixels; its light is redrawn and animated by the project. The ground behind it is the project's own redrawing of the ground of the Pokémon Black game icon (see "Design references"). | The project's own. |
+| The den with its light (the eight frames of `public/icon-frames.png`) | A picture supplied by the project's owner, who made it or had an AI make it (`DECISIONS.md` 193), brought down to 32 × 32 pixels; its light is redrawn and animated by the project. | The project's own. |
+| The pink grid ball (`public/icon-32.png`, `public/icon-192.png`, `public/icon-512.png`, `public/icon-maskable-512.png`, `public/apple-touch-icon.png`) | Drawn by the project as pixel art, seen from the front, after a picture supplied by the project's owner (`DECISIONS.md` 209); its colours are read on that picture. The ground behind it is the project's own redrawing of the ground of the Pokémon Black game icon (see "Design references"). | The project's own. |
 
 ## Design references
 
