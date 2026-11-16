@@ -125,6 +125,12 @@ describe('a round as it is told', () => {
     expect(said.find((message) => message.key.startsWith('damage.'))).toMatchObject({ key: 'damage.rockyhelmet', pokemon: ['one'], source: 'mob' })
   })
 
+  it('brings the dead back onto the scene when a revival item is used on them (decision 171)', () => {
+    const dead = { id: 'a', hp: 0, dead: true, downed: false, stacks: 0 } as NonNullable<Parameters<typeof roundScript>[0]['before']>[number]
+    const { steps } = scriptOf(['|denborn|revived|a|40', '|denborn|bag|b|revive|a|used'])
+    expect(standingAfter([dead], steps, steps.length)).toMatchObject([{ id: 'a', hp: 40, dead: false, downed: false, stacks: 0 }])
+  })
+
   it('tells Denborn\'s own events in the owner\'s words: down, hit while down, the Bag', () => {
     const battle = start([player('one', 'Machamp', ['tackle'], { hp: 1 }), player('two', 'Chansey', ['tackle'], { hp: 40 })], [enemy('foe', 'Jolteon', ['tackle'])])
     const first = play(battle, { foe: move('tackle', 'one'), two: bag('medicine', 'two', HEAL) })

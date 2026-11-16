@@ -27,8 +27,11 @@ const moveChoice = z.object({
 /** What a player may give their Pokémon to do. */
 export const playerChoice = z.discriminatedUnion('do', [
   moveChoice.extend({ do: z.literal('move') }),
-  /** An item of the character's own bag, on any Pokémon on the field; `move` names the move a PP item restores. */
-  z.object({ do: z.literal('bag'), item: dataId, target: combatantId, move: dataId.optional() }),
+  /**
+   * An item on any Pokémon on the field; `move` names the move a PP item restores. The item comes from the
+   * character's own Bag, or from the Bag of the downed or dead teammate that `from` names (decision 175).
+   */
+  z.object({ do: z.literal('bag'), item: dataId, target: combatantId, move: dataId.optional(), from: combatantId.optional() }),
   z.object({ do: z.literal('wait') }),
 ])
 

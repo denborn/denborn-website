@@ -12,7 +12,7 @@ export interface CombatantState {
   /** True when 0 HP means Agony (players always, enemies when the GM switched it on). */
   agony: boolean
   downed: boolean
-  /** Dead for good, or an enemy that fainted as in the games. Its slot stays on the line. */
+  /** Dead, or an enemy that fainted as in the games, until a revival item is used on it (decision 171). Its slot stays on the line. */
   dead: boolean
   /** Agony stacks left while downed. */
   stacks: number
@@ -64,9 +64,14 @@ export function isDowned(pokemon: Pokemon): boolean {
   return stateOf(pokemon).downed
 }
 
-/** Dead, or fainted for good: nothing can target it any more. */
+/** Dead, or fainted as in the games: no move can target it any more. Only a revival item brings it back (decision 171). */
 export function isGone(pokemon: Pokemon): boolean {
   return pokemon.fainted && !stateOf(pokemon).downed
+}
+
+/** Downed or dead: at 0 HP, where only a revival item does anything (decisions 171 and 172). */
+export function isFallen(pokemon: Pokemon): boolean {
+  return pokemon.fainted
 }
 
 export function sideOf(pokemon: Pokemon): LineSide {

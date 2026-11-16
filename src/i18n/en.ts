@@ -669,6 +669,8 @@ export const en = {
       allySwitchSecond: 'Now the one it trades places with.',
       struggle: 'Struggle',
       bagEmpty: 'Nothing in the bag can be used in a fight.',
+      /** The Bag of a teammate who is downed or dead, open to the party (decision 175). */
+      bagOf: (name: string) => `${name}’s Bag`,
       stack: (item: string, quantity: number) => `${item} ×${quantity}`,
       itemTarget: (item: string) => `Use the ${item} on which Pokémon?`,
       itemMove: (item: string) => `Restore which move with the ${item}?`,

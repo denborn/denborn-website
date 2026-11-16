@@ -27,15 +27,19 @@ interface LocalTable {
   now: number
 }
 
-/** A fight of the board's own: three characters meet the quarry, with no network and nobody else at the table. */
-function openTable(pack: DataPack, timerSeconds: number): LocalTable {
+/**
+ * A fight of the board's own: three characters meet the quarry, with no network and nobody else at the table.
+ * With `carrierDown`, Mousse carries the party's Revive and has already gone down when the board opens.
+ */
+function openTable(pack: DataPack, timerSeconds: number, carrierDown = false): LocalTable {
   const rules = sampleRules(pack, 2, 2, 4)
-  const party = [
+  const heroes = [
     // Moves that show the battlefield at work: a terrain, weathers, a screen, a seed.
     sampleHero(pack, rules, 'hero-volt-00001', 'pikachu', 16, 'Volt', ['thunderbolt', 'electricterrain', 'raindance', 'lightscreen', 'agility', 'thunderwave']),
     sampleHero(pack, rules, 'hero-braise-0001', 'charmeleon', 17, 'Braise', ['flamethrower', 'sunnyday', 'swordsdance', 'willowisp', 'smokescreen', 'dragonbreath']),
     sampleHero(pack, rules, 'hero-mousse-0001', 'ivysaur', 16, 'Mousse', ['leechseed', 'razorleaf', 'sleeppowder', 'growth']),
   ]
+  const party = carrierDown ? heroes.map((hero) => (hero.nickname === 'Mousse' ? { ...hero, hp: 1, bag: [{ item: 'revive', quantity: 1 }, { item: 'potion', quantity: 2 }] } : hero)) : heroes
   const encounter = sampleQuarry(pack, rules)
   const launch = fightSetup(encounter, party, '11,22,33,44')
   if (!launch.ok) throw new Error(`The board's fight could not be made: ${launch.problem}`)
@@ -52,7 +56,26 @@ function openTable(pack: DataPack, timerSeconds: number): LocalTable {
     },
     { engine, bagEffect: (item) => pack.items[item]?.bag, absent: new Set(), now },
   )
-  return { engine, fight, party, answers: {}, now }
+  return { engine, fight: carrierDown ? withMousseDown(pack, engine, fight, now) : fight, party, answers: {}, now }
+}
+
+/** Plays rounds in which the enemies go for Mousse and nobody else does anything, until Mousse is down. */
+function withMousseDown(pack: DataPack, engine: DenbornBattle, opened: Fight, now: number): Fight {
+  const context: FightContext = { engine, bagEffect: (item) => pack.items[item]?.bag, absent: new Set(), now }
+  const mousse = 'hero-mousse-0001'
+  let fight = opened
+  for (let round = 0; round < 4 && !engine.combatant(mousse).downed && fight.outcome === undefined; round++) {
+    for (const { id, side } of engine.combatants()) {
+      const request = engine.request(id)
+      if (!request.canAct || request.forced !== null) continue
+      const hit = side === 'enemies' ? request.moves.find((option) => !option.disabled && option.targets.includes(mousse) && pack.moves[option.id]?.category !== 'Status') : undefined
+      const choice: Choice = hit ? { do: 'move', move: hit.id, target: mousse } : { do: 'wait' }
+      fight = fightStep(fight, side === 'enemies' ? 'gm' : { player: id }, { do: 'lock', who: id, choice }, context).fight
+    }
+    if (isReady(fight, context)) fight = fightStep(fight, 'gm', { do: 'play' }, context).fight
+  }
+  // The board opens on the choices, not on the telling of those rounds.
+  return { ...fight, last: { ...fight.last, log: [], events: [] } }
 }
 
 /** A player's intent as the command it is for their own Pokémon: what the game master's side does with it. */
@@ -85,9 +108,9 @@ function anyChoice(table: LocalTable, id: string): Choice {
   return { do: 'wait' }
 }
 
-function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
+function Table({ timer, seat, carrierDown = false }: { timer: number; seat: 'players' | 'gm'; carrierDown?: boolean }) {
   const pack = usePack()
-  const [table, setTable] = useState(() => openTable(pack, timer))
+  const [table, setTable] = useState(() => openTable(pack, timer, carrierDown))
   /** Whether the first player's device is away: the game master may then choose for them. */
   const [away, setAway] = useState(false)
   const absent = new Set(away ? [table.party[0]?.id ?? ''] : [])
@@ -150,7 +173,7 @@ function Table({ timer, seat }: { timer: number; seat: 'players' | 'gm' }) {
   const again = (
     <OptionButton
       onClick={() => {
-        setTable(openTable(pack, timer))
+        setTable(openTable(pack, timer, carrierDown))
       }}
     >
       START AGAIN
@@ -238,12 +261,28 @@ const meta = {
   title: 'Screens/Battle',
   component: Table,
   args: { timer: 0, seat: 'players' },
-  argTypes: { timer: { control: 'inline-radio', options: [0, 20, 60] }, seat: { table: { disable: true } } },
+  argTypes: { timer: { control: 'inline-radio', options: [0, 20, 60] }, seat: { table: { disable: true } }, carrierDown: { table: { disable: true } } },
 } satisfies Meta<typeof Table>
 export default meta
 
 /** Two players' phones in one fight. */
 export const PlayersPhones: StoryObj<typeof meta> = { render: (args) => <Table key={args.timer} {...args} /> }
+
+/** The Bag of a teammate who is down, open to the party (decision 175). */
+export const AFallenTeammatesBag: StoryObj<typeof meta> = {
+  args: { carrierDown: true },
+  render: (args) => (
+    <>
+      <Table key={args.timer} {...args} />
+      <Note>
+        Approved (decision 176). Mousse carried the party’s Revive and is down (decision 175). On Volt’s or Braise’s phone, BAG now
+        lists two Bags: their own, then <strong>Mousse’s Bag</strong>, open to the party for as long as Mousse is downed or dead. An item
+        picked there is used like their own (still the round’s action) and leaves Mousse’s Bag. A revival item can be aimed at a dead
+        Pokémon too (decision 171): on the battlefield its tile lights up for a Revive and for nothing else.
+      </Note>
+    </>
+  ),
+}
 
 function Ending() {
   const pack = usePack()

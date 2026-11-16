@@ -10,7 +10,7 @@ export const ENGINE_VERSION = '0.10.12'
  * Bumped whenever a change to the adapter could make a saved battle play out
  * differently: an override, an event handler, the shape of the adapter's state.
  */
-export const ADAPTER_VERSION = 2
+export const ADAPTER_VERSION = 3
 
 export const FORMAT_NAME = '[Gen 9] Denborn'
 export const FORMAT_ID = 'gen9denborn'

@@ -543,7 +543,8 @@ export class DenbornBattle {
     if (use.effect.reviveAll) return
     const target = findCombatant(this.battle, use.target)
     if (!target) fail('bad-target', 'That Pokémon is not in this battle', user)
-    if (stateOf(target).dead) fail('bad-target', 'No item works on a dead Pokémon', user)
+    // Only a revival item does anything for the dead (decision 171).
+    if (stateOf(target).dead && !use.effect.revive) fail('bad-target', 'Only a revival item works on a dead Pokémon', user)
   }
 
   private locOf(pokemon: Pokemon, choice: MoveChoice): number {

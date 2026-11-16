@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { Fragment, type ReactNode, useState } from 'react'
 import type { MoveChoice } from '../../battle/contract'
 import type { DataPack } from '../../data/types'
 import { useBattleText } from '../../data/use-battle-text'
@@ -32,8 +32,9 @@ export interface GmConsoleProps {
 type Picking =
   | { what: 'target'; move: string }
   | { what: 'allySwitch'; first?: string }
-  | { what: 'bagTarget'; item: string }
-  | { what: 'bagMove'; item: string; target: string }
+  /** `from` names the fallen teammate whose Bag the item comes from (decision 175); nothing for the Pokémon's own, or the enemies'. */
+  | { what: 'bagTarget'; item: string; from?: string }
+  | { what: 'bagMove'; item: string; target: string; from?: string }
   | { what: 'speed' }
 
 /** The timer the game master turns on (decision 150), and the lengths it can be given. */
@@ -97,8 +98,11 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
         return request?.moves.find((option) => option.id === picking.move)?.targets.includes(fighter.id) ?? false
       case 'allySwitch':
         return fighter.side === open.side && fighter.state === 'standing' && fighter.id !== picking.first
-      case 'bagTarget':
-        return fighter.state !== 'gone'
+      case 'bagTarget': {
+        // Only a revival item does anything for a dead Pokémon (decision 171).
+        const effect = pack.items[picking.item]?.bag
+        return fighter.state !== 'gone' || effect?.revive !== undefined || effect?.reviveAll === true
+      }
       case 'speed':
         return fighter.side === open.side && fighter.state === 'standing' && fighter.id !== open.id
       case 'bagMove':
@@ -119,8 +123,8 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
         else set({ picking: { what: 'allySwitch', first: fighter.id } })
         return
       case 'bagTarget':
-        if (pack.items[picking.item]?.bag?.restorePp?.scope === 'one') set({ picking: { what: 'bagMove', item: picking.item, target: fighter.id } })
-        else lock(open, { do: 'bag', item: picking.item, target: fighter.id })
+        if (pack.items[picking.item]?.bag?.restorePp?.scope === 'one') set({ picking: { what: 'bagMove', item: picking.item, target: fighter.id, ...(picking.from ? { from: picking.from } : {}) } })
+        else lock(open, { do: 'bag', item: picking.item, target: fighter.id, ...(picking.from ? { from: picking.from } : {}) })
         return
       case 'speed':
         send({ do: 'switch', who: open.id, with: fighter.id })
@@ -199,17 +203,26 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
     const mine = fighter.side === 'enemies' || away.includes(fighter.id)
     const line = fighter.side === 'enemies' ? foes : allies
     const neighbour = (step: -1 | 1): Fighter | undefined => line.find((other) => other.position === fighter.position + step)
-    const bag = fighter.side === 'enemies' ? table.enemyBag : (table.bags[fighter.id] ?? [])
-    const usable = bag.flatMap((stack) => {
-      const item = pack.items[stack.item]
-      return item?.bag ? [{ item, quantity: stack.quantity }] : []
-    })
+    const usableIn = (bag: readonly { item: string; quantity: number }[]) =>
+      bag.flatMap((stack) => {
+        const item = pack.items[stack.item]
+        return item?.bag ? [{ item, quantity: stack.quantity }] : []
+      })
+    const usable = usableIn(fighter.side === 'enemies' ? table.enemyBag : (table.bags[fighter.id] ?? []))
+    // A player's Pokémon may also draw from the Bag of a teammate who is downed or dead (decision 175).
+    const fallen =
+      fighter.side === 'enemies'
+        ? []
+        : allies.filter((other) => other.id !== fighter.id && other.state !== 'standing').flatMap((other) => {
+            const theirs = usableIn(table.bags[other.id] ?? [])
+            return theirs.length > 0 ? [{ owner: other, usable: theirs }] : []
+          })
     const canChoose = table.outcome === undefined && request?.canAct === true && request.forced === null
 
     if (picking?.what === 'bagMove') {
       const target = byId(picking.target)
       return (target?.now.moves ?? []).map((slot) => (
-        <Slot key={slot.id} onClick={() => lock(fighter, { do: 'bag', item: picking.item, target: picking.target, move: slot.id })}>
+        <Slot key={slot.id} onClick={() => lock(fighter, { do: 'bag', item: picking.item, target: picking.target, move: slot.id, ...(picking.from ? { from: picking.from } : {}) })}>
           <span className="dn-slot__main dn-text-shadow">{moveName(slot.id, wording)}</span>
           <span className="dn-slot__side">{text.pp(slot.pp, slot.maxPp)}</span>
         </Slot>
@@ -273,6 +286,20 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
                 ))}
               </>
             )}
+            {!state.addingExtra &&
+              fallen.map(({ owner, usable: theirs }) => (
+                <Fragment key={owner.id}>
+                  <span className="dn-label">{choosing.bagOf(owner.name)}</span>
+                  {theirs.map(({ item, quantity }) => (
+                    <Slot key={item.id} onClick={() => set({ picking: { what: 'bagTarget', item: item.id, from: owner.id } })}>
+                      <span className="dn-slot__icon">
+                        <ItemIconImage icon={item.icon} />
+                      </span>
+                      <span className="dn-slot__main dn-text-shadow">{choosing.stack(item.name[language], quantity)}</span>
+                    </Slot>
+                  ))}
+                </Fragment>
+              ))}
             {fighter.side === 'enemies' && (
               <>
                 <span className="dn-label">{text.extra}</span>

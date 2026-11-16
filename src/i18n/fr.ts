@@ -641,6 +641,7 @@ export const fr: Messages = {
       allySwitchSecond: 'Puis celui avec qui il échange sa place.',
       struggle: 'Lutte',
       bagEmpty: 'Rien dans le sac ne s’utilise en combat.',
+      bagOf: (name) => `Sac ${/^[aeiouyhàâäéèêëîïôöùûüœ]/i.test(name) ? 'd’' : 'de '}${name}`,
       stack: (item, quantity) => `${item} ×${quantity}`,
       itemTarget: (item) => `Utiliser ${item} sur quel Pokémon\u00a0?`,
       itemMove: (item) => `Restaurer quelle capacité avec ${item}\u00a0?`,

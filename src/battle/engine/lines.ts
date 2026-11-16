@@ -212,7 +212,7 @@ export const battleTargetingOverrides = {
       return standing.length ? this.sample(standing) : target
     }
 
-    // Dead, or fainted for good: a random standing foe in reach, or the move fails.
+    // Dead, or fainted as in the games: a random standing foe in reach, or the move fails.
     return standing.length ? this.sample(standing) : null
   },
 

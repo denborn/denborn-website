@@ -135,18 +135,21 @@ export const agonyBattleOverrides = {
 }
 
 /**
- * Rules 5 to 7: brings a downed Pokémon back with `hp` HP. Its Ability and item
- * simply work again; nothing that triggers on entering the field runs, because
- * it never left. Its queued action for this round is dropped (rule 6).
+ * Rules 5 to 7: brings a downed Pokémon back with `hp` HP, and a dead one the
+ * very same way (decisions 171 and 172), an enemy that fainted included
+ * (decision 174). Its Ability and item simply work again; nothing that
+ * triggers on entering the field runs, because it never left. Its queued
+ * action for this round is dropped (rule 6).
  *
  * The steps mirror what the engine's own Revival Blessing does, minus the
  * switch-in that would re-trigger entry Abilities.
  */
 export function revive(battle: Battle, pokemon: Pokemon, hp: number): void {
   const state = stateOf(pokemon)
-  if (!state.downed) throw new Error(`${state.id} is not downed`)
+  if (!state.downed && !state.dead) throw new Error(`${state.id} is neither downed nor dead`)
 
   state.downed = false
+  state.dead = false
   state.stacks = 0
   state.hitRound = 0
 

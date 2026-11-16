@@ -57,8 +57,9 @@ type View =
   | { at: 'target'; move: string }
   | { at: 'allySwitch'; first?: string }
   | { at: 'bag' }
-  | { at: 'bagTarget'; item: string }
-  | { at: 'bagMove'; item: string; target: string }
+  /** `from` names the fallen teammate whose Bag the item comes from (decision 175); nothing for the player's own. */
+  | { at: 'bagTarget'; item: string; from?: string }
+  | { at: 'bagMove'; item: string; target: string; from?: string }
   | { at: 'run' }
   | { at: 'switch' }
   | { at: 'party' }
@@ -500,29 +501,44 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         }
       }
       case 'bag': {
-        const usable = (fight.bags[me] ?? []).flatMap((stack) => {
-          const item = pack.items[stack.item]
-          return item?.bag ? [{ item, quantity: stack.quantity }] : []
+        const usableIn = (owner: string) =>
+          (fight.bags[owner] ?? []).flatMap((stack) => {
+            const item = pack.items[stack.item]
+            return item?.bag ? [{ item, quantity: stack.quantity }] : []
+          })
+        const usable = usableIn(me)
+        // The Bag of a teammate who is downed or dead is open to the party (decision 175).
+        const fallen = allies.filter((fighter) => fighter.id !== me && fighter.state !== 'standing').flatMap((fighter) => {
+          const theirs = usableIn(fighter.id)
+          return theirs.length > 0 ? [{ fighter, usable: theirs }] : []
         })
+        const rows = (items: typeof usable, from?: string) =>
+          items.map(({ item, quantity }) => (
+            <li key={`${from ?? me}/${item.id}`}>
+              <button type="button" className="dn-roster__row" onClick={() => show({ at: 'bagTarget', item: item.id, ...(from ? { from } : {}) })}>
+                <ItemIconImage icon={item.icon} scale={0.5} />
+                <span />
+                <span className="dn-roster__text">
+                  <span>{text.stack(item.name[language], quantity)}</span>
+                  <span>{item.description[language]}</span>
+                </span>
+              </button>
+            </li>
+          ))
         return {
           kind: 'menu',
           content: (
             <div className="dn-roster">
               <p className="dn-roster__title">{battle.commands.bag}</p>
-              {usable.length === 0 ? (
+              {usable.length === 0 && fallen.length === 0 ? (
                 <p className="dn-effects__empty">{text.bagEmpty}</p>
               ) : (
                 <ul className="dn-roster__list">
-                  {usable.map(({ item, quantity }) => (
-                    <li key={item.id}>
-                      <button type="button" className="dn-roster__row" onClick={() => show({ at: 'bagTarget', item: item.id })}>
-                        <ItemIconImage icon={item.icon} scale={0.5} />
-                        <span />
-                        <span className="dn-roster__text">
-                          <span>{text.stack(item.name[language], quantity)}</span>
-                          <span>{item.description[language]}</span>
-                        </span>
-                      </button>
+                  {rows(usable)}
+                  {fallen.map(({ fighter, usable: theirs }) => (
+                    <li key={fighter.id} className="dn-roster__group">
+                      <p className="dn-roster__title">{text.bagOf(fighter.name)}</p>
+                      <ul className="dn-roster__list">{rows(theirs, fighter.id)}</ul>
                     </li>
                   ))}
                 </ul>
@@ -542,11 +558,11 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
           kind: 'menu',
           content: picker(
             text.itemTarget(item?.name[language] ?? view.item),
-            // Any Pokémon on the field (decision 19); no item does anything for a dead one.
-            (fighter) => fighter.state !== 'gone',
+            // Any Pokémon on the field (decision 19); only a revival item does anything for a dead one (decision 171).
+            (fighter) => fighter.state !== 'gone' || item?.bag?.revive !== undefined || item?.bag?.reviveAll === true,
             (fighter) => {
-              if (oneMove) show({ at: 'bagMove', item: view.item, target: fighter.id })
-              else lock({ do: 'bag', item: view.item, target: fighter.id })
+              if (oneMove) show({ at: 'bagMove', item: view.item, target: fighter.id, ...(view.from ? { from: view.from } : {}) })
+              else lock({ do: 'bag', item: view.item, target: fighter.id, ...(view.from ? { from: view.from } : {}) })
             },
           ),
         }
@@ -561,7 +577,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
               <ul className="dn-roster__list">
                 {(target?.now.moves ?? []).map((slot) => (
                   <li key={slot.id}>
-                    <button type="button" className="dn-roster__row" onClick={() => lock({ do: 'bag', item: view.item, target: view.target, move: slot.id })}>
+                    <button type="button" className="dn-roster__row" onClick={() => lock({ do: 'bag', item: view.item, target: view.target, move: slot.id, ...(view.from ? { from: view.from } : {}) })}>
                       <span />
                       <span />
                       <span className="dn-roster__text">

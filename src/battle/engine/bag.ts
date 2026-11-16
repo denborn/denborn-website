@@ -9,7 +9,7 @@
 import type { Battle, Pokemon } from '@pkmn/sim'
 import type { BagUse } from '../../game-rules/bag-effects'
 import { revive } from './agony'
-import { emit, findCombatant, isDowned, stateOf } from './state'
+import { emit, findCombatant, isFallen, stateOf } from './state'
 import { comesToItsTurn } from './turn'
 
 export type BagOutcome = 'used' | 'failed' | 'blocked'
@@ -21,7 +21,7 @@ function apply(battle: Battle, user: Pokemon, use: BagUse): boolean {
   if (effect.reviveAll) {
     let any = false
     for (const ally of user.side.pokemon) {
-      if (!isDowned(ally)) continue
+      if (!isFallen(ally)) continue
       revive(battle, ally, ally.maxhp)
       any = true
     }
@@ -32,8 +32,8 @@ function apply(battle: Battle, user: Pokemon, use: BagUse): boolean {
   if (!target) return false
 
   if (effect.revive) {
-    // Revival items only work on downed Pokémon.
-    if (!isDowned(target)) return false
+    // Revival items only work on a Pokémon that is down: downed, or dead (decision 171).
+    if (!isFallen(target)) return false
     revive(battle, target, effect.revive === 'full' ? target.maxhp : Math.floor(target.maxhp / 2))
     return true
   }

@@ -46,7 +46,8 @@ export interface FightEngine {
 export type Choice =
   | { do: 'move'; move: string; target?: string; allySwitch?: [string, string] }
   /** An item of its side's Bag, on any Pokémon on the field (decision 19); `move` names the move a PP item restores. */
-  | { do: 'bag'; item: string; target: string; move?: string }
+  /** `from` names the downed or dead teammate whose Bag the item comes from, in place of the Pokémon's own (decision 175). */
+  | { do: 'bag'; item: string; target: string; move?: string; from?: string }
   /** Decision 137. */
   | { do: 'wait' }
   /** Not a player's to choose: what the timer gives who has not chosen, and what the game master may give an absent player (decision 16). */
@@ -157,6 +158,8 @@ export type Refusal =
   | 'locked-first'
   | 'not-locked'
   | 'no-item'
+  /** Another character's Bag opens to the party only once that character is downed or dead. */
+  | 'bag-closed'
   | 'not-allies'
   | 'downed-ally'
   | 'cannot-run'
@@ -291,7 +294,8 @@ function mayCommand(author: Author, who: CombatantView, context: FightContext): 
 function lock(fight: Fight, author: Author, who: CombatantView, choice: Choice, extra: readonly MoveChoice[], context: FightContext): FightStep {
   // Struggle is never chosen: the game master gives it to the Pokémon of a player who is away.
   if (choice.do === 'struggle' && !(author === 'gm' && who.side === 'players')) return refusal(fight, 'not-yours')
-  if (choice.do === 'bag' && !inStock(fight, who, choice.item, context)) return refusal(fight, 'no-item')
+  if (choice.do === 'bag' && choice.from !== undefined && !isOpenTo(who, choice.from, context)) return refusal(fight, 'bag-closed')
+  if (choice.do === 'bag' && !inStock(fight, who, choice, context)) return refusal(fight, 'no-item')
   const action = actionOf(choice, context)
   if (!action) return refusal(fight, 'no-item')
   const refused = engineRefusal(() => {
@@ -405,13 +409,28 @@ function actionOf(choice: Choice, context: FightContext): RoundAction | undefine
   }
 }
 
-/** Whether the Pokémon's side still has one of that item that no other Pokémon has locked. */
-function inStock(fight: Fight, who: CombatantView, item: string, context: FightContext): boolean {
-  if (who.side === 'players') return (fight.bags[who.id] ?? []).some((stack) => stack.item === item)
-  // The enemies share one Bag: an item one of them has locked is not there for the next.
-  const enemies = new Set(context.engine.combatants().filter((combatant) => combatant.side === 'enemies').map((combatant) => combatant.id))
-  const held = fight.enemyBag.find((stack) => stack.item === item)?.quantity ?? 0
-  const taken = Object.entries(fight.locked).filter(([id, entry]) => id !== who.id && enemies.has(id) && entry.choice.do === 'bag' && entry.choice.item === item).length
+/** A character's Bag is open to a teammate once that character is downed or dead (decision 175). The enemies have one Bag for all. */
+function isOpenTo(who: CombatantView, owner: string, context: FightContext): boolean {
+  const fallen = context.engine.combatants().find((combatant) => combatant.id === owner)
+  return who.side === 'players' && fallen !== undefined && fallen.side === 'players' && (fallen.downed || fallen.dead)
+}
+
+/** The Bag a Pokémon's item comes from: the enemies' one Bag, a fallen teammate's, or its own. */
+const ENEMY_BAG = Symbol('the enemies’ Bag')
+function bagUsed(side: CombatantView['side'], user: string, choice: Extract<Choice, { do: 'bag' }>): string | typeof ENEMY_BAG {
+  return side === 'enemies' ? ENEMY_BAG : (choice.from ?? user)
+}
+
+/** Whether the Bag the item comes from still has one that no other Pokémon has locked. */
+function inStock(fight: Fight, who: CombatantView, choice: Extract<Choice, { do: 'bag' }>, context: FightContext): boolean {
+  const sides = new Map(context.engine.combatants().map((combatant) => [combatant.id, combatant.side]))
+  const bag = bagUsed(who.side, who.id, choice)
+  const held = (bag === ENEMY_BAG ? fight.enemyBag : (fight.bags[bag] ?? [])).find((stack) => stack.item === choice.item)?.quantity ?? 0
+  // A Bag several Pokémon draw from: an item one of them has locked is not there for the next.
+  const taken = Object.entries(fight.locked).filter(([id, entry]) => {
+    const side = sides.get(id)
+    return id !== who.id && side !== undefined && entry.choice.do === 'bag' && entry.choice.item === choice.item && bagUsed(side, id, entry.choice) === bag
+  }).length
   return held - taken >= 1
 }
 
@@ -441,8 +460,11 @@ function played(fight: Fight, context: FightContext): FightStep {
   let { bags, enemyBag } = fight
   for (const event of result.events) {
     if (event.type !== 'bag' || event.outcome !== 'used') continue
+    const choice = fight.locked[event.user]?.choice
+    // The item leaves the Bag it came from: the enemies' one, a fallen teammate's (decision 175), or the user's own.
+    const owner = choice?.do === 'bag' && choice.from !== undefined ? choice.from : event.user
     if (sides.get(event.user) === 'enemies') enemyBag = oneLess(enemyBag, event.item)
-    else bags = { ...bags, [event.user]: oneLess(bags[event.user] ?? [], event.item) }
+    else bags = { ...bags, [owner]: oneLess(bags[owner] ?? [], event.item) }
   }
 
   const last: PlayedRound = { round: fight.round, log: named(result.log, engine), events: result.events, before, ...(weather ? { weather } : {}) }

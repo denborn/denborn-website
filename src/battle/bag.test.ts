@@ -165,6 +165,45 @@ describe('the Bag action: what an item can do', () => {
     expect(eventsOf(round(battle, { carrier: bag('flute', 'patient', { cureInfatuation: true }) }), 'bag')[0]?.outcome).toBe('failed')
   })
 
+  it('brings back the dead as it does the downed, with the item\'s own HP (decisions 171 and 172)', () => {
+    const battle = start(
+      [player('carrier', 'Chansey', ['tackle']), player('patient', 'Machamp', ['tackle'], { hp: 1 })],
+      [enemy('foe', 'Jolteon', ['tackle', 'thunderbolt'], { level: 100 })],
+    )
+    round(battle, { foe: move('tackle', 'patient') })
+    // Left down, it loses a stack on each of its turns: three rounds later it is dead.
+    for (let turn = 0; turn < 3; turn++) round(battle)
+    expect(battle.combatant('patient')).toMatchObject({ dead: true, downed: false })
+
+    // Nothing but a revival item does anything for it, and such a choice is refused before the round.
+    expect(() => battle.checkAction('carrier', bag('item', 'patient', HEAL_20), [])).toThrow('Only a revival item')
+    const revival = round(battle, { carrier: bag('item', 'patient', { revive: 'half' }) })
+    const patient = battle.combatant('patient')
+    expect(eventsOf(revival, 'revived')).toEqual([{ type: 'revived', id: 'patient', hp: Math.floor(patient.maxHp / 2) }])
+    expect(patient).toMatchObject({ dead: false, downed: false, stacks: 0, hp: Math.floor(patient.maxHp / 2) })
+
+    // It fights again: it can be aimed at, it acts, and downed again it starts over at 3 stacks.
+    expect(battle.request('foe').moves.find((option) => option.id === 'tackle')?.targets).toContain('patient')
+    expect(timeline(battle, round(battle, { patient: move('tackle', 'foe') }))).toContain('move patient tackle foe')
+    expect(eventsOf(round(battle, { foe: move('thunderbolt', 'patient') }), 'downed')).toEqual([{ type: 'downed', id: 'patient', stacks: 3 }])
+  })
+
+  it('brings back an enemy that fainted, with the enemies\' own item: the same rule for both sides (decision 174)', () => {
+    const battle = start(
+      [player('hero', 'Jolteon', ['tackle'])],
+      [enemy('fallen', 'Rattata', ['tackle'], { hp: 1 }), enemy('medic', 'Chansey', ['tackle'])],
+    )
+    expect(eventsOf(round(battle, { hero: move('tackle', 'fallen') }), 'fainted')).toEqual([{ type: 'fainted', id: 'fallen' }])
+    expect(battle.combatant('fallen')).toMatchObject({ dead: true, position: 0 })
+
+    round(battle, { medic: bag('item', 'fallen', { revive: 'full' }) })
+    const fallen = battle.combatant('fallen')
+    expect(fallen).toMatchObject({ dead: false, hp: fallen.maxHp, position: 0 })
+    expect(timeline(battle, round(battle, { fallen: move('tackle', 'hero') }))).toContain('move fallen tackle hero')
+    // The fight is still won when every enemy is down.
+    expect(battle.ended).toBe(false)
+  })
+
   it('revives with half or all HP, and only a downed Pokémon', () => {
     const downed = () => {
       const battle = start(
@@ -209,6 +248,22 @@ describe('the Bag action: what an item can do', () => {
       expect(battle.combatant(id)).toMatchObject({ downed: false, hp: battle.combatant(id).maxHp })
     }
     expect(battle.combatant('fallen').downed).toBe(true)
+  })
+
+  it('revives the dead allies with the downed ones, all at once (decision 172)', () => {
+    const battle = start(
+      [player('carrier', 'Chansey', ['tackle']), player('one', 'Rattata', ['tackle'], { hp: 1 }), player('two', 'Rattata', ['tackle'], { hp: 1 })],
+      [enemy('foe', 'Jolteon', ['swift', 'tackle'])],
+    )
+    // "one" goes down first and is left to die; "two" goes down on the round it does.
+    round(battle, { foe: move('tackle', 'one') })
+    for (let turn = 0; turn < 2; turn++) round(battle)
+    round(battle, { foe: move('tackle', 'two') })
+    expect(battle.combatant('one').dead).toBe(true)
+    expect(battle.combatant('two').downed).toBe(true)
+
+    round(battle, { carrier: bag('ash', 'carrier', { reviveAll: true }) })
+    for (const id of ['one', 'two']) expect(battle.combatant(id)).toMatchObject({ downed: false, dead: false, hp: battle.combatant(id).maxHp })
   })
 
   it('can be used on any Pokémon on the field, and by enemies', () => {

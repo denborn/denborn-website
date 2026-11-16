@@ -2238,6 +2238,17 @@
   overscroll-behavior: contain;
 }
 
+/* A list within the list, under a title of its own: a fallen teammate's Bag under the player's (decision 175). */
+.dn-roster__group {
+  display: grid;
+  gap: calc(2 * var(--dn-u));
+}
+
+.dn-roster__group > .dn-roster__list {
+  padding: 0;
+  overflow-y: visible;
+}
+
 .dn-roster__row {
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr) auto;

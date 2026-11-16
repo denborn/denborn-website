@@ -384,7 +384,7 @@ describe('Agony rules 5 to 7: revival', () => {
 })
 
 describe('Agony rules 8 to 10: death and the end of the battle', () => {
-  it('makes an enemy without Agony faint for good, and gives the players the win', () => {
+  it('makes an enemy without Agony faint as in the games, and gives the players the win', () => {
     const battle = start([player('hero', 'Jolteon', ['tackle'])], [enemy('foe', 'Rattata', ['tackle'], { hp: 1 })])
     const result = round(battle, { hero: move('tackle', 'foe') })
 

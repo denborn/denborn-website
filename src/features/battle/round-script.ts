@@ -554,7 +554,8 @@ function ownSteps([event = '', a = '', b = '', c = '', d = '']: readonly string[
     case 'died':
       return [{ said: { key: 'own.died', pokemon: [a] }, show: [a], change: { id: a, downed: false, dead: true, stacks: 0, status: '' } }]
     case 'revived':
-      return [{ said: { key: 'own.revived', pokemon: [a] }, show: [a], change: { id: a, hp: Number(b), downed: false, stacks: 0 } }]
+      // The downed and the dead come back alike (decision 172).
+      return [{ said: { key: 'own.revived', pokemon: [a] }, show: [a], change: { id: a, hp: Number(b), downed: false, dead: false, stacks: 0 } }]
     case 'bag':
       if (d === 'used') return [{ said: { key: 'own.bagUsed', pokemon: [a, c], item: b }, show: [a, c] }]
       if (d === 'blocked') return [{ said: { key: 'own.bagBlocked', pokemon: [a], item: b }, show: [a] }]

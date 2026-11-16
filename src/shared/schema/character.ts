@@ -30,7 +30,7 @@ const moveSlot = z.object({
 
 export type MoveSlot = z.infer<typeof moveSlot>
 
-/** Standing, downed with its Agony stacks frozen until revived or rested, or dead for good. */
+/** Standing, downed with its Agony stacks frozen until revived or rested, or dead until a revival item is used on it (decision 171). */
 const condition = z.discriminatedUnion('state', [
   z.object({ state: z.literal('standing') }),
   z.object({ state: z.literal('downed'), stacks: whole(1, 3) }),

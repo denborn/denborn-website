@@ -7,7 +7,7 @@ import type { Enemy } from '../../shared/schema/encounter'
 import { type Author, type Choice, type FightCommand, type FightContext, type FightEngine, type FightStep, fightStep, isReady, openFight, partyView, tableView } from './fight'
 
 // Made up for the tests: real items get their effects from the data pack.
-const EFFECTS: Record<string, BagEffect> = { medicine: { heal: 20 } }
+const EFFECTS: Record<string, BagEffect> = { medicine: { heal: 20 }, phoenix: { revive: 'half' } }
 
 interface TableOptions {
   timerSeconds?: number
@@ -231,6 +231,91 @@ describe('the Bag', () => {
     expect(game.gmLocks('two', medicine('two')).refused).toBe('no-item')
     // The one who holds it may aim it elsewhere.
     expect(game.gmLocks('one', medicine('two')).refused).toBeUndefined()
+  })
+
+  describe('of a fallen teammate (decision 175)', () => {
+    /** Bob carries the revival item and goes down on the first round. Speeds: cat > ann > foe > bob. */
+    const carrierDown = () => {
+      const game = table(
+        [player('ann', 'Machamp', ['tackle']), player('bob', 'Snorlax', ['tackle'], { hp: 1 }), player('cat', 'Jolteon', ['tackle'])],
+        [enemy('foe', 'Chansey', ['tackle'])],
+        { bags: { ann: [{ item: 'medicine', quantity: 1 }], bob: [{ item: 'phoenix', quantity: 1 }, { item: 'medicine', quantity: 1 }] } },
+      )
+      const fromBob = (target: string): Choice => ({ do: 'bag', item: 'phoenix', target, from: 'bob' })
+      return { game, fromBob }
+    }
+    const firstRound = (game: ReturnType<typeof carrierDown>['game']) => {
+      game.locks('ann', splash)
+      game.locks('bob', splash)
+      game.locks('cat', splash)
+      game.gmLocks('foe', tackle('bob'))
+    }
+
+    it('stays closed while its owner stands', () => {
+      const { game, fromBob } = carrierDown()
+      expect(game.locks('ann', fromBob('ann')).refused).toBe('bag-closed')
+      // Nobody opens their own Bag as another's, and the enemies' Bag is no teammate's.
+      expect(game.locks('ann', { do: 'bag', item: 'medicine', target: 'ann', from: 'ann' }).refused).toBe('bag-closed')
+      expect(game.locks('ann', { do: 'bag', item: 'medicine', target: 'ann', from: 'foe' }).refused).toBe('bag-closed')
+      expect(game.gmLocks('foe', { do: 'bag', item: 'medicine', target: 'foe', from: 'ann' }).refused).toBe('bag-closed')
+    })
+
+    it('opens once its owner is down: the item used leaves that Bag, and revives its owner', () => {
+      const { game, fromBob } = carrierDown()
+      firstRound(game)
+      expect(game.battle.combatant('bob').downed).toBe(true)
+
+      expect(game.locks('ann', fromBob('bob')).refused).toBeUndefined()
+      game.locks('cat', splash)
+      game.gmLocks('foe', splash)
+      expect(game.battle.combatant('bob')).toMatchObject({ downed: false, hp: Math.floor(game.battle.combatant('bob').maxHp / 2) })
+      expect(game.fight().bags.bob).toEqual([{ item: 'medicine', quantity: 1 }])
+      expect(game.fight().bags.ann).toEqual([{ item: 'medicine', quantity: 1 }])
+      // Back on its feet, its Bag is its own again.
+      expect(game.locks('ann', { do: 'bag', item: 'medicine', target: 'ann', from: 'bob' }).refused).toBe('bag-closed')
+    })
+
+    it('has each item once: what one teammate has locked from it is not there for the next', () => {
+      const { game, fromBob } = carrierDown()
+      firstRound(game)
+      expect(game.locks('ann', fromBob('bob')).refused).toBeUndefined()
+      expect(game.locks('cat', fromBob('bob')).refused).toBe('no-item')
+      // What is not in that Bag is not there either, whoever else has it.
+      expect(game.locks('cat', { do: 'bag', item: 'rope', target: 'cat', from: 'bob' }).refused).toBe('no-item')
+      // Ann's own medicine and the one in Bob's Bag are two Bags' items: each may be locked.
+      expect(game.locks('ann', { do: 'bag', item: 'medicine', target: 'ann' }).refused).toBeUndefined()
+      expect(game.locks('cat', { do: 'bag', item: 'medicine', target: 'cat', from: 'bob' }).refused).toBeUndefined()
+      // It opens to the party, not to the enemies, and an enemy that is down has no Bag of its own to open.
+      expect(game.gmLocks('foe', { do: 'bag', item: 'phoenix', target: 'foe', from: 'bob' }).refused).toBe('bag-closed')
+    })
+
+    it('is a teammate\'s: a fallen enemy has none to open', () => {
+      const game = table([player('ann', 'Machamp', ['tackle'])], [enemy('mob', 'Rattata', ['tackle'], { hp: 1 }), enemy('foe', 'Chansey', ['tackle'])], { bags: { mob: [{ item: 'medicine', quantity: 1 }] } })
+      game.locks('ann', tackle('mob'))
+      game.gmLocks('mob', splash)
+      game.gmLocks('foe', splash)
+      expect(game.battle.combatant('mob').dead).toBe(true)
+      expect(game.locks('ann', { do: 'bag', item: 'medicine', target: 'ann', from: 'mob' }).refused).toBe('bag-closed')
+    })
+
+    it('stays open when its owner is dead, and a revival item brings the dead back (decision 171)', () => {
+      const { game, fromBob } = carrierDown()
+      firstRound(game)
+      // Left down, Bob loses a stack a round and dies.
+      for (let turn = 0; turn < 3; turn++) {
+        game.locks('ann', splash)
+        game.locks('cat', splash)
+        game.gmLocks('foe', splash)
+      }
+      expect(game.battle.combatant('bob').dead).toBe(true)
+      expect(game.locks('ann', { do: 'bag', item: 'medicine', target: 'bob', from: 'bob' }).refused).toBe('bad-target')
+      expect(game.locks('ann', fromBob('bob')).refused).toBeUndefined()
+      game.locks('cat', splash)
+      const revival = game.gmLocks('foe', splash)
+      expect(revival.played?.events).toContainEqual({ type: 'bag', user: 'ann', item: 'phoenix', target: 'bob', outcome: 'used' })
+      expect(game.battle.combatant('bob')).toMatchObject({ dead: false, downed: false })
+      expect(game.fight().bags.bob).toEqual([{ item: 'medicine', quantity: 1 }])
+    })
   })
 
   it('takes what an enemy used from the enemies\' Bag, and nothing from the players\'', () => {

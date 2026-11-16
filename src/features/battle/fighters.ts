@@ -37,7 +37,7 @@ export interface Fighter {
   species: SpeciesData | undefined
   gender: 'M' | 'F' | 'N'
   level: number
-  /** Standing, downed, or gone: dead, or fainted for good. Its slot stays on the line. */
+  /** Standing, downed, or gone: dead, or fainted as in the games, until a revival item is used on it. Its slot stays on the line. */
   state: FieldState
   /** Its stats before any stage, as its sheet gives them; nothing when its species is not in the game data. */
   stats: StatSpread | undefined

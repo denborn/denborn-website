@@ -261,5 +261,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 162 | The end of an encounter: one EXP field per character and one amount of Pokédollars for each, AWARD AND END; a player reads one sentence with what their character received. |
 | 164 | An enemy's PP Ups: a row under its moves, each move from none to three, the PP it then has said under it. |
 | 165, 167 | An Ability that acts is named by a band on the scene, from its Pokémon's side: a foe's from the right in red, an ally's from the left in blue. |
+| 171, 175, 176 | In a fight, BAG lists the player's own items, then one titled list per teammate who is downed or dead ("Mousse’s Bag"), in the same scrolling list (`.dn-roster__group`). On the battlefield a dead Pokémon's tile lights up for a revival item, and for nothing else. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.
