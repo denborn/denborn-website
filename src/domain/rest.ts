@@ -14,7 +14,7 @@ import { type Changed, revised } from './changed.ts'
 import { maxHpOf } from './character-check.ts'
 import { repeated } from './repeated.ts'
 
-const MOVES_MAX = 6
+export const MOVES_MAX = 6
 
 export type RestProblem =
   /** Only a revival item brings back the dead (decision 173). */
@@ -45,6 +45,12 @@ export interface Reselection {
 
 export type ReselectionProblem = 'dead' | 'ability' | 'moves'
 
+/** The moves a character may know at its level under its campaign's rules: what its player chooses from during a rest. */
+export function movesOpenTo(character: CharacterDocument, rules: CampaignRules, pack: DataPack): string[] {
+  const species = pack.species[character.species]
+  return species ? eligibleMoves(species.learnset, character.level, rules.moveAccess, rules.commonMoves).filter((id) => id in pack.moves) : []
+}
+
 /**
  * The character with the Ability and the moves chosen during its rest: any
  * Ability of its species, and up to six moves it may know at its level under
@@ -56,8 +62,8 @@ export function reselected(character: CharacterDocument, choice: Reselection, ru
   const species = pack.species[character.species]
   if (!species?.abilities.includes(choice.ability)) return { ok: false, problem: 'ability' }
 
-  const eligible = new Set(eligibleMoves(species.learnset, character.level, rules.moveAccess, rules.commonMoves))
-  const wellChosen = choice.moves.length >= 1 && choice.moves.length <= MOVES_MAX && repeated(choice.moves).length === 0 && choice.moves.every((id) => id in pack.moves && eligible.has(id))
+  const open = new Set(movesOpenTo(character, rules, pack))
+  const wellChosen = choice.moves.length >= 1 && choice.moves.length <= MOVES_MAX && repeated(choice.moves).length === 0 && choice.moves.every((id) => open.has(id))
   if (!wellChosen) return { ok: false, problem: 'moves' }
 
   const moves = choice.moves.flatMap((id): MoveSlot[] => {

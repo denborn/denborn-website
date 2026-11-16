@@ -1,11 +1,15 @@
 import { type SyntheticEvent, useState } from 'react'
 import type { DataPack } from '../../data/types'
+import { evolutionOffers } from '../../domain/evolution'
+import { pointsLeft } from '../../domain/level-up'
 import { useLanguage, useMessages } from '../../i18n'
 import type { Invitation } from '../../shared/codec/codes'
 import { ROOM_CODE_LENGTH, joinCodeIn } from '../../shared/protocol/room-code'
 import type { Party } from '../../shared/protocol/session'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader, TextField } from '../../ui'
+import type { ProgressView } from '../progress/ProgressScreen'
+import { grantedSentences } from '../progress/granted-words'
 import type { GuestState } from './guest'
 
 export interface JoinScreenProps {
@@ -25,6 +29,10 @@ export interface JoinScreenProps {
   onLeave: () => void
   /** The player has read what their character was awarded. */
   onRewardsRead: () => void
+  /** The player has read what the game master gave their character or took from it. */
+  onGrantedRead: () => void
+  /** Opens one of the things the player does for their character between two fights (milestone 7). */
+  onOpen: (view: ProgressView) => void
   /** Starts over from the code, after being out. */
   onAgain: () => void
   onBack: () => void
@@ -35,15 +43,17 @@ export interface JoinScreenProps {
  * bring among those made for the campaign, the wait for the game master,
  * then the party; and each way of being out, said in words.
  */
-export function JoinScreen({ pack, code: given, state, characters, onCode, onChoose, onCreate, onLeave, onRewardsRead, onAgain, onBack }: JoinScreenProps) {
+export function JoinScreen({ pack, code: given, state, characters, onCode, onChoose, onCreate, onLeave, onRewardsRead, onGrantedRead, onOpen, onAgain, onBack }: JoinScreenProps) {
+  const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.join
   const [typed, setTyped] = useState(given ?? '')
   const [mistyped, setMistyped] = useState(false)
   const [leaving, setLeaving] = useState(false)
   const party = state?.at === 'in' ? state.party : undefined
-  /** The player's own character, as the party has it. */
-  const mine = party?.members.find((member) => member.character.id === party.you)?.character
+  /** The player's own place in the party, with their character as the party has it. */
+  const own = party?.members.find((member) => member.character.id === party.you)
+  const mine = own?.character
   const title = party ? text.inSession(party.campaign.name) : text.title
 
   const join = (event: SyntheticEvent): void => {
@@ -116,8 +126,21 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
                   </div>
                 </>
               )}
+              {state.granted && (
+                <>
+                  <p className="dn-note" role="status">
+                    {grantedSentences(state.granted, mine?.nickname ?? '', (id) => pack.items[id]?.name[language] ?? id, messages).join(' ')}
+                  </p>
+                  <div className="dn-row">
+                    <OptionButton primary onClick={onGrantedRead}>
+                      {messages.progress.granted.read}
+                    </OptionButton>
+                  </div>
+                </>
+              )}
               {!state.linked && <Status text={text.lineDown} />}
               {state.linked && !state.hostThere && <Status text={text.hostGone} />}
+              {own && <Yours pack={pack} character={own.character} resting={own.resting} onOpen={onOpen} />}
               <Members pack={pack} party={state.party} />
               {leaving && (
                 <p className="dn-note dn-note--error" role="alert">
@@ -163,6 +186,46 @@ function Status({ text }: { text: string }) {
     <p className="dn-note" role="status">
       {text}
     </p>
+  )
+}
+
+interface YoursProps {
+  pack: DataPack
+  character: CharacterDocument
+  /** Whether it is resting at a Pokémon Center: its Ability and its moves are then to choose. */
+  resting: boolean
+  onOpen: (view: ProgressView) => void
+}
+
+/**
+ * The player's own character between two fights (milestone 7): one row for
+ * each thing it can do now. A rest and points to place show only while there
+ * are some; evolution, while its species has one to come; the Bag, always.
+ */
+function Yours({ pack, character, resting, onOpen }: YoursProps) {
+  const language = useLanguage()
+  const text = useMessages().progress
+  const dead = character.condition.state === 'dead'
+  const left = pointsLeft(character)
+  const offers = evolutionOffers(character, pack)
+  const ready = offers.find((offer) => !offer.missing)
+  const row = (view: ProgressView, name: string, hint: string) => (
+    <Slot onClick={() => onOpen(view)}>
+      <span className="dn-slot__text">
+        <span className="dn-text-shadow">{name}</span>
+        <span className="dn-note">{hint}</span>
+      </span>
+    </Slot>
+  )
+  return (
+    <div className="dn-entry" role="group" aria-label={text.yours}>
+      <span className="dn-label">{text.yours}</span>
+      {resting && row('rest', text.open.rest, text.open.restHint(character.nickname))}
+      {/* A dead character places no points and does not evolve until it is brought back. */}
+      {!dead && (left.ivs > 0 || left.evs > 0 || left.attributes > 0) && row('points', text.open.points, text.open.pointsHint(Math.max(0, left.ivs), Math.max(0, left.evs), Math.max(0, left.attributes)))}
+      {!dead && offers.length > 0 && row('evolve', text.open.evolve, ready ? text.open.evolveReady(pack.species[ready.to]?.name[language] ?? ready.to) : text.open.evolveNotYet)}
+      {row('bag', text.open.bag, text.open.bagHint(character.bag.length, character.money))}
+    </div>
   )
 }
 

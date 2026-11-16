@@ -136,7 +136,7 @@ function bare(character: CharacterDocument): CharacterDocument {
 }
 
 /** The party as one member is told it. */
-function partyFor(session: HostSession, member: Member): Party {
+export function partyFor(session: HostSession, member: Member): Party {
   return {
     revision: session.revision,
     campaign: { id: session.campaign.id, name: session.campaign.name },

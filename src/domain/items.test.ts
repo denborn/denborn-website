@@ -3,7 +3,7 @@ import { expForLevel } from '../game-rules/exp'
 import type { CharacterDocument } from '../shared/schema/character'
 import type { ItemStack } from '../shared/schema/common'
 import { maxHpOf } from './character-check'
-import { type ItemUse, withHeldItem, withItemUsed, withItemsTaken } from './items'
+import { type ItemUse, isForOneMove, withHeldItem, withItemUsed, withItemsTaken, worksOutsideFight } from './items'
 import { progressPack } from './progress-pack'
 import { newcomer } from './test-pack'
 
@@ -196,5 +196,26 @@ describe('the item a character holds (decision 6)', () => {
     expect(withHeldItem(ann, 'berry', progressPack)).toEqual({ ok: false, problem: 'nothing' })
     expect(withHeldItem(member('ann', { ...downed, heldItem: 'berry', bag: bagOf('charm') }), 'charm', progressPack)).toEqual({ ok: false, problem: 'down' })
     expect(withHeldItem(member('ann', { heldItem: 'berry', bag: [{ item: 'berry', quantity: 999 }] }), undefined, progressPack)).toEqual({ ok: false, problem: 'bag-full' })
+  })
+})
+
+describe('what a Bag offers to use outside a fight', () => {
+  const ids = (keep: (item: (typeof progressPack.items)[string]) => boolean): string[] => Object.values(progressPack.items).filter((item) => item.id in bagged && keep(item)).map((item) => item.id)
+  // The items of this file's pack that each do one thing.
+  const bagged = { tonic: 1, draught: 1, cureall: 1, salve: 1, ether: 1, elixir: 1, phoenix: 1, sun: 1, ash: 1, flute: 1, xpower: 1, ppup: 1, ppmax: 1, stone: 1, cord: 1, charm: 1 }
+
+  it('is what heals, cures, revives, restores PP or raises them: not what only means something in a fight, is held, or evolves', () => {
+    expect(ids((item) => !worksOutsideFight(item))).toEqual(['xpower', 'stone', 'cord', 'charm'])
+    // Whatever it does not offer does nothing here, whoever it is used on.
+    const ann = member('ann', { hp: 1, status: 'psn', moves: [{ id: 'tackle', ppUps: 0, pp: 0 }], bag: bagOf('xpower', 'stone', 'cord', 'charm') })
+    const bob = member('bob', downed)
+    for (const item of ids((other) => !worksOutsideFight(other))) {
+      expect(use([ann, bob], item, { move: 'tackle' })).toEqual({ ok: false, problem: 'no-effect' })
+      expect(use([ann, bob], item, { target: 'character-bob' })).toEqual({ ok: false, problem: 'no-effect' })
+    }
+  })
+
+  it('asks for a move when the item is for one move only', () => {
+    expect(ids(isForOneMove)).toEqual(['ether', 'ppup', 'ppmax'])
   })
 })

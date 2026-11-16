@@ -10,3 +10,8 @@ export function plain(text: string): string {
 export function answers(name: string, search: string): boolean {
   return plain(name).includes(plain(search.trim()))
 }
+
+/** A whole number of 0 or more, as typed into a field; nothing for anything else. */
+export function wholeTyped(typed: string): number | undefined {
+  return /^\d{1,9}$/.test(typed.trim()) ? Number(typed.trim()) : undefined
+}

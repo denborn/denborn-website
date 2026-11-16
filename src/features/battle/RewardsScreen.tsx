@@ -4,6 +4,7 @@ import type { RewardDefaults } from '../../domain/rewards'
 import { MAX_LEVEL, expForLevel, levelForExp } from '../../game-rules/exp'
 import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
+import { wholeTyped } from '../../shared/text/plain'
 import { OptionButton, PokemonSprite, Screen, StepHeader, TextField } from '../../ui'
 
 export interface RewardsScreenProps {
@@ -22,11 +23,6 @@ export interface RewardsScreenProps {
   onBack: () => void
 }
 
-/** A whole number of 0 or more, as typed; nothing for anything else. */
-function amountOf(typed: string): number | undefined {
-  return /^\d{1,9}$/.test(typed.trim()) ? Number(typed.trim()) : undefined
-}
-
 /**
  * The end of an encounter, for the game master: what each character of the
  * party is awarded, filled in by the app and theirs to change, line by line
@@ -39,8 +35,8 @@ export function RewardsScreen({ pack, encounter, outcome, party, defaults, onAwa
   const text = messages.battle.console.rewards
   const [exp, setExp] = useState<Record<string, string>>(() => Object.fromEntries(party.map((character) => [character.id, String(defaults.exp[character.id] ?? 0)])))
   const [money, setMoney] = useState(String(defaults.money))
-  const amounts = party.map((character) => ({ character, exp: amountOf(exp[character.id] ?? '') }))
-  const each = amountOf(money)
+  const amounts = party.map((character) => ({ character, exp: wholeTyped(exp[character.id] ?? '') }))
+  const each = wholeTyped(money)
   const ready = each !== undefined && amounts.every((line) => line.exp !== undefined)
 
   return (

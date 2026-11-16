@@ -1,24 +1,6 @@
 import { type Locator, type Page, devices, expect, test } from '@playwright/test'
 import { createPikachu, draftEncounter, setCampaign } from './creating.ts'
-
-/**
- * A game master hosting a campaign on one phone and a player with a character
- * of that campaign on another: two browsers that share nothing but the relay.
- */
-async function table(gm: Page): Promise<{ player: Page; code: string }> {
-  await setCampaign(gm, 'Dawn Patrol')
-  const creationLink = await gm.locator('.dn-link').innerText()
-  await gm.getByRole('button', { name: 'HOST A SESSION' }).click()
-  const code = await gm.locator('.dn-join__code').innerText()
-  expect(code).toMatch(/^[2-9A-Z]{6}$/)
-
-  const browser = gm.context().browser()
-  if (!browser) throw new Error('No browser to open the player’s phone in')
-  const player = await (await browser.newContext({ ...devices['Pixel 7'], locale: 'en-US' })).newPage()
-  await player.goto(creationLink)
-  await createPikachu(player, 'Volt', 'Field kit')
-  return { player, code }
-}
+import { ask, table } from './hosting.ts'
 
 /** The HP a Pokémon's row on the console gives, such as "HP 15/18". */
 async function hpOf(row: Locator): Promise<string> {
@@ -30,17 +12,6 @@ async function hpOf(row: Locator): Promise<string> {
 /** The battle's message band says this, once it has typed it out whole. */
 async function said(page: Page, text: string): Promise<void> {
   await expect(page.locator('.dn-message > [aria-hidden="true"]').first()).toHaveText(text)
-}
-
-/** The player joins with the code and asks to come in with Volt. */
-async function ask(player: Page, code: string): Promise<void> {
-  await player.goto('/')
-  await player.getByRole('button', { name: /JOIN A SESSION/ }).click()
-  await player.getByRole('textbox', { name: 'Join code' }).fill(code)
-  await player.getByRole('button', { name: 'JOIN', exact: true }).click()
-  // Only the characters made for the campaign being played are offered.
-  await expect(player.getByText('Choose a character of Dawn Patrol')).toBeVisible()
-  await player.getByRole('button', { name: /^Volt/ }).click()
 }
 
 test('a player joins a session with its code, is let in, and stays in while the game master’s page reloads', async ({ page: gm }) => {
@@ -223,7 +194,7 @@ test('an encounter is launched from the session, and a round is played between t
   // The fight is closed for everyone; the player is told what Volt received, and Volt's sheet has it.
   await expect(gm.locator('.dn-join__code')).toHaveText(code)
   await expect(player.getByText('The quarry is over. Volt received 50 EXP and 100 Pokédollars.')).toBeVisible()
-  await player.getByRole('button', { name: 'OK' }).click()
+  await player.getByRole('button', { name: 'OK', exact: true }).click()
   await expect(player.getByText('The quarry is over.')).toBeHidden()
   await expect(player.getByText('Volt (you)')).toBeVisible()
   // The fight is gone from the game master's device too: a reload shows the session, not a console.

@@ -40,6 +40,17 @@ export type ItemProblem =
 
 const isDown = (character: CharacterDocument): boolean => character.condition.state !== 'standing'
 
+/** Whether an item does anything when used from a Bag outside a fight: a Bag offers to use it only then. */
+export function worksOutsideFight(item: ItemData): boolean {
+  const effect = item.bag
+  return item.ppUps !== undefined || (effect !== undefined && (effect.heal !== undefined || effect.cure !== undefined || effect.revive !== undefined || effect.reviveAll === true || effect.restorePp !== undefined))
+}
+
+/** Whether using it asks which move it is for: a PP item for one move, a PP Up. */
+export function isForOneMove(item: ItemData): boolean {
+  return item.ppUps !== undefined || item.bag?.restorePp?.scope === 'one'
+}
+
 /** A character brought back by a revival item, the downed and the dead alike (decision 172). */
 function revived(character: CharacterDocument, hp: number): CharacterDocument {
   return { ...character, hp: Math.max(1, hp), condition: { state: 'standing' } }

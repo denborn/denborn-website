@@ -97,6 +97,8 @@ export interface NumberFieldProps {
   max: number
   /** The highest the value can go right now, when a budget runs out before the end of the scale. */
   ceiling?: number
+  /** The lowest the value can go right now, when part of it is there for good. */
+  floor?: number
   onChange: (value: number) => void
   /** Spoken names of the two buttons, such as "Lower Strength" and "Raise Strength". */
   lowerLabel: string
@@ -106,9 +108,9 @@ export interface NumberFieldProps {
 /**
  * A number to set: a slider for the large moves, a button on each side for
  * one point at a time. The owner of the value decides what is allowed; a
- * value past the ceiling simply does not take.
+ * value past the ceiling, or under the floor, simply does not take.
  */
-export function NumberField({ label, value, min, max, ceiling = max, onChange, lowerLabel, raiseLabel }: NumberFieldProps) {
+export function NumberField({ label, value, min, max, ceiling = max, floor = min, onChange, lowerLabel, raiseLabel }: NumberFieldProps) {
   const id = useId()
   const fill = { '--dn-number-fill': `${((value - min) / (max - min)) * 100}%` } as CSSProperties
   return (
@@ -119,7 +121,7 @@ export function NumberField({ label, value, min, max, ceiling = max, onChange, l
       <output className="dn-number__value" htmlFor={id}>
         {value}
       </output>
-      <button type="button" className="dn-number__step" aria-label={lowerLabel} disabled={value <= min} onClick={() => onChange(value - 1)}>
+      <button type="button" className="dn-number__step" aria-label={lowerLabel} disabled={value <= floor} onClick={() => onChange(value - 1)}>
         −
       </button>
       <input id={id} className="dn-number__slider" type="range" min={min} max={max} value={value} style={fill} onChange={(event) => onChange(Number(event.target.value))} />

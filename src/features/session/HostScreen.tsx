@@ -34,6 +34,12 @@ export interface HostScreenProps {
   onApprove: (peer: string, keep: 'theirs' | 'mine') => void
   onDecline: (peer: string) => void
   onRemove: (peer: string) => void
+  /** Starts a rest at a Pokémon Center for a character of the party (decision 11); gives back why it did not, when it did not. */
+  onRest: (character: string) => string | undefined
+  /** Opens what the game master gives a character of the party or takes from it (decisions 5 and 170). */
+  onGrant: (character: string) => void
+  /** Something done that is worth saying, such as a sheet just changed by hand. */
+  said?: string | undefined
   onEnd: () => void
   /** Puts a text on the clipboard; false when the browser refuses. */
   onCopy: (text: string) => Promise<boolean>
@@ -45,12 +51,15 @@ export interface HostScreenProps {
  * letters with its QR code on the top screen, the link to copy, then who is
  * asking to come in, who is in, and the campaign's encounters (decision 143).
  */
-export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onLaunch, launching, noLaunch, fight, stale, onApprove, onDecline, onRemove, onEnd, onCopy, onBack }: HostScreenProps) {
+export function HostScreen({ pack, session, code, origin, line, notice, onEncounter, onLaunch, launching, noLaunch, fight, stale, onApprove, onDecline, onRemove, onRest, onGrant, said, onEnd, onCopy, onBack }: HostScreenProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.session.host
   const [copied, setCopied] = useState<boolean>()
   const [opened, setOpened] = useState<string>()
+  /** The last rest asked for: whose, and why it did not start when it did not. */
+  const [rest, setRest] = useState<{ character: string; refused?: string }>()
+  const progress = messages.progress.gm
   /** The encounter whose LAUNCH and PREPARE are shown. */
   const [chosen, setChosen] = useState<string>()
   const [ending, setEnding] = useState(false)
@@ -87,6 +96,11 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
               {notice}
             </p>
           )}
+          {said && (
+            <p className="dn-note" role="status">
+              {said}
+            </p>
+          )}
           {line !== 'up' && (
             <p className={line === 'connecting' || line === 'down' ? 'dn-note' : 'dn-note dn-note--error'} role="status">
               {text.line[line]}
@@ -118,13 +132,29 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
                   <span className="dn-text-shadow">{member.character.nickname}</span>
                   <span className="dn-note">
                     {who(member.character)} · {member.present ? text.here : text.away}
+                    {session.resting?.includes(member.character.id) && ` · ${progress.resting}`}
                   </span>
                 </span>
               </Slot>
               {opened === member.peer && (
-                <div className="dn-row">
-                  <OptionButton onClick={() => onRemove(member.peer)}>{text.remove}</OptionButton>
-                </div>
+                <>
+                  <div className="dn-row">
+                    {/* During a fight the sheets are the fight's: both wait for its end. */}
+                    <OptionButton disabled={fight !== undefined} onClick={() => setRest({ character: member.character.id, ...refusedBy(onRest(member.character.id)) })}>
+                      {progress.rest}
+                    </OptionButton>
+                    <OptionButton disabled={fight !== undefined} onClick={() => onGrant(member.character.id)}>
+                      {progress.grant}
+                    </OptionButton>
+                    <OptionButton onClick={() => onRemove(member.peer)}>{text.remove}</OptionButton>
+                  </div>
+                  {fight && <p className="dn-note">{progress.duringFight}</p>}
+                  {rest?.character === member.character.id && (
+                    <p className={rest.refused === undefined ? 'dn-note' : 'dn-note dn-note--error'} role="status">
+                      {rest.refused === undefined ? progress.rested(member.character.nickname) : rest.refused === 'dead' ? progress.notRested.dead(member.character.nickname) : progress.notRested.other}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           ))}
@@ -210,6 +240,11 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
       </Screen>
     </div>
   )
+}
+
+/** Why something was not done, kept only when there is a reason. */
+function refusedBy(refused: string | undefined): { refused?: string } {
+  return refused === undefined ? {} : { refused }
 }
 
 interface RequestProps {

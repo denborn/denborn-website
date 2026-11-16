@@ -116,12 +116,15 @@ export const rewards = z.object({
 
 export type Rewards = z.infer<typeof rewards>
 
+/** The most kinds of item one grant gives or takes. */
+export const GRANTED_ITEMS_MAX = 50
+
 /** What the game master gave a character, or took from it, by hand (decisions 5 and 170). */
 export const granted = z.object({
   exp: whole(0, 1_000_000),
   /** Above 0 when given, below when taken. */
   money: z.number().int().min(-999_999_999).max(999_999_999),
-  items: z.array(z.object({ item: dataId, quantity: z.number().int().min(-999).max(999) })).max(50),
+  items: z.array(z.object({ item: dataId, quantity: z.number().int().min(-999).max(999) })).max(GRANTED_ITEMS_MAX),
   /** The level before and after, when the EXP took the character past one. */
   level: z.object({ from: whole(1, 100), to: whole(1, 100) }).optional(),
 })

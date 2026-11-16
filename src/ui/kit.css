@@ -1663,6 +1663,20 @@
   background: linear-gradient(transparent, var(--dn-backdrop) calc(8 * var(--dn-u)));
 }
 
+/* A foot that says something about its buttons, such as the question they answer or what the last one did: it stays in sight with them. */
+.dn-foot--said {
+  flex-wrap: wrap;
+  row-gap: calc(4 * var(--dn-u));
+  border-top: calc(1 * var(--dn-u)) solid var(--dn-backdrop-mark);
+  background: var(--dn-backdrop);
+}
+
+.dn-foot__said {
+  flex: 0 0 100%;
+  display: grid;
+  gap: calc(2 * var(--dn-u));
+}
+
 /* The Pokémon being created, on the top screen: itself on the left, what is known of it on the right. */
 .dn-preview {
   position: absolute;

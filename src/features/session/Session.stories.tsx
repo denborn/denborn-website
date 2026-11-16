@@ -10,7 +10,7 @@ import { sampleFord, sampleQuarry } from '../encounters/samples'
 import { HostScreen } from './HostScreen'
 import { JoinScreen } from './JoinScreen'
 import type { GuestState, Out } from './guest'
-import type { HostSession } from './host'
+import { type HostSession, hostStep } from './host'
 import type { HostLine } from './run-host'
 
 const CODE = 'K7PQ4X'
@@ -41,12 +41,14 @@ interface HostArgs {
   party: number
   /** A fight kept from an earlier visit that cannot be taken up again (decision 139). */
   stale: boolean
+  /** The third member is dead: what REST says for it (decision 173). */
+  dead: boolean
 }
 
-function Hosting({ line, party, stale }: HostArgs) {
+function Hosting({ line, party, stale, dead }: HostArgs) {
   const pack = usePack()
   const [braise, volt, mousse, ombre, galet] = heroes(pack)
-  const all = [braise, volt, mousse].filter((character) => character !== undefined)
+  const all = [braise, volt, mousse && dead ? { ...mousse, hp: 0, condition: { state: 'dead' as const } } : mousse].filter((character) => character !== undefined)
   const [session, setSession] = useState<HostSession>(() => ({
     campaign: campaign(pack),
     revision: 3,
@@ -66,7 +68,7 @@ function Hosting({ line, party, stale }: HostArgs) {
   return (
     <Phone>
       <HostScreen
-        key={`${line}-${party}`}
+        key={`${line}-${party}-${dead}`}
         pack={pack}
         session={session}
         code={CODE}
@@ -75,6 +77,13 @@ function Hosting({ line, party, stale }: HostArgs) {
         onApprove={approve}
         onDecline={(peer) => setSession({ ...session, requests: session.requests.filter((entry) => entry.peer !== peer) })}
         onRemove={(peer) => setSession({ ...session, party: session.party.filter((member) => member.peer !== peer) })}
+        // A rest is played by the session's real logic: the board shows what it answers.
+        onRest={(character) => {
+          const step = hostStep(session, { on: 'rest', character }, pack)
+          setSession(step.session)
+          return step.refused
+        }}
+        onGrant={() => undefined}
         onEnd={() => undefined}
         onEncounter={() => undefined}
         onLaunch={() => undefined}
@@ -103,7 +112,7 @@ const OUTS: Record<string, Out> = {
 }
 
 interface JoinArgs {
-  step: 'code' | 'reaching' | 'hostAway' | 'choosing' | 'choosingNone' | 'asking' | 'waiting' | 'in' | 'inRewarded' | 'inHostAway' | 'inLineDown' | 'out'
+  step: 'code' | 'reaching' | 'hostAway' | 'choosing' | 'choosingNone' | 'asking' | 'waiting' | 'in' | 'inResting' | 'inRewarded' | 'inGranted' | 'inHostAway' | 'inLineDown' | 'out'
   out: keyof typeof OUTS
 }
 
@@ -112,6 +121,14 @@ function Joining({ step, out }: JoinArgs) {
   const characters = heroes(pack).map((character) => ({ ...character, campaign: { ...CAMPAIGN, rulesVersion: 1 } }))
   const members = characters.slice(0, 4).map((character, index) => ({ character, present: index !== 2, resting: false }))
   const party: Party = { revision: 5, campaign: CAMPAIGN, you: characters[1]?.id ?? '', members }
+  // The player's own character with points its levels brought still to place, resting at a Pokémon Center.
+  const fresh = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }
+  const resting: Party = {
+    ...party,
+    members: members.map((member, index) =>
+      index === 1 ? { ...member, resting: true, character: { ...member.character, ivs: { ...fresh, spe: 12 }, evs: { ...fresh, spe: 30 }, attributes: { ...member.character.attributes, gained: { ...member.character.attributes.gained, strength: 4 } } } } : member,
+    ),
+  }
   const states: Record<JoinArgs['step'], GuestState | undefined> = {
     code: undefined,
     reaching: { at: 'reaching' },
@@ -121,14 +138,22 @@ function Joining({ step, out }: JoinArgs) {
     asking: { at: 'asking' },
     waiting: { at: 'waiting' },
     in: { at: 'in', party, linked: true, hostThere: true },
+    inResting: { at: 'in', party: resting, linked: true, hostThere: true },
     inRewarded: { at: 'in', party, linked: true, hostThere: true, rewards: { encounter: 'La carrière', exp: 412, money: 2880, level: { from: 11, to: 12 } } },
+    inGranted: {
+      at: 'in',
+      party,
+      linked: true,
+      hostThere: true,
+      granted: { exp: 300, money: -150, items: [{ item: 'superpotion', quantity: 2 }, { item: 'thunderstone', quantity: 1 }, { item: 'revive', quantity: -1 }], level: { from: 11, to: 12 } },
+    },
     inHostAway: { at: 'in', party, linked: true, hostThere: false },
     inLineDown: { at: 'in', party, linked: false, hostThere: true },
     out: { at: 'out', ...(OUTS[out] ?? { why: 'ended' }) },
   }
   return (
     <Phone>
-      <JoinScreen key={`${step}-${out}`} pack={pack} state={states[step]} characters={characters.slice(0, 2)} onCode={() => undefined} onChoose={() => undefined} onCreate={() => undefined} onRewardsRead={() => undefined} onLeave={() => undefined} onAgain={() => undefined} onBack={() => undefined} />
+      <JoinScreen key={`${step}-${out}`} pack={pack} state={states[step]} characters={characters.slice(0, 2)} onCode={() => undefined} onChoose={() => undefined} onCreate={() => undefined} onRewardsRead={() => undefined} onGrantedRead={() => undefined} onOpen={() => undefined} onLeave={() => undefined} onAgain={() => undefined} onBack={() => undefined} />
     </Phone>
   )
 }
@@ -138,7 +163,7 @@ export default meta
 
 /** The game master hosting: the join code, who asks to come in, who is in. */
 export const Host: StoryObj<HostArgs> = {
-  args: { line: 'up', party: 3, stale: false },
+  args: { line: 'up', party: 3, stale: false, dead: false },
   argTypes: {
     line: { control: 'select', options: ['connecting', 'up', 'down', 'replaced', 'notHost', 'update', 'ended'] },
     party: { control: { type: 'range', min: 0, max: 3, step: 1 } },
@@ -153,7 +178,9 @@ export const Host: StoryObj<HostArgs> = {
         FROM THE SESSION (decision 123). Under the party, the campaign’s encounters (decision 143): a tap on one shows LAUNCH, which starts
         the fight for the party, and PREPARE, which opens it to change it; NEW ENCOUNTER makes another. END THE SESSION asks first. Set{' '}
         <code>line</code> to see what is said when the connection is not there. Set <code>stale</code> to see a fight that was kept before the app
-        closed and cannot be taken up again (decision 139), with its two ways out.
+        closed and cannot be taken up again (decision 139), with its two ways out. A tap on a member also opens REST, which starts a rest at
+        a Pokémon Center for that character (decision 11) and says what it did, and GIVE OR TAKE (see Screens/Progress → Give Or Take). Set{' '}
+        <code>dead</code> to see what REST says for a dead character (decision 173).
       </Note>
     </>
   ),
@@ -163,7 +190,7 @@ export const Host: StoryObj<HostArgs> = {
 export const Join: StoryObj<JoinArgs> = {
   args: { step: 'code', out: 'refusedFull' },
   argTypes: {
-    step: { control: 'select', options: ['code', 'reaching', 'hostAway', 'choosing', 'choosingNone', 'asking', 'waiting', 'in', 'inRewarded', 'inHostAway', 'inLineDown', 'out'] },
+    step: { control: 'select', options: ['code', 'reaching', 'hostAway', 'choosing', 'choosingNone', 'asking', 'waiting', 'in', 'inResting', 'inRewarded', 'inGranted', 'inHostAway', 'inLineDown', 'out'] },
     out: { control: 'select', options: Object.keys(OUTS) },
   },
   render: (args) => (
@@ -174,7 +201,10 @@ export const Join: StoryObj<JoinArgs> = {
         a scan), reaching the session, choosing among the characters made for the campaign being played (decision 119: one per device) or
         making a new one there and then (decision 128),
         waiting for the game master, then the party, with what is said when the game master is away or the connection drops (decision
-        122). With <code>step</code> on “out”, set <code>out</code> to read each reason for not being in.
+        122). Once in, “Your character” lists what the player can do for it between two fights (milestone 7): EVOLVE while its species has an
+        evolution to come, and the BAG, always; on “inResting”, also POKÉMON CENTER, while the game master’s rest is open, and PLACE POINTS, while
+        its levels brought points it has not placed. “inGranted” is what is said when the game master gave or took by hand (decision 170).
+        With <code>step</code> on “out”, set <code>out</code> to read each reason for not being in.
       </Note>
     </>
   ),

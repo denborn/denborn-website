@@ -103,10 +103,11 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `PokemonIcon`, `ItemIconImage`, `CategoryIcon` | Icons | Showdown, PokéAPI | Decorative unless given a label. `CategoryIcon` has a `compact` form: its symbol alone. |
 | `TypeLabel` | A type's label | BW type labels | Drawn by the app in the type's two colours, with the type's name in the interface's language (decision 85). The size of the games' label, wider for a long name. |
 | `TextField` | A line of text to type | B2W2 option boxes | Label above, a line of help or of what is wrong underneath, tied to the field for screen readers. |
-| `NumberField` | A number to set | — | A slider for the large moves between a minus and a plus for one point at a time; the value in gold. The track fills in the EXP bar's colour. The owner of the value decides what is allowed: a value past the ceiling does not take. |
+| `NumberField` | A number to set | — | A slider for the large moves between a minus and a plus for one point at a time; the value in gold. The track fills in the EXP bar's colour. The owner of the value decides what is allowed: a value past the ceiling, or under the floor, does not take (the minus stops at the floor). |
 | `.dn-facts`, `.dn-tags` | A summary, line after line; small things in a row that wraps | — | Used by the last look of creation and by the contents of an item pack. |
 | `StatRow` | One stat: name, bar, value | BW summary | A stat raised by the nature is red with an arrow up, a lowered one blue with an arrow down, as in the games. |
 | `StepHeader` | The title of a step of a flow | — | With "Step 2 of 7". It takes focus when the step changes, so the change is announced. |
+| `.dn-foot`, `.dn-foot--said` | The foot of a page: its buttons, kept in sight | Denborn's own | BACK on the left, the main action on the right. With `--said`, a line of text sits over the buttons on the page's black: the question they answer, or what the last one did (decisions 177 to 180). It stays in sight wherever the list above is scrolled. |
 | `Tabs` | A row of tabs and the part the current one shows | BW summary pages | Equal widths, the current one lit and underlined. The arrow keys, Home and End move between the tabs; the Tab key goes on to the part. Used by the character sheet. |
 | `.dn-figures` | A small table of numbers | BW summary | Names on the left, figures on the right; the last column, the value, stands out from the figures it is made from. A stat its nature raises is red with an arrow up, a lowered one blue with an arrow down. |
 | `.dn-table`, `.dn-cell` | A table of choices | The games' nature table | The natures: one stat raised per row, one lowered per column, the five neutral ones on the diagonal. |
@@ -262,5 +263,9 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 164 | An enemy's PP Ups: a row under its moves, each move from none to three, the PP it then has said under it. |
 | 165, 167 | An Ability that acts is named by a band on the scene, from its Pokémon's side: a foe's from the right in red, an ally's from the left in blue. |
 | 171, 175, 176 | In a fight, BAG lists the player's own items, then one titled list per teammate who is downed or dead ("Mousse’s Bag"), in the same scrolling list (`.dn-roster__group`). On the battlefield a dead Pokémon's tile lights up for a revival item, and for nothing else. |
+| 177 | On the session screen, "Your character": one row per thing the player can do between two fights (POKÉMON CENTER, PLACE POINTS, EVOLVE, BAG), each shown only while it applies, BAG always; a notice with OK for what the game master gave or took. |
+| 178 | Placing points: sliders that start where the sheet has each total, the stats as they would be on the top screen. PLACE and EVOLVE ask to confirm over the buttons, the safe answer highlighted. |
+| 179 | The Bag outside a fight: a tapped item shows USE, HOLD or TAKE under it; who it is used on is a list of the party where those it would do nothing for are dimmed. The Pokémon Center: the Ability, then the moves with the known ones first. |
+| 180 | The hosting screen: a tapped member shows REST, GIVE OR TAKE and REMOVE FROM THE SESSION; GIVE OR TAKE is a page of its own with the character on the top screen. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

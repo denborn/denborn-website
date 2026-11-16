@@ -24,6 +24,8 @@ import { ImportCharacter } from '../features/import/ImportCharacter'
 import { QrCamera } from '../features/import/QrCamera'
 import { type Device, readIncomingCode, readIncomingFile } from '../features/import/incoming'
 import { Options } from '../features/options/Options'
+import { GrantScreen } from '../features/progress/GrantScreen'
+import { PROGRESS_VIEWS, ProgressScreen } from '../features/progress/ProgressScreen'
 import { CharacterSheet } from '../features/sheet/CharacterSheet'
 import { HostScreen } from '../features/session/HostScreen'
 import { JoinScreen } from '../features/session/JoinScreen'
@@ -218,9 +220,13 @@ export function HostSessionPage() {
   const library = useLibrary()
   const messages = useMessages()
   const { id } = useParams()
+  const location = useLocation()
+  const [search, setSearch] = useSearchParams()
   const hosting = useHosting()
   /** During a fight: whether the session's own screen is shown in the console's place. */
   const [sessionShown, setSessionShown] = useState(false)
+  /** The character whose sheet the game master last changed by hand: said once back on the session's screen. */
+  const [granted, setGranted] = useState<string>()
   /** During a fight: whether its end, with its rewards, is being set. */
   const [ending, setEnding] = useState(false)
   const entry = library.campaigns().find((stored) => stored.id === id)
@@ -275,6 +281,25 @@ export function HostSessionPage() {
       </GmConsole>
     )
   }
+  // What the game master gives a character of the party or takes from it has a screen of its own, outside a fight.
+  const receiving = table ? undefined : session.party.find((member) => member.character.id === search.get('grant'))?.character
+  if (receiving) {
+    return (
+      <GrantScreen
+        // Another character is another screen: what was being set for the first is not carried over.
+        key={receiving.id}
+        pack={pack}
+        character={receiving}
+        onGrant={(grant) => hosting.grant(receiving.id, grant)}
+        onDone={(given) => {
+          if (given) setGranted(receiving.nickname)
+          // Back to the session's screen it was opened from, when it is in this visit's history.
+          if (location.key !== 'default') void navigate(-1)
+          else setSearch({}, { replace: true })
+        }}
+      />
+    )
+  }
   return (
     <HostScreen
       pack={pack}
@@ -293,6 +318,15 @@ export function HostSessionPage() {
       onApprove={hosting.approve}
       onDecline={hosting.decline}
       onRemove={hosting.remove}
+      onRest={(character) => {
+        setGranted(undefined)
+        return hosting.rest(character)
+      }}
+      onGrant={(character) => {
+        setGranted(undefined)
+        setSearch({ grant: character })
+      }}
+      said={granted === undefined ? undefined : messages.progress.gm.granted(granted)}
       onEnd={() => {
         hosting.end()
         void navigate(`/campaigns/${id}`)
@@ -393,6 +427,8 @@ export function JoinSessionPage() {
   const pack = usePack()
   const library = useLibrary()
   const { code: given } = useParams()
+  const location = useLocation()
+  const [search, setSearch] = useSearchParams()
   const code = given !== undefined ? joinCodeIn(given) : undefined
   const run = useRef<GuestRun>(undefined)
   /** One more each time the player tries again with the same code. */
@@ -431,6 +467,14 @@ export function JoinSessionPage() {
   }, [code, pack, visit])
 
   const state = code ? (stand?.visit === visit ? stand.state : GUEST_START) : undefined
+  const fighting = state?.at === 'in' && state.fight !== undefined
+  /** What the player opened for their character between two fights (milestone 7). */
+  const opened = PROGRESS_VIEWS.find((view) => view === search.get('open'))
+  // A fight closes what was open: the session's own screen is what its end comes back to.
+  useEffect(() => {
+    if (fighting && opened) setSearch({}, { replace: true })
+  }, [fighting, opened, setSearch])
+
   // A fight takes the whole phone: the scene above, the choices below (decision 147).
   if (state?.at === 'in' && state.fight) {
     return (
@@ -445,6 +489,29 @@ export function JoinSessionPage() {
           onIntent={(intent) => run.current?.intend(intent)}
         />
       </div>
+    )
+  }
+
+  if (state?.at === 'in' && opened) {
+    const mine = state.party.members.find((member) => member.character.id === state.party.you)?.character
+    const kept = library.characters().find((stored) => stored.id === state.party.you)
+    return (
+      <ProgressScreen
+        // Another view starts from its own beginning.
+        key={opened}
+        pack={pack}
+        party={state.party}
+        view={opened}
+        // The rules it was made under: this device's own when it has them, otherwise the ones kept with its copy.
+        rules={mine && (library.rulesOf(mine.campaign.id, mine.campaign.rulesVersion, pack.species) ?? (kept?.read.ok ? kept.read.value.rules : undefined))}
+        changed={state.changed}
+        unreachable={!state.linked ? messages.session.join.lineDown : !state.hostThere ? messages.session.join.hostGone : undefined}
+        onChange={(change) => run.current?.change(change)}
+        onBack={() => {
+          if (location.key !== 'default') void navigate(-1)
+          else setSearch({}, { replace: true })
+        }}
+      />
     )
   }
 
@@ -468,6 +535,8 @@ export function JoinSessionPage() {
       }}
       onLeave={() => run.current?.leave()}
       onRewardsRead={() => run.current?.rewardsRead()}
+      onGrantedRead={() => run.current?.grantedRead()}
+      onOpen={(view) => setSearch({ open: view })}
       onAgain={() => setAttempt(attempt + 1)}
       onBack={() => void navigate('/')}
     />

@@ -36,3 +36,4 @@
 - Class names are global. A new `.dn-field` for forms silently took the battlefield plan's `.dn-field` rules (absolute, full size) and hid itself behind the list. Search `kit.css` for a name before using it.
 - A sticky screen hides what the browser scrolls into view under it: focusable things in a tall screen carry a `scroll-margin-top` of a screen's height.
 - A GIF cannot be paused; `PokemonSprite` copies the current frame to a canvas to hold it still.
+- What is said about a foot's buttons (the question they answer, what the last one did) goes over them, in the foot (`.dn-foot--said`), never at the top or the end of a long list: the list scrolls it off screen and the answer is given where nobody looks.
