@@ -535,10 +535,16 @@
   text-align: left;
   color: var(--dn-text);
   border-radius: calc(9 * var(--dn-u));
+  /* The type's dark shade all around each letter, as on a type's label (decisions 199 and 200). */
   text-shadow:
-    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-move-shade),
     calc(1 * var(--dn-u)) 0 0 var(--dn-move-shade),
-    0 calc(1 * var(--dn-u)) 0 var(--dn-move-shade);
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-move-shade),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-move-shade),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-move-shade),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-move-shade),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-move-shade),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-move-shade),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-move-shade);
   transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
 }
 

@@ -274,7 +274,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
 | 191 to 194 | The app's icon is the den on the ground of the Pokémon Black icon, its light animated; the animated one shows on the home screen and on the loading screen. |
 | 184, 195 | The credits are a screen of their own, opened by a CREDITS button under the notice on the home screen and in the Options: the app's emblem, a sentence on what the project is, then people and teams, each with what of theirs is in the app and links to their pages. No list of packages. |
-| 199 | A type's label: its white letters edged all around in the type's dark shade. |
+| 199, 200 | A type's label and a move's button: their white letters edged all around in the type's dark shade. |
 | 196 to 198 | For contrast: the muted grey a shade lighter and the main button's band a shade deeper; text clear of a row's arrows, a selected or confirmed row's second line as bright as its first, the confirmed green a shade deeper; the panel beside a Pokémon darker with a lighter red for a raised stat, the PAR badge a shade deeper. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.
