@@ -26,18 +26,22 @@ import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
 import { DualScreen, OptionButton, Panel, Screen, StepHeader } from '../ui'
 import { useLibrary } from './library-store'
+import { useShownCharacter } from './shown-character'
 import { sessionKeys } from './session-keys'
 import { usePageTitle } from './page-title'
 
 export function CharactersPage() {
   const navigate = useNavigate()
   const library = useLibrary()
+  const shown = useShownCharacter()
   usePageTitle(useMessages().characters.title)
   return (
     <CharacterList
       pack={usePack()}
       entries={library.characters()}
       kept={library.kept}
+      shown={shown.id}
+      onShow={shown.show}
       onBack={() => void navigate('/')}
       onNew={() => void navigate('/characters/new')}
       onImport={() => void navigate('/characters/import')}
@@ -51,6 +55,7 @@ export function ImportCharacterPage() {
   const pack = usePack()
   const library = useLibrary()
   const location = useLocation()
+  const show = useShownCharacter((state) => state.show)
   // A character's link opened from outside the app sends the visitor here with its code.
   const arrivedWith = (location.state as { code?: string } | null)?.code
   usePageTitle(useMessages().import.title)
@@ -69,8 +74,12 @@ export function ImportCharacterPage() {
       readCode={(text) => readIncomingCode(text, device)}
       textOfFile={textOfPickedFile}
       camera={(props) => <QrCamera {...props} />}
-      // Kept with the rules it was checked under, like a character made here.
-      onKeep={(incoming) => library.saveCharacter({ ...incoming.character, rules: incoming.rules })}
+      // Kept with the rules it was checked under, like a character made here; back on the list, it is the one shown.
+      onKeep={(incoming) => {
+        const saved = library.saveCharacter({ ...incoming.character, rules: incoming.rules })
+        if (saved.ok) show(incoming.character.id)
+        return saved
+      }}
       onOpen={(id) => void navigate(`/characters/${id}`)}
       onBack={() => void navigate('/characters')}
     />
@@ -181,6 +190,7 @@ export function CreateCharacterPage() {
   const navigate = useNavigate()
   const pack = usePack()
   const library = useLibrary()
+  const show = useShownCharacter((state) => state.show)
   const messages = useMessages()
   const { campaignId } = useParams()
   const [unsaved, setUnsaved] = useState<{ character: CharacterDocument; reason: Extract<WriteResult, { ok: false }>['reason'] }>()
@@ -241,6 +251,8 @@ export function CreateCharacterPage() {
       return
     }
     if (session === undefined) {
+      // Back on the list, the one just made is the one shown.
+      show(character.id)
       void navigate('/characters')
       return
     }

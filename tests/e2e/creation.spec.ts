@@ -9,11 +9,13 @@ test('a creation link opens the campaign, and the character made is kept on the 
   await expect(page).toHaveURL(/\/characters\/new\/e2eCampaign00001$/)
   await createPikachu(page, 'Volt')
 
-  // Its row in the list. (Its name may also stand in the place of its sprite, when neither the sprite nor MissingNo. could be had.)
+  // Its icon in the list's strip, and what is told of it beside it: the one shown, the only one there.
   const volt = page.getByRole('button', { name: /^Volt/ })
   await expect(page.getByRole('heading', { name: 'Characters' })).toBeVisible()
   await expect(volt).toBeVisible()
-  await expect(page.getByText('Pikachu · Lv. 5 · Night Shift')).toBeVisible()
+  await expect(page.getByText('Lv. 5', { exact: true })).toBeVisible()
+  await expect(page.getByText('Pikachu', { exact: true })).toBeVisible()
+  await expect(page.getByText('Night Shift', { exact: true })).toBeVisible()
 
   // Still there after a reload, and with no network: it is in the browser's storage, not in memory.
   await page.reload()

@@ -35,8 +35,11 @@ export function usePixelScale(dsScale = 1): number {
 }
 
 export interface ScreenProps {
-  /** `scene`: the top screen of a battle. `touch`: the bottom screen. `menu`: a menu background. `blank`: black, nothing on it. */
-  kind?: 'scene' | 'touch' | 'menu' | 'blank'
+  /**
+   * `scene`: the top screen of a battle. `touch`: the bottom screen. `menu`: a menu background. `blank`: black, nothing on it.
+   * `den`: inside the den (decision 244), whose backdrop `DenInside` draws, put first in the screen.
+   */
+  kind?: 'scene' | 'touch' | 'menu' | 'blank' | 'den'
   /** What the screen is, for assistive technology. */
   label: string
   /** What it holds is a column from its top, scrolled inside the screen when it is longer: a menu, a form, a list (decision 216). */

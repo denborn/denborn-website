@@ -1,9 +1,10 @@
 import { AnimatePresence, usePresence } from 'motion/react'
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { MISSING_SPRITE_URL, TITLE_DEN, battleSpriteUrl } from '../data/sprites'
+import { TITLE_DEN } from '../data/sprites'
 import type { SpeciesData } from '../data/types'
 import { useScreenMetrics } from './Screen'
-import { GHOST, chanceOf, driftOf, ghostPixel, glowAt, goneAt, swayAt, waveAt } from './ghost'
+import { GHOST, chanceOf, driftOf, ghostPixel, goneAt } from './ghost'
+import { GLOW, drawGhost, ghostSheetOf, useGhostPicture } from './ghost-picture'
 import { TITLE } from './motion'
 import type { SceneArea } from './scene-fit'
 import { PokemonSprite } from './sprites'
@@ -334,66 +335,10 @@ export function Wanderers({ cast, visible, pixel, still }: WanderersProps) {
   )
 }
 
-/** How far round a ghost its glow reaches, in its own pixels. */
-const GLOW = 3
-/** How much of a ghost's own colours its glow's colour takes, and how much of the ghost shows. */
-const GHOST_TINT = 0.35
-const GHOST_SHOWS = 0.85
 /** Where its feet end their rise: this many rows of the scene under the top of the screen, where the light breaks up. */
 const GHOST_END = 28
 /** Its name's height, in rows of the scene, more or less: it starts that much lower, out of sight with its name. */
 const GHOST_NAME_ROWS = 10
-
-/** A ghost's picture, ready to draw: its sprite in the glow's tint, and its glow, each on a sheet of its own of the same size. */
-interface GhostPicture {
-  body: HTMLCanvasElement
-  glow: HTMLCanvasElement
-  /** The sprite's own size, in its pixels; the sheets have `GLOW` more on every side. */
-  width: number
-  height: number
-}
-
-/** Reads a sprite's first frame and makes the ghost's picture of it, the glow in `colour`. Nothing if the browser will not draw. */
-function pictureOf(image: HTMLImageElement, colour: string): GhostPicture | undefined {
-  const width = image.naturalWidth
-  const height = image.naturalHeight
-  const sheet = (): HTMLCanvasElement => {
-    const made = document.createElement('canvas')
-    made.width = width + 2 * GLOW
-    made.height = height + 2 * GLOW
-    return made
-  }
-  const body = sheet()
-  const glow = sheet()
-  const onBody = body.getContext('2d', { willReadFrequently: true })
-  const onGlow = glow.getContext('2d')
-  if (!onBody || !onGlow || width === 0 || height === 0) return undefined
-  onBody.drawImage(image, GLOW, GLOW)
-  const drawn = onBody.getImageData(0, 0, body.width, body.height).data
-  const solid = (x: number, y: number): boolean => x >= 0 && y >= 0 && x < body.width && y < body.height && (drawn[(y * body.width + x) * 4 + 3] ?? 0) > 0
-  // The glow: every pixel outside the sprite and within `GLOW` of it, fainter with the distance.
-  onGlow.fillStyle = colour
-  for (let y = 0; y < glow.height; y++) {
-    for (let x = 0; x < glow.width; x++) {
-      if (solid(x, y)) continue
-      let nearest = Infinity
-      for (let down = -GLOW; down <= GLOW; down++) {
-        for (let across = -GLOW; across <= GLOW; across++) {
-          if (solid(x + across, y + down)) nearest = Math.min(nearest, Math.max(Math.abs(across), Math.abs(down)))
-        }
-      }
-      if (nearest > GLOW) continue
-      onGlow.globalAlpha = 1 - (nearest - 1) / GLOW
-      onGlow.fillRect(x, y, 1, 1)
-    }
-  }
-  // The sprite takes some of the glow's colour, where it is drawn and nowhere else.
-  onBody.globalCompositeOperation = 'source-atop'
-  onBody.globalAlpha = GHOST_TINT
-  onBody.fillStyle = colour
-  onBody.fillRect(0, 0, body.width, body.height)
-  return { body, glow, width, height }
-}
 
 /** The name's squares are told from the ghost's own by this: they let go at moments of their own. */
 const NAME_SQUARES = 1000
@@ -462,7 +407,6 @@ function Ghost({ member, pixel, top, still, onGone }: GhostProps) {
   const label = useRef<HTMLSpanElement>(null)
   const figure = useRef<HTMLCanvasElement>(null)
   const title = useRef<HTMLCanvasElement>(null)
-  const [picture, setPicture] = useState<GhostPicture>()
   /** Its name, written; `null` if it could not be: the ghost then rises without one. */
   const [name, setName] = useState<HTMLCanvasElement | null>()
   const ended = useRef(onGone)
@@ -471,27 +415,11 @@ function Ghost({ member, pixel, top, still, onGone }: GhostProps) {
   })
 
   const { species, female } = member
+  const picture = useGhostPicture(species, female, () => (label.current ? getComputedStyle(label.current).getPropertyValue('--dn-type-ghost').trim() : undefined))
+  // No picture of it can be had, not even MissingNo.'s: none rises.
   useEffect(() => {
-    let current = true
-    const image = new Image()
-    const own = battleSpriteUrl(species, { female })
-    image.onload = () => {
-      if (!current || !label.current) return
-      const made = pictureOf(image, getComputedStyle(label.current).getPropertyValue('--dn-type-ghost').trim())
-      if (made) setPicture(made)
-      else ended.current()
-    }
-    // Its sprite is not there: MissingNo.'s ghost rises in its place. Without even that, none does.
-    image.onerror = () => {
-      if (!current) return
-      if (image.src.endsWith(MISSING_SPRITE_URL)) ended.current()
-      else image.src = MISSING_SPRITE_URL
-    }
-    image.src = own ?? MISSING_SPRITE_URL
-    return () => {
-      current = false
-    }
-  }, [species, female])
+    if (picture === null) ended.current()
+  }, [picture])
 
   // Its name is written once the label's font is there, and again if the screen's size changes.
   const text = member.name
@@ -513,38 +441,23 @@ function Ghost({ member, pixel, top, still, onGone }: GhostProps) {
   // As wide as the light's columns, less its own width: how far it may sway and stay in the light, in its own pixels.
   const room = picture ? ((light.right - light.left) * pixel) / dot - picture.width : 0
   const reach = Math.max(0, Math.floor(room / 2))
-  // Its sheet: the picture with its glow, room to sway and waver on either side, room over it for its squares to drift.
-  const sheetWidth = picture ? picture.body.width + 2 * (reach + 1) : 0
-  const sheetHeight = picture ? picture.body.height + GHOST.drift : 0
+  const sheet = picture ? ghostSheetOf(picture, reach) : undefined
+  const sheetWidth = sheet?.width ?? 0
+  const sheetHeight = sheet?.height ?? 0
   // The name's sheet is in device pixels: one of the ghost's pixels is this many of them, a square of its breaking up this
   // many a side, and its squares drift as far as the ghost's.
   const dotOnDevice = Math.round(dot * ratio)
   const square = GHOST.square * dotOnDevice
   const nameRoom = GHOST.drift * dotOnDevice
 
-  const ready = picture !== undefined && name !== undefined
+  const ready = Boolean(picture) && name !== undefined
   useEffect(() => {
     const onFigure = figure.current?.getContext('2d')
     const onName = title.current?.getContext('2d')
     if (!picture || name === undefined || !onFigure) return
     const draw = (elapsed: number, life: number): void => {
       const gone = goneAt(elapsed, life)
-      const sway = swayAt(elapsed, reach)
-      onFigure.clearRect(0, 0, sheetWidth, sheetHeight)
-      for (const [layer, shows] of [
-        [picture.glow, glowAt(elapsed)],
-        [picture.body, GHOST_SHOWS],
-      ] as const) {
-        onFigure.globalAlpha = shows
-        for (let y = 0; y < layer.height; y += GHOST.square) {
-          const wave = waveAt(y / GHOST.square, elapsed)
-          for (let x = 0; x < layer.width; x += GHOST.square) {
-            const up = driftOf(chanceOf(x / GHOST.square, y / GHOST.square), gone)
-            if (up === undefined) continue
-            onFigure.drawImage(layer, x, y, GHOST.square, GHOST.square, reach + 1 + x + sway + wave, GHOST.drift + y - up, GHOST.square, GHOST.square)
-          }
-        }
-      }
+      drawGhost(onFigure, picture, { elapsed, reach, gone })
       if (!name || !onName) return
       onName.clearRect(0, 0, name.width, name.height + nameRoom)
       for (let y = 0; y < name.height; y += square) {

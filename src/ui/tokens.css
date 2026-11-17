@@ -40,6 +40,10 @@
   --dn-option-selected: #085a8c;
   --dn-option-selected-band: #07749a; /* measured #088cb5; a shade deeper so that white text reaches 4.5 to 1 where it crosses it (decision 196) */
   --dn-select-line: #63b5b5; /* outline of the selected option */
+  /* A second way on beside the main one (decision 241): blue as the party slot is, quieter than the main action. Denborn's own; white text reaches 7 to 1 on both halves. */
+  --dn-option-secondary: #1c4466;
+  --dn-option-secondary-band: #2a5578;
+  --dn-option-secondary-line: #386890; /* the party slot's band */
   --dn-backdrop: #000000; /* menu background */
   --dn-backdrop-mark: #183931; /* its faint pattern */
 
@@ -112,6 +116,14 @@
   /* The same night on a character that walks on the plain (decision 229), as a filter, since a veil cannot be cut to a sprite that
      moves: it keeps 0.38 of the colour under it, as the veil does, and adds the mean of what the veil adds. Denborn's own. */
   --dn-title-night-sprite: contrast(0.8) brightness(0.47);
+  /* The inside of the den (decision 253): the den's own rocks at night, from the black of its hole to its lit side, as drawn by
+     scripts/assets/draw-den.ts (pitHole, pitDark, edge, sideDark, side) under a black maroon. The cave's shades are mapped onto them. */
+  --dn-den-inside-0: #100910;
+  --dn-den-inside-1: #2b1c25;
+  --dn-den-inside-2: #3f2b33;
+  --dn-den-inside-3: #553c42;
+  --dn-den-inside-4: #745557;
+  --dn-den-inside-5: #946c6b;
   --dn-title-rain: rgb(196 214 242 / 0.6);
   --dn-title-rain-far: rgb(160 180 220 / 0.35);
   --dn-title-bolt: #ff2d55; /* the red of the bolt's edges */
@@ -225,6 +237,8 @@
   --dn-title-rain-fall: 600ms; /* the near rain falling one tile; the far rain takes twice as long */
   --dn-title-ghost: 6000ms; /* a dead character's ghost, from the den's base to where it has broken up and gone (decision 228) */
   --dn-title-hop: 320ms; /* one hop of a character walking on the plain (decision 225): about three a second. Denborn's own. */
+  --dn-strip-hop: 400ms; /* the shown one's icon in a strip to pick from, up and down (decision 241), as in the games' party menu. Denborn's own. */
+  --dn-nudge: 1300ms; /* a carousel's arrow nudging the way it points, out and back (decisions 243 and 244: slower). Denborn's own. */
   --dn-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dn-ease-in: cubic-bezier(0.6, 0, 0.9, 0.4);
   --dn-ease-snap: cubic-bezier(0.3, 1.4, 0.5, 1); /* a small overshoot, for arrivals */

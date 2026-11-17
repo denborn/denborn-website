@@ -39,6 +39,46 @@ export function battleSpriteUrl(
 }
 
 /**
+ * The round grounds a Pokémon stands on in HeartGold and SoulSilver's
+ * battles, cut from Tsuka's sheet into one picture (decision 242): eighteen
+ * ovals one above the other, each in a cell `width` by `height`, centred
+ * across and standing on the cell's bottom; an oval's middle, where feet
+ * stand, is `ground` pixels over that bottom. After MissingNo., the second
+ * piece of artwork kept in the repository, by the owner's leave.
+ */
+export const BATTLE_BASES = { url: '/battle-bases.png', width: 128, height: 40, ground: 15 } as const
+
+/** The ovals, in the picture's order from the top. */
+const BASE_ROWS = ['route', 'grass', 'forest', 'water', 'ice', 'volcano', 'yellow', 'desert', 'rocks', 'ring-red', 'ring-purple', 'pink', 'cave', 'teal', 'mud', 'floor', 'sparkle', 'snow'] as const
+
+/** Which ground stands for which type (Denborn's own, decision 242): a route's for Normal, a cave's for Ghost, water for Water… */
+const BASE_OF_TYPE: Readonly<Record<string, (typeof BASE_ROWS)[number]>> = {
+  Normal: 'route',
+  Grass: 'grass',
+  Bug: 'forest',
+  Water: 'water',
+  Ice: 'ice',
+  Fire: 'volcano',
+  Electric: 'yellow',
+  Ground: 'desert',
+  Rock: 'rocks',
+  Fighting: 'ring-red',
+  Poison: 'ring-purple',
+  Psychic: 'pink',
+  Ghost: 'cave',
+  Dragon: 'teal',
+  Dark: 'mud',
+  Steel: 'floor',
+  Fairy: 'sparkle',
+  Flying: 'snow',
+}
+
+/** The row of `BATTLE_BASES` for a type, as the data pack names it; a route's for a type it does not know. */
+export function battleBaseRow(type: string | undefined): number {
+  return BASE_ROWS.indexOf(BASE_OF_TYPE[type ?? ''] ?? 'route')
+}
+
+/**
  * The app's own emblem: the pink grid ball (decision 212), rocking as a Poké
  * Ball shakes in the games, on a see-through ground. Its poses stand side by
  * side in one picture, each `width` by `height` pixels, wide enough for the
@@ -63,6 +103,16 @@ export interface ScenePlacement {
  * fence: whoever walks on the plain (decision 225) keeps its feet from there down.
  */
 export const TITLE_PLAIN = { url: `${ROOT}/fx/bg-meadow.png`, width: 238, height: 158, ground: 52 } as const
+
+/**
+ * The inside of the den, behind the list of characters (decisions 244, 253
+ * and 257): Showdown's damp cave, served like the meadow at three times and a
+ * bit its own size; `width` and `height` are its own pixels. `spot` is the
+ * middle of the light oval its artist drew on its floor for the far Pokémon
+ * to stand on, as every backdrop has (122 by 28 of its pixels), measured on
+ * the picture: the camera brings it under the one shown.
+ */
+export const DEN_INSIDE = { url: `${ROOT}/fx/bg-dampcave.png`, width: 238, height: 158, spot: { x: 172.5, y: 73.5 } } as const
 
 /** The plain's pixel at the top left corner of the den's drawing: far enough from the plain's edges for every phone to show the den in its middle. */
 const DEN_AT = { x: 42, y: -3 }

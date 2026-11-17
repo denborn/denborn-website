@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { openFile } from '../../src/storage/files.ts'
+import { openSheetOf } from './characters.ts'
 import { code, createPikachu } from './creating.ts'
 
 test('a kept character opens as its sheet, which gives its file and its QR code', async ({ page }) => {
   await page.goto(`/#${code}`)
   await createPikachu(page, 'Volt')
-  await page.getByRole('button', { name: /Volt/ }).click()
+  await openSheetOf(page, 'Volt')
 
   await expect(page.getByRole('heading', { name: 'Volt' })).toBeVisible()
   const part = page.getByRole('tabpanel')
@@ -33,7 +34,7 @@ test('the sheet prints as a page of its own, in place of the screens', async ({ 
   await page.addInitScript({ content: `window.print = () => { document.documentElement.dataset.printAsked = 'yes' }` })
   await page.goto(`/#${code}`)
   await createPikachu(page, 'Volt')
-  await page.getByRole('button', { name: /Volt/ }).click()
+  await openSheetOf(page, 'Volt')
 
   const paper = page.locator('.dn-paper')
   await expect(page.getByRole('tablist')).toBeVisible()
@@ -68,7 +69,7 @@ test('a character changed in the browser’s storage past its rules gets no shee
     }
   })
   await page.reload()
-  await page.getByRole('button', { name: /Volt/ }).click()
+  await openSheetOf(page, 'Volt')
 
   await expect(page.getByText('This character does not follow its campaign’s rules')).toBeVisible()
   await expect(page.getByRole('tab')).toHaveCount(0)
@@ -86,7 +87,7 @@ test('a character is removed only once the question is answered, with its file o
   }
   await page.goto(`/#${code}`)
   await createPikachu(page, 'Volt')
-  await page.getByRole('button', { name: /Volt/ }).click()
+  await openSheetOf(page, 'Volt')
 
   // Keeping it changes nothing.
   await askToRemove()

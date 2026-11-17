@@ -12,7 +12,8 @@
  * Pokémon sprites, Pokémon icons, item icons, type and category icons come
  * from Pokémon Showdown. Icons of items Showdown does not have come from
  * PokéAPI's sprite repository, at a pinned commit. The title screen's plain
- * is one of Showdown's battle backdrops (decision 204). The backdrops have a
+ * is one of Showdown's battle backdrops (decision 204), and so is the inside
+ * of the den behind the list of characters (decision 244). The backdrops have a
  * lock of their own: the sprites' offline cache is named after the sprite
  * lock, and pinning a backdrop must not make every device fetch the sprites
  * again.
@@ -28,7 +29,7 @@ const OUT = join(ROOT, 'public/sprites')
 const SHOWDOWN = 'https://play.pokemonshowdown.com/sprites'
 const LAST_SPECIES = 151
 /** The backdrops the app shows, served under public/sprites/fx/. */
-const BACKDROPS = ['bg-meadow.png']
+const BACKDROPS = ['bg-meadow.png', 'bg-dampcave.png']
 
 export interface SpriteLock {
   showdown: {

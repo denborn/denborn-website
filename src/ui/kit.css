@@ -88,6 +88,8 @@
   overflow: hidden;
   overflow: clip;
   position: relative;
+  /* A stack of its own: nothing on it, a foot's buttons among them, is ever drawn over the stripes of a wipe. */
+  isolation: isolate;
 }
 
 .dn-screen__stage {
@@ -217,6 +219,21 @@
   background-color: var(--dn-backdrop);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M11 15h10v2H11zM15 11h2v10h-2z' fill='%23183931'/%3E%3C/svg%3E");
   background-size: calc(32 * var(--dn-u)) calc(32 * var(--dn-u));
+}
+
+/* Inside the den (decision 244): black under the cave that `DenInside` draws, for the moment before it is there. */
+.dn-screen--den .dn-screen__stage {
+  background-color: var(--dn-backdrop);
+}
+
+/* The cave on its own pixels, behind everything on the screen; where and how large is worked out from where the one shown stands. */
+.dn-den-inside {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
 }
 
 /* --- Panel: the dithered dark box of Black 2, or the light one of White 2 --- */
@@ -381,6 +398,13 @@
 .dn-option--primary {
   --dn-option-fill: linear-gradient(var(--dn-option-selected-band) 0 45%, var(--dn-option-selected) 45% 100%);
   --dn-option-line: var(--dn-select-line);
+  color: var(--dn-text);
+}
+
+/* A second way on (decision 241): blue, in two halves as the main one, deeper and with a quieter rim. */
+.dn-option--secondary {
+  --dn-option-fill: linear-gradient(var(--dn-option-secondary-band) 0 45%, var(--dn-option-secondary) 45% 100%);
+  --dn-option-line: var(--dn-option-secondary-line);
   color: var(--dn-text);
 }
 
@@ -941,7 +965,8 @@
   gap: calc(1 * var(--dn-u));
 }
 
-.dn-line__arrow {
+/* --- Arrow: the games' small arrow, to the previous one or the next (a line's Pokémon, the characters) --- */
+.dn-arrow {
   position: relative;
   isolation: isolate;
   width: max(calc(20 * var(--dn-u)), var(--dn-target));
@@ -950,8 +975,8 @@
 }
 
 /* The games' small arrow: the selection colour inside a dark line. */
-.dn-line__arrow::before,
-.dn-line__arrow::after {
+.dn-arrow::before,
+.dn-arrow::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -960,44 +985,44 @@
   clip-path: polygon(100% 0, 100% 100%, 0 50%);
 }
 
-.dn-line__arrow::before {
+.dn-arrow::before {
   width: calc(12 * var(--dn-u));
   height: calc(18 * var(--dn-u));
   margin: calc(-9 * var(--dn-u)) 0 0 calc(-6 * var(--dn-u));
   background: var(--dn-ink);
 }
 
-.dn-line__arrow::after {
+.dn-arrow::after {
   width: calc(7 * var(--dn-u));
   height: calc(10.5 * var(--dn-u));
   margin: calc(-5.25 * var(--dn-u)) 0 0 calc(-2.6 * var(--dn-u));
   background: var(--dn-select);
 }
 
-.dn-line__arrow--next::before,
-.dn-line__arrow--next::after {
+.dn-arrow--next::before,
+.dn-arrow--next::after {
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-.dn-line__arrow--next::after {
+.dn-arrow--next::after {
   margin-left: calc(-4.4 * var(--dn-u));
 }
 
-.dn-line__arrow--previous:active {
+.dn-arrow--previous:active {
   transform: translateX(calc(-2 * var(--dn-u)));
 }
 
-.dn-line__arrow--next:active {
+.dn-arrow--next:active {
   transform: translateX(calc(2 * var(--dn-u)));
 }
 
 /* At an end of the line there is no arrow, but its place is kept. */
-.dn-line__arrow:disabled {
+.dn-arrow:disabled {
   visibility: hidden;
 }
 
 @media (hover: hover) {
-  .dn-line__arrow:hover,
+  .dn-arrow:hover,
   .dn-tile:hover {
     filter: brightness(1.2);
   }
@@ -2033,6 +2058,18 @@
   gap: calc(2 * var(--dn-u));
 }
 
+/* A foot whose buttons are all one size, each filling an equal share of the row: the middle one in the middle (decision 241). */
+.dn-foot--even {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+}
+
+.dn-foot--even > .dn-option {
+  min-width: 0;
+  padding: 0 calc(4 * var(--dn-u));
+}
+
 /* The Pokémon being created, on the top screen: itself on the left, what is known of it on the right. */
 .dn-preview {
   position: absolute;
@@ -2805,6 +2842,502 @@
   justify-items: center;
   align-items: end;
   transform-origin: 50% 100%;
+}
+
+/* --- Carousel: one Pokémon shown large, an arrow on each side, a strip to pick from (decisions 241 to 243) --- */
+/* Two sides over the strip and the foot: what is told of the one shown and SHEET on the left, the one shown on the right; the strip
+   across the whole screen under both (decision 243). */
+.dn-carousel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  /* Pieces on their way in or out are cut off beside the screen, never scrolled to (screen-motion.ts). */
+  overflow-x: clip;
+}
+
+.dn-carousel > .dn-note {
+  grid-row: 1;
+  margin: calc(4 * var(--dn-u)) calc(6 * var(--dn-u)) 0;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+}
+
+.dn-carousel__sides {
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: calc(112 * var(--dn-u)) minmax(0, 1fr);
+  /* A clear gap between the small sheet and the one shown's arrows (decision 244). */
+  gap: calc(10 * var(--dn-u));
+  min-height: 0;
+  padding: calc(6 * var(--dn-u)) calc(6 * var(--dn-u)) 0;
+}
+
+.dn-carousel > .dn-strip-frame {
+  grid-row: 3;
+  margin: calc(4 * var(--dn-u)) calc(6 * var(--dn-u)) 0;
+}
+
+/* Nothing scrolls under it here: the den's inside shows on behind its buttons. */
+.dn-carousel > .dn-foot {
+  grid-row: 4;
+  background: none;
+}
+
+/* The small sheet takes what SHEET leaves of the side's height. SHEET is in the middle between the sheet and the strip (decision 244):
+   4 DS pixels of black on either side, the sheet's hard shadow being 2 of the 6 over it. */
+.dn-carousel__side {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: calc(6 * var(--dn-u));
+  min-width: 0;
+  min-height: 0;
+}
+
+.dn-carousel__side > * {
+  min-width: 0;
+}
+
+/* The one shown, standing on its ground as on the games' battle bases: it comes, acts and leaves inside its stage. */
+.dn-showcase {
+  position: relative;
+  display: grid;
+  min-height: 0;
+}
+
+.dn-showcase__stage {
+  position: relative;
+  min-height: 0;
+  overflow: clip;
+  /* Slid across, it goes to the next one; up and down is left to the browser. */
+  touch-action: pan-y;
+}
+
+/* With more than one to show, the one shown can be taken and slid (decision 258). */
+.dn-showcase--slides .dn-showcase__stage {
+  cursor: grab;
+}
+
+.dn-showcase--slides .dn-showcase__stage:active {
+  cursor: grabbing;
+}
+
+/* Its feet, in the middle of its ground: the sprite and its shadow are placed from there. */
+.dn-showcase__figure {
+  position: absolute;
+  left: 50%;
+}
+
+.dn-showcase__body {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+/* A ground of HeartGold and SoulSilver, one cell of `public/battle-bases.png` (`BattleBase`): its middle, where feet stand, is at
+   the place it is given, its bottom edge pulled under it. */
+.dn-base {
+  display: block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* Where the one shown stands: centred on the stage, its bottom edge the line the feet stand on, as wide as the ground. The den's
+   backdrop brings its own oval under it (decision 257). Outside the stage, which cuts off those leaving. */
+.dn-showcase__ground {
+  position: absolute;
+  left: 50%;
+  height: 0;
+  translate: -50% 0;
+  pointer-events: none;
+}
+
+/* Its ground: a battle base of HeartGold and SoulSilver (decision 242), drawn by `BattleBase`, its middle under the feet. It stays
+   where it is; another one shrinks into its middle and the next springs out of it (decision 243). */
+.dn-showcase__base {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  translate: -50% 0;
+  transform-origin: 50% 100%;
+}
+
+/* A view of it moved so that the middle of its feet is where it stands (decision 257); its shadow and its sprite are placed from it. */
+.dn-showcase__stand {
+  position: absolute;
+  bottom: 0;
+}
+
+/* The shadow under a battle sprite, as wide as its feet (decision 254), placed by `SpriteShadow` from where the sprite stands. */
+.dn-sprite-shadow {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--dn-scene-shadow);
+  pointer-events: none;
+}
+
+.dn-showcase__sprite,
+.dn-showcase__ghost {
+  position: absolute;
+  bottom: 0;
+}
+
+.dn-showcase__ghost {
+  image-rendering: pixelated;
+}
+
+.dn-showcase__look {
+  display: block;
+}
+
+.dn-showcase__look--mirrored {
+  transform: scaleX(-1);
+}
+
+.dn-showcase > .dn-arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.dn-showcase > .dn-arrow--previous {
+  left: 0;
+}
+
+.dn-showcase > .dn-arrow--next {
+  right: 0;
+}
+
+/*
+ * The carousel's arrows (decision 243): the games' white arrow drawn in pixels, a staircase on each slanted edge, its lower half in
+ * the selection colour, inside a line of ink; now and then it nudges the way it points. The strip's "more" arrows are the same,
+ * smaller. Each shape is cut from pixel rows: 9 by 17 for the ink and 7 by 13 for the face; 7 by 13 and 5 by 9 for the small one.
+ */
+.dn-carousel {
+  --dn-pixel-arrow-9: polygon(0 0, 11.11% 0%, 11.11% 5.882%, 22.22% 5.882%, 22.22% 11.76%, 33.33% 11.76%, 33.33% 17.65%, 44.44% 17.65%, 44.44% 23.53%, 55.56% 23.53%, 55.56% 29.41%, 66.67% 29.41%, 66.67% 35.29%, 77.78% 35.29%, 77.78% 41.18%, 88.89% 41.18%, 88.89% 47.06%, 100% 47.06%, 100% 52.94%, 88.89% 52.94%, 88.89% 58.82%, 77.78% 58.82%, 77.78% 64.71%, 66.67% 64.71%, 66.67% 70.59%, 55.56% 70.59%, 55.56% 76.47%, 44.44% 76.47%, 44.44% 82.35%, 33.33% 82.35%, 33.33% 88.24%, 22.22% 88.24%, 22.22% 94.12%, 11.11% 94.12%, 11.11% 100%, 0 100%);
+  --dn-pixel-arrow-7: polygon(0 0, 14.29% 0%, 14.29% 7.692%, 28.57% 7.692%, 28.57% 15.38%, 42.86% 15.38%, 42.86% 23.08%, 57.14% 23.08%, 57.14% 30.77%, 71.43% 30.77%, 71.43% 38.46%, 85.71% 38.46%, 85.71% 46.15%, 100% 46.15%, 100% 53.85%, 85.71% 53.85%, 85.71% 61.54%, 71.43% 61.54%, 71.43% 69.23%, 57.14% 69.23%, 57.14% 76.92%, 42.86% 76.92%, 42.86% 84.62%, 28.57% 84.62%, 28.57% 92.31%, 14.29% 92.31%, 14.29% 100%, 0 100%);
+  --dn-pixel-arrow-5: polygon(0 0, 20% 0%, 20% 11.11%, 40% 11.11%, 40% 22.22%, 60% 22.22%, 60% 33.33%, 80% 33.33%, 80% 44.44%, 100% 44.44%, 100% 55.56%, 80% 55.56%, 80% 66.67%, 60% 66.67%, 60% 77.78%, 40% 77.78%, 40% 88.89%, 20% 88.89%, 20% 100%, 0 100%);
+}
+
+.dn-showcase > .dn-arrow::before,
+.dn-showcase > .dn-arrow::after,
+.dn-strip-frame__more::before,
+.dn-strip-frame__more::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  animation: dn-arrow-nudge var(--dn-nudge) steps(1) infinite;
+}
+
+.dn-showcase > .dn-arrow::before {
+  width: calc(9 * var(--dn-u));
+  height: calc(17 * var(--dn-u));
+  margin: calc(-8.5 * var(--dn-u)) 0 0 calc(-4.5 * var(--dn-u));
+  clip-path: var(--dn-pixel-arrow-9);
+  background: var(--dn-ink);
+}
+
+.dn-showcase > .dn-arrow::after {
+  width: calc(7 * var(--dn-u));
+  height: calc(13 * var(--dn-u));
+  margin: calc(-6.5 * var(--dn-u)) 0 0 calc(-3.5 * var(--dn-u));
+  clip-path: var(--dn-pixel-arrow-7);
+  background: linear-gradient(var(--dn-text) 0 50%, var(--dn-select) 50% 100%);
+}
+
+.dn-strip-frame__more::before {
+  width: calc(7 * var(--dn-u));
+  height: calc(13 * var(--dn-u));
+  margin: calc(-6.5 * var(--dn-u)) 0 0 calc(-3.5 * var(--dn-u));
+  clip-path: var(--dn-pixel-arrow-7);
+  background: var(--dn-ink);
+}
+
+.dn-strip-frame__more::after {
+  width: calc(5 * var(--dn-u));
+  height: calc(9 * var(--dn-u));
+  margin: calc(-4.5 * var(--dn-u)) 0 0 calc(-2.5 * var(--dn-u));
+  clip-path: var(--dn-pixel-arrow-5);
+  background: linear-gradient(var(--dn-text) 0 50%, var(--dn-select) 50% 100%);
+}
+
+/* Pointing left: the same arrow, turned over; it nudges to the left. */
+.dn-arrow--previous,
+.dn-strip-frame__more--before {
+  --dn-arrow-way: -1;
+}
+
+.dn-showcase > .dn-arrow--previous::before,
+.dn-showcase > .dn-arrow--previous::after,
+.dn-strip-frame__more--before::before,
+.dn-strip-frame__more--before::after {
+  scale: -1 1;
+}
+
+.dn-showcase--still > .dn-arrow::before,
+.dn-showcase--still > .dn-arrow::after,
+.dn-strip-frame--still .dn-strip-frame__more::before,
+.dn-strip-frame--still .dn-strip-frame__more::after {
+  animation: none;
+}
+
+@keyframes dn-arrow-nudge {
+  0% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: calc(2 * var(--dn-u) * var(--dn-arrow-way, 1)) 0;
+  }
+}
+
+/* The strip to pick from, across the screen: icons in a row that slides; the one shown framed, its icon hopping. A small arrow at an
+   end says there are more that way (decision 243). */
+.dn-strip-frame {
+  position: relative;
+  min-width: 0;
+}
+
+.dn-strip {
+  /* Its icons' places are measured from it: the one shown is brought to its middle. */
+  position: relative;
+  display: flex;
+  gap: calc(2 * var(--dn-u));
+  margin: 0;
+  padding: calc(1 * var(--dn-u));
+  list-style: none;
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  border: calc(1 * var(--dn-u)) solid var(--dn-backdrop-mark);
+  cursor: grab;
+}
+
+.dn-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* As tall as an icon at three quarters, which stands on its bottom: the empty top of its cell is cut off (decision 244). */
+.dn-strip__item {
+  display: grid;
+  justify-items: center;
+  align-items: end;
+  overflow: hidden;
+  width: calc(34 * var(--dn-u));
+  height: max(calc(24 * var(--dn-u)), var(--dn-target-min));
+  background: var(--dn-slot);
+  border: calc(1 * var(--dn-u)) solid var(--dn-slot-band);
+  transition: background var(--dn-quick) var(--dn-ease-out), border-color var(--dn-quick) var(--dn-ease-out);
+}
+
+.dn-strip__item[aria-pressed='true'] {
+  background: var(--dn-slot-selected);
+  border-color: var(--dn-select);
+}
+
+/* Its ring inside it: the strip cuts off what is outside. */
+.dn-root .dn-strip__item:focus-visible {
+  outline-offset: calc(-3 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-strip__item[aria-pressed='true'] > .dn-icon {
+  animation: dn-strip-hop var(--dn-strip-hop) steps(1) infinite;
+}
+
+.dn-strip-frame--still .dn-strip__item > .dn-icon {
+  animation: none;
+}
+
+@keyframes dn-strip-hop {
+  0% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 calc(-2 * var(--dn-u));
+  }
+}
+
+@media (hover: hover) {
+  .dn-strip__item:hover {
+    filter: brightness(1.2);
+  }
+}
+
+/* A "more" arrow at an end of the strip: it springs out when there are more that way, and shrinks away when there are none. */
+.dn-strip-frame__more {
+  position: absolute;
+  top: 50%;
+  width: calc(9 * var(--dn-u));
+  height: calc(13 * var(--dn-u));
+  margin-top: calc(-6.5 * var(--dn-u));
+  pointer-events: none;
+  scale: 0;
+  transition: scale var(--dn-quick) var(--dn-ease-in);
+}
+
+.dn-strip-frame__more--before {
+  left: calc(-5 * var(--dn-u));
+}
+
+.dn-strip-frame__more--after {
+  right: calc(-5 * var(--dn-u));
+}
+
+.dn-strip-frame__more--shown {
+  scale: 1;
+  transition: scale var(--dn-move) var(--dn-ease-snap);
+}
+
+/* What is told of the one shown: a small sheet in White 2's light box, its name on a band as a summary screen's. Never wider than
+   its side, whatever it holds (decision 254): a long name is cut, a long campaign scrolls inside its plate. */
+.dn-summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  overflow: clip;
+  padding: 0;
+  color: var(--dn-text-dark);
+}
+
+/* The face going out and the one coming in stand in the same place. */
+.dn-summary > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.dn-summary p {
+  margin: 0;
+}
+
+/* The name on top; the other lines share what is left of its height, each in the middle of its share. */
+.dn-summary__lines {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto;
+  grid-auto-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  padding-bottom: calc(3 * var(--dn-u));
+}
+
+.dn-summary__head {
+  display: flex;
+  align-items: baseline;
+  gap: calc(4 * var(--dn-u));
+  min-width: 0;
+  padding: calc(1 * var(--dn-u)) calc(5 * var(--dn-u));
+  color: var(--dn-text);
+  background: var(--dn-slot);
+}
+
+.dn-summary__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(11 * var(--dn-t));
+  line-height: calc(14 * var(--dn-u));
+}
+
+.dn-summary__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  min-width: 0;
+  padding: 0 calc(5 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+/* A line with one thing at each end: the level on the left, the species on the right. */
+.dn-summary__line--apart {
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+/* The types, each half the line, a gap between them: two fill it, one fills its left half (decision 242). */
+.dn-summary__types {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(2 * var(--dn-u));
+  padding: 0 calc(5 * var(--dn-u));
+}
+
+.dn-summary__types > .dn-type {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dn-summary__said {
+  padding: calc(4 * var(--dn-u)) calc(5 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+}
+
+/* Dead: said in words on a dark plate, beside its name, as on its sheet. */
+.dn-summary__dead {
+  flex: none;
+  background: var(--dn-ink);
+}
+
+/* A line of text in a box too short for it (decision 254): cut with an ellipsis, or going by when it may move. */
+.dn-scroll {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dn-scroll__line {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dn-scroll--moving .dn-scroll__line {
+  display: inline-block;
+  overflow: visible;
+  text-overflow: clip;
+  animation: dn-scroll var(--dn-scroll-time) linear infinite;
+}
+
+/* It rests at its start, goes by, rests at its end, and starts again. */
+@keyframes dn-scroll {
+  0%,
+  25% {
+    translate: 0 0;
+  }
+
+  75%,
+  100% {
+    translate: var(--dn-scroll-by) 0;
+  }
+}
+
+/* The campaign, on a plate across the whole line. */
+.dn-summary__campaign {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 calc(4 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-text);
+  background: var(--dn-option-secondary);
+  border: calc(1 * var(--dn-u)) solid var(--dn-option-secondary-line);
+  border-radius: calc(6 * var(--dn-u));
 }
 
 /* --- Motion preferences ---------------------------------------------------------- */

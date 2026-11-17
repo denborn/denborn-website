@@ -2,6 +2,7 @@
   "base": "https://play.pokemonshowdown.com/fx",
   "credit": "Pokémon Showdown's battle backdrops, drawn by Kyle Dove (https://pokemonshowdown.com/credits).",
   "files": {
+    "bg-dampcave.png": "4273e1f66032aa14f40ca95a590e179dda3789107b75df12ae8e0879d8020b1b",
     "bg-meadow.png": "974c416c848609de5d2996d042f733bb110e285975797a5e5179464b92efe398"
   }
 }

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { openSheetOf } from './characters.ts'
 import { draftEncounter } from './creating.ts'
 import { openHome } from './home.ts'
 import { ask, newPlayer, table } from './hosting.ts'
@@ -97,7 +98,7 @@ test('between two fights a character places points, receives what the game maste
   await expect(yours.getByRole('button', { name: /^PLACE POINTS/ })).toBeVisible()
   await openHome(player)
   await player.getByRole('button', { name: /CHARACTERS/ }).click()
-  await player.getByRole('button', { name: /^Volt/ }).click()
+  await openSheetOf(player, 'Volt')
   await expect(player.getByText('Lightning Rod', { exact: true })).toBeVisible()
   await expect(player.getByText('Raichu', { exact: true })).toBeVisible()
 })

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { HpBar } from './battle'
+import { ArrowButton } from './controls'
 import { type FieldState, neighbourSlot } from './line'
 import { PokemonIcon } from './sprites'
 
@@ -34,11 +35,10 @@ export function LineBrowser({ slots, current, onChange, labels, currentLabel, ch
   const previous = neighbourSlot(states, current, -1)
   const next = neighbourSlot(states, current, 1)
   const arrow = (target: number | undefined, way: 'previous' | 'next') => (
-    <button
-      type="button"
-      className={`dn-line__arrow dn-line__arrow--${way}`}
+    <ArrowButton
+      way={way}
       disabled={target === undefined}
-      aria-label={target === undefined ? undefined : labels[way](slots[target]?.letter ?? '')}
+      label={labels[way](target === undefined ? '' : (slots[target]?.letter ?? ''))}
       onClick={() => target !== undefined && onChange(target)}
     />
   )

@@ -1,5 +1,6 @@
 import { type Page, expect, test } from '@playwright/test'
 import { encodeCharacterCode, qrForm } from '../../src/shared/codec/codes.ts'
+import { openSheetOf } from './characters.ts'
 import { code, createPikachu, invitation, pikachu } from './creating.ts'
 
 /** The Pokédollars of the one character the browser keeps. */
@@ -13,7 +14,7 @@ async function moneyKept(page: Page): Promise<number | undefined> {
 test('a character saved as a file comes back in from that file', async ({ page }) => {
   await page.goto(`/#${code}`)
   await createPikachu(page, 'Volt')
-  await page.getByRole('button', { name: /Volt/ }).click()
+  await openSheetOf(page, 'Volt')
   await page.getByRole('tab', { name: 'SHARE' }).click()
   const downloading = page.waitForEvent('download')
   await page.getByRole('button', { name: 'SAVE ITS FILE' }).click()

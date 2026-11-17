@@ -11,7 +11,8 @@ test('a campaign set by its game master gives a creation link that makes a chara
   // The link opens creation for that campaign: its name, its starting level, its item pack.
   await page.goto(link)
   await createPikachu(page, 'Volt', 'Field kit')
-  await expect(page.getByText('Pikachu · Lv. 5 · Dawn Patrol')).toBeVisible()
+  await expect(page.getByText('Lv. 5', { exact: true })).toBeVisible()
+  await expect(page.getByText('Dawn Patrol', { exact: true })).toBeVisible()
 })
 
 test('a changed rule makes the next version once saved, and leaving before that asks first', async ({ page }) => {

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { expectAccessible } from './accessible.ts'
+import { openSheetOf } from './characters.ts'
 import { code, draftEncounter, setCampaign } from './creating.ts'
 import { ask, table } from './hosting.ts'
 
@@ -55,7 +56,7 @@ test('a player’s screens break no rule a machine can check: the home, the acco
   await page.getByRole('button', { name: 'IMPORT' }).click()
   await expectAccessible(page, 'import')
   await page.getByRole('button', { name: 'BACK' }).click()
-  await page.getByRole('button', { name: /Volt/ }).click()
+  await openSheetOf(page, 'Volt')
   for (const part of ['INFO', 'STATS', 'MOVES', 'BAG', 'SHARE']) {
     await page.getByRole('tab', { name: part }).click()
     await expectAccessible(page, `sheet: ${part}`)

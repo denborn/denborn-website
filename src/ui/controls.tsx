@@ -114,26 +114,42 @@ export function PointedMenuButton({ tone, pokemon, children, ...rest }: MenuButt
   )
 }
 
-export interface OptionButtonProps extends ButtonProps {
-  /** The current choice among several, or the main action of a screen. */
-  selected?: boolean
-  primary?: boolean
-  /** True for the button that sends the form it is in. */
-  submit?: boolean
-}
+/** A button's weight among those beside it: the main action, or a second way on, blue but quieter; one or the other, never both. */
+type OptionWeight = { primary?: boolean; secondary?: never } | { secondary?: boolean; primary?: never }
+
+export type OptionButtonProps = ButtonProps &
+  OptionWeight & {
+    /** The current choice among several, or the main action of a screen. */
+    selected?: boolean
+    /** True for the button that sends the form it is in. */
+    submit?: boolean
+  }
 
 /** A small button for a choice or an action, in the manner of the options screen. */
-export function OptionButton({ selected, primary = false, submit = false, children, ...rest }: OptionButtonProps) {
+export function OptionButton({ selected, primary = false, secondary = false, submit = false, children, ...rest }: OptionButtonProps) {
+  const weight = primary ? ' dn-option--primary' : secondary ? ' dn-option--secondary' : ''
   return (
     <button
       type={submit ? 'submit' : 'button'}
-      className={`dn-option${primary ? ' dn-option--primary' : ''}`}
+      className={`dn-option${weight}`}
       aria-pressed={selected}
       {...rest}
     >
       {children}
     </button>
   )
+}
+
+export interface ArrowButtonProps extends Omit<ButtonProps, 'children'> {
+  /** The way it points. */
+  way: 'previous' | 'next'
+  /** What it does, read out: it shows nothing but its arrow. */
+  label: string
+}
+
+/** The games' small arrow, pointing left for the previous one and right for the next; with nothing to go to it keeps its place, unseen. */
+export function ArrowButton({ way, label, ...rest }: ArrowButtonProps) {
+  return <button type="button" className={`dn-arrow dn-arrow--${way}`} aria-label={rest.disabled ? undefined : label} {...rest} />
 }
 
 export type CommandId = 'fight' | 'bag' | 'run' | 'switch'

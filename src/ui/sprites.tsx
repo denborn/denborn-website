@@ -137,6 +137,15 @@ export function PokemonIcon({ num, ...rest }: IconProps & { num: number }) {
 }
 
 /**
+ * A Pokémon's small menu icon at exactly `scale` DS pixels to a pixel of its
+ * own, not held to whole device pixels: the same size on every screen, as
+ * the main menu's Pokémon are (decision 232). Decorative.
+ */
+export function PokemonIconAt({ num, scale }: { num: number; scale: number }) {
+  return <SheetIcon cell={pokemonIconCell(num)} pixel={scale * useDsUnit()} />
+}
+
+/**
  * A Pokémon of the main menu: its drawing alone, without the empty part of its
  * cell, at exactly `scale` DS pixels per pixel of the drawing. Unlike the
  * other icons it is not held to whole device pixels: the nearest whole size

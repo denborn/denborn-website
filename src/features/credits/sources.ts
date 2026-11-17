@@ -14,7 +14,7 @@ export interface CreditLink {
 }
 
 /** Those credited, in the order they are read. */
-export const CREDIT_IDS = ['pokemon', 'showdown', 'pokeapi', 'corpus', 'checked', 'missingno', 'sheets', 'font'] as const
+export const CREDIT_IDS = ['pokemon', 'showdown', 'pokeapi', 'corpus', 'checked', 'missingno', 'bases', 'sheets', 'font'] as const
 export type CreditId = (typeof CREDIT_IDS)[number]
 
 export const CREDIT_LINKS: Readonly<Record<CreditId, readonly CreditLink[]>> = {
@@ -34,6 +34,7 @@ export const CREDIT_LINKS: Readonly<Record<CreditId, readonly CreditLink[]>> = {
     { name: 'MissingNo. GIF', url: 'https://www.deviantart.com/pokemon-ranger-sumi/art/MissingNo-GIF-667189987' },
     { name: 'Pokemon-Ranger-Sumi', url: 'https://www.deviantart.com/pokemon-ranger-sumi' },
   ],
+  bases: [{ name: 'Pokémon HeartGold / SoulSilver', url: 'https://www.spriters-resource.com/ds_dsi/pokemonheartgoldsoulsilver' }],
   sheets: [{ name: 'The Spriters Resource', url: 'https://www.spriters-resource.com/' }],
   font: [{ name: 'VT323', url: 'https://fonts.google.com/specimen/VT323' }],
 }

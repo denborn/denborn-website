@@ -1,15 +1,7 @@
 import { type Locator, type Page, expect, test } from '@playwright/test'
-import type { CharacterDocument } from '../../src/shared/schema/character.ts'
+import { keep } from './characters.ts'
 import { pikachu } from './creating.ts'
 import { openHome } from './home.ts'
-
-/** Puts characters among those the browser keeps, as if they had been made or brought in on it. */
-async function keep(page: Page, ...characters: CharacterDocument[]): Promise<void> {
-  await page.goto('/')
-  await page.evaluate((kept) => {
-    for (const [key, value] of kept) localStorage.setItem(key, value)
-  }, characters.map((character) => [`denborn/character/${character.id}`, JSON.stringify(character)] as const))
-}
 
 /** The top screen of the list of characters. */
 const plain = (page: Page): Locator => page.getByRole('region', { name: 'Characters', exact: true }).first()
