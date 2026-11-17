@@ -6,7 +6,7 @@
 | `src/ui/tokens.css` | Every colour, duration, easing and base size. The only place a value is written. |
 | `src/ui/kit.css` | The classes (`.dn-*`). Sizes in DS pixels, colours from tokens. |
 | `src/ui/Screen.tsx` | `Screen`, `useDsUnit`, `usePixelScale`, `useScreenMetrics` (the DS pixel and the device's ratio, for art on a grid of its own). |
-| `src/ui/controls.tsx` | `Panel`, `Slot`, `MenuButton` (the main menu's, on the slot's class), `OptionButton`, `CommandMenu`, `CornerButton`, `Tabs` (it draws the part it shows too, so the two are always tied together for screen readers). |
+| `src/ui/controls.tsx` | `Panel`, `Slot`, `MenuButton` (the main menu's, on the slot's class), `PointedMenuButton` (UPDATE's: a menu button in the option's shape, its Pokémon a letter at the end of its word), `OptionButton`, `CommandMenu`, `CornerButton`, `Tabs` (it draws the part it shows too, so the two are always tied together for screen readers). |
 | `src/ui/battle.tsx` | `HpBar`, `ExpBar`, `StatusBadge`, `AgonyBadge`, `HudBox`, `MoveButton`, `MessageBox`, `AbilityBand`. |
 | `src/ui/sprites.tsx` | `PokemonSprite` (MissingNo. stands in for a sprite that is not there), the icons, `TypeLabel`, `AppEmblem` (the animated den). |
 | `src/ui/battler.tsx` | `Battler` and its one-off moves. |

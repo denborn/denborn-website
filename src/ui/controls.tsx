@@ -75,6 +75,29 @@ export function MenuButton({ tone, pokemon, children, ...rest }: MenuButtonProps
   )
 }
 
+/** How tall the capitals of a menu button's word are, in DS pixels: VT323's at size 12 (tokens.css). */
+const MENU_CAPITALS = 10
+
+/**
+ * The main menu's one button in the options screen's shape (decision 233),
+ * pointed at both ends and as large as its cell; its colours, its plate and
+ * its press are those of the others. Its Pokémon is the last letter of its
+ * word, as tall as the capitals: Unown as a question mark or as an
+ * exclamation mark ends the sentence.
+ */
+export function PointedMenuButton({ tone, pokemon, children, ...rest }: MenuButtonProps) {
+  return (
+    <button type="button" className={`dn-slot dn-menu-button dn-menu-button--pointed dn-menu-button--${tone}`} {...rest}>
+      <span className="dn-menu-button__label dn-text-shadow">
+        {children}{' '}
+        <span className="dn-menu-button__letter">
+          <MenuPokemonIcon pokemon={pokemon} scale={MENU_CAPITALS / pokemon.height} />
+        </span>
+      </span>
+    </button>
+  )
+}
+
 export interface OptionButtonProps extends ButtonProps {
   /** The current choice among several, or the main action of a screen. */
   selected?: boolean

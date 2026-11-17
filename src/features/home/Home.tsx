@@ -4,7 +4,7 @@ import { useMessages } from '../../i18n'
 // From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from brings only the pieces it shows.
 import { DualScreen } from '../../ui/DualScreen'
 import { Screen } from '../../ui/Screen'
-import { MenuButton, type MenuTone } from '../../ui/controls'
+import { MenuButton, type MenuTone, PointedMenuButton } from '../../ui/controls'
 import { usePrefersReducedMotion } from '../../ui/reduced-motion'
 import { DEN, DenScreen } from './DenScreen'
 
@@ -42,8 +42,9 @@ const LOOKS: Record<HomeEntry, { pokemon: MenuPokemon; tone: MenuTone }> = {
  *
  * The menu (decision 221) is a grid of four rows of two: the five ways in,
  * each with its Pokémon, then UPDATE, which can be pressed only when a new
- * version waits (decision 222). The last row is empty; the notice is a line
- * under the grid.
+ * version waits (decision 222). UPDATE alone is pointed at both ends, Unown
+ * the last letter of its word (decision 233). The last row is empty; the
+ * notice is a line under the grid.
  */
 export function Home({ titled, animated, onStart, onOpen, onUpdate }: HomeProps) {
   const messages = useMessages()
@@ -88,10 +89,10 @@ export function Home({ titled, animated, onStart, onOpen, onUpdate }: HomeProps)
                   {text[entry]}
                 </MenuButton>
               ))}
-              {/* Unown asks while there is nothing to move to, and exclaims once a new version waits. */}
-              <MenuButton tone="grey" pokemon={onUpdate ? MENU_POKEMON.unownExclamation : MENU_POKEMON.unownQuestion} disabled={!onUpdate} onClick={onUpdate}>
+              {/* Unown asks while there is nothing to move to, and exclaims once a new version waits: UPDATE ?, then UPDATE ! */}
+              <PointedMenuButton tone="grey" pokemon={onUpdate ? MENU_POKEMON.unownExclamation : MENU_POKEMON.unownQuestion} disabled={!onUpdate} onClick={onUpdate}>
                 {text.update}
-              </MenuButton>
+              </PointedMenuButton>
             </nav>
             {/* The button says nothing as it lights up: this tells a screen reader that a new version waits. */}
             <p className="dn-visually-hidden" role="status">

@@ -353,9 +353,11 @@
   transition: color var(--dn-quick) var(--dn-ease-out), transform var(--dn-press) var(--dn-ease-out), filter var(--dn-quick) var(--dn-ease-out);
 }
 
-/* Pointed at both ends. */
+/* Pointed at both ends: an option button, and the main menu's one button in its shape (decision 233). */
 .dn-option::before,
-.dn-option::after {
+.dn-option::after,
+.dn-menu-button--pointed::before,
+.dn-menu-button--pointed::after {
   content: '';
   position: absolute;
   z-index: -1;
@@ -1428,10 +1430,39 @@
 }
 
 /* It hops off its shadow, which stays on the ground. */
-.dn-menu-button:active:not(:disabled) .dn-menu-button__body > .dn-icon {
+.dn-menu-button:active:not(:disabled) .dn-menu-button__body > .dn-icon,
+.dn-menu-button:active:not(:disabled) .dn-menu-button__letter > .dn-icon {
   transform: translateY(calc(-4 * var(--dn-u)));
   transition-duration: var(--dn-press);
   transition-timing-function: var(--dn-ease-out);
+}
+
+/*
+ * The main menu's one button in the options screen's shape (decision 233), as
+ * large as its cell: points as sharp as an option button's (7 over a half
+ * height of 10) on a row about 35 high. Its word is in its middle.
+ */
+.dn-slot.dn-menu-button--pointed {
+  justify-content: center;
+  padding: 0 calc(12 * var(--dn-u));
+}
+
+.dn-menu-button--pointed::before {
+  --dn-cut: calc(12 * var(--dn-u));
+}
+
+.dn-menu-button--pointed::after {
+  --dn-cut: calc(11.3 * var(--dn-u));
+}
+
+.dn-menu-button--pointed .dn-menu-button__label {
+  flex: none;
+}
+
+/* Its Pokémon is the last letter of its word: as tall as the capitals, standing on the line they stand on. */
+.dn-menu-button__letter > .dn-icon {
+  vertical-align: baseline;
+  transition: transform var(--dn-quick) var(--dn-ease-snap);
 }
 
 /* --- Forms and lists: the pieces of a menu page ------------------------------------ */

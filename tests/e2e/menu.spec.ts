@@ -58,6 +58,21 @@ test('UPDATE cannot be pressed while no new version waits, and ACCOUNT opens its
   await expect(page.getByRole('button', { name: 'ACCOUNT', exact: true })).toBeVisible()
 })
 
+test('UPDATE’s Unown is the last letter of its word, as tall as its capitals (decision 233)', async ({ page }) => {
+  await openHome(page)
+  await settled(page)
+  const screen = await boxOf(page.getByRole('region', { name: 'Denborn' }).last())
+  const button = await boxOf(page.getByRole('button', { name: 'UPDATE', exact: true }))
+  const word = await boxOf(page.getByRole('button', { name: 'UPDATE', exact: true }).locator('.dn-menu-button__label'))
+  const unown = await boxOf(page.getByRole('button', { name: 'UPDATE', exact: true }).locator('.dn-icon'))
+
+  // The word is in the middle of its button, and Unown ends it.
+  expect(word.x + word.width / 2).toBeCloseTo(button.x + button.width / 2, 0)
+  expect(unown.x + unown.width).toBeCloseTo(word.x + word.width, 0)
+  // As tall as the capitals: 10 of the screen's 256 DS pixels across.
+  expect(Math.abs(unown.height - (10 * screen.width) / 256)).toBeLessThanOrEqual(1)
+})
+
 test('a button held down sinks, and comes back up when it is let go', async ({ page }) => {
   await openHome(page)
   await settled(page)
