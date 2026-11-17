@@ -1,6 +1,10 @@
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
+import { animate } from 'motion/mini'
+import { AnimatePresence, PresenceContext, usePresence } from 'motion/react'
+import { type CSSProperties, type ReactNode, type RefObject, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { type ScenePlacement, TITLE_DEN, TITLE_PLAIN } from '../data/sprites'
 import { DS_WIDTH, useScreenMetrics } from './Screen'
+import { DURATION } from './motion'
+import { usePrefersReducedMotion } from './reduced-motion'
 import { blockCentres, fitScene } from './scene-fit'
 import { type BoltPoint, boltOnto, boltPath, nextStrike } from './storm'
 import { type TitlePhase, nextPhase, phaseLength, reached } from './title-intro'
@@ -48,8 +52,13 @@ interface Strike {
  * With a `cast`, its characters are on the plain (decision 225): each stands
  * among the layers by the row its feet are on, behind the rocks at the back,
  * between them and the light, or in front of the rocks in front.
+ *
+ * The name comes and goes with the page as it appears in the intro, by fading
+ * (decision 238): the scene stays, from the home to a page that shows the den
+ * without it and back.
  */
 export function TitleScene({ intro, still, onStorm, at, lightning = true, cast = NOBODY, children }: TitleSceneProps) {
+  const reduced = usePrefersReducedMotion()
   const { unit, ratio } = useScreenMetrics()
   const fit = fitScene(TITLE_PLAIN, unit * DS_WIDTH, ratio, TITLE_DEN.middle.x)
   const [ready, setReady] = useState(false)
@@ -184,8 +193,76 @@ export function TitleScene({ intro, still, onStorm, at, lightning = true, cast =
         <div className="dn-title-scene__rain dn-title-scene__rain--near" />
         <Wanderers cast={walking} visible={fit.visible} pixel={pixel} still={still} />
       </div>
-      {children !== undefined && <div className="dn-title-scene__name">{children}</div>}
+      {/* One name, whichever page gives it: called back while it goes, it is the same one, and comes back from where it is. */}
+      <AnimatePresence initial={false}>
+        {children !== undefined && (
+          <Name key="name" still={reduced}>
+            {children}
+          </Name>
+        )}
+      </AnimatePresence>
       {strike && <div key={strike.id} className="dn-title-scene__flash" aria-hidden="true" />}
+    </div>
+  )
+}
+
+/** The name's coming and going: as even as its appearing in the intro, but as quick as a screen's pieces coming in. */
+const NAME_FADE = { duration: DURATION.move, ease: 'linear' } as const
+
+type Fade = ReturnType<typeof animate>
+
+/** Fades the name to `opacity`. A fade under way stops where it is, and never ends: the new one goes on from there. */
+function fadeName(fading: RefObject<Fade | undefined>, box: HTMLElement, opacity: number | [number, number]): Fade {
+  fading.current?.stop()
+  fading.current = animate(box, { opacity }, NAME_FADE)
+  return fading.current
+}
+
+interface NameProps {
+  /** Reduced motion: the name is put there and taken away at once. */
+  still: boolean
+  children: ReactNode
+}
+
+/**
+ * The name on the scene, as it comes and goes with the page (decision 238).
+ * Put there with the scene, it is simply there: in the intro its own step
+ * shows it (`.is-named`), on the box inside. Onto a scene already shown, the
+ * den going on from another page to the home, it fades in as in the intro,
+ * quicker; when the home gives way to a page that shows the den without it,
+ * it fades out, the other way round, and only then goes. A name that goes is
+ * out of reach at once: it is not the page's heading any more.
+ */
+function Name({ still, children }: NameProps) {
+  const box = useRef<HTMLDivElement>(null)
+  const fading = useRef<Fade>(undefined)
+  const [here, gone] = usePresence()
+  // As it was when the name came: with the scene, or onto it.
+  const presence = useContext(PresenceContext)
+  const [comes] = useState(presence?.initial !== false && !still)
+
+  // Before the first paint: the name must not show whole, then vanish to fade in.
+  useLayoutEffect(() => {
+    if (comes && box.current) fadeName(fading, box.current, [0, 1])
+  }, [comes])
+
+  const leaving = useRef(false)
+  useEffect(() => {
+    const name = box.current
+    if (here) {
+      if (leaving.current && name && !still) fadeName(fading, name, 1)
+      leaving.current = false
+      return
+    }
+    if (leaving.current) return
+    leaving.current = true
+    if (still || !name) gone()
+    else void fadeName(fading, name, 0).finished.then(gone)
+  }, [here, gone, still])
+
+  return (
+    <div ref={box} inert={!here} aria-hidden={here ? undefined : true}>
+      <div className="dn-title-scene__name">{children}</div>
     </div>
   )
 }

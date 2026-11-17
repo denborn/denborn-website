@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { useEffect, useState } from 'react'
 import { Screen } from '../Screen'
 import type { TitlePhase } from '../title-intro'
 import { TITLE_PHASES } from '../title-intro'
@@ -70,8 +71,36 @@ function Widths() {
   )
 }
 
+/** How long the name stays, then stays away, on the board: long enough to see it whole between two fades. */
+const NAME_TURN = 2000
+
+function ComesAndGoes() {
+  const [named, setNamed] = useState(true)
+  useEffect(() => {
+    const timer = window.setInterval(() => setNamed((before) => !before), NAME_TURN)
+    return () => window.clearInterval(timer)
+  }, [])
+  return (
+    <Phone>
+      <Note>
+        The den stays from the home to a page that shows it without the name, the Options for one, and back (decision 238). The name
+        fades out as the home gives way and fades in as the home comes back, as it appears in the intro but quicker: 0.28 s each way,
+        as long as a screen’s pieces take to come in, the rain going on all the while. Here it goes and comes back every 2 seconds. With reduced motion it goes and comes at once.
+      </Note>
+      <Section title={named ? 'The home' : 'The Options'}>
+        <Screen kind="scene" label="The name comes and goes">
+          <TitleScene intro={false} still={false} lightning={named}>
+            {named ? <Name /> : undefined}
+          </TitleScene>
+        </Screen>
+      </Section>
+    </Phone>
+  )
+}
+
 const meta = { title: 'Screens/Title screen' } satisfies Meta
 export default meta
 
 export const EachStep: StoryObj = { render: () => <Steps /> }
 export const OnEveryPhone: StoryObj = { render: () => <Widths /> }
+export const NameComesAndGoes: StoryObj = { render: () => <ComesAndGoes /> }

@@ -61,6 +61,50 @@ test('a visit that opens on a link or on another page never shows the title', as
   await expect(start(page)).toBeHidden()
 })
 
+/** The den's name on the scene, whether a screen reader has it or not: one that goes is still drawn as it fades. */
+const drawnNames = (page: Page): Promise<number> => page.evaluate<number>("document.querySelectorAll('.dn-title').length")
+
+/** How much of the den's name shows: its own opacity times that of every box it is in. */
+const nameShows = (page: Page): Promise<number> =>
+  page.evaluate<number>(
+    "(() => { let shows = 1; for (let box = document.querySelector('.dn-title'); box; box = box.parentElement) shows *= Number(getComputedStyle(box).opacity); return shows })()",
+  )
+
+test('from the home to the Options and back the den stays, and its name fades out, then in again', async ({ page }) => {
+  await openHome(page)
+  const name = page.getByRole('heading', { name: 'Denborn', level: 1 })
+  await expect(name).toBeVisible()
+  // The scene is marked, to be known again. Asked in the page's own words: the tests know no browser types.
+  await page.evaluate(`document.querySelector('.dn-title-scene').setAttribute('data-seen', 'on the home')`)
+
+  // The name that goes is out of reach at once, but still drawn as it fades; then it is gone. The den is the one the home showed.
+  await page.getByRole('button', { name: /OPTIONS/ }).click()
+  await expect(name).toHaveCount(0)
+  expect(await drawnNames(page)).toBe(1)
+  await expect.poll(() => drawnNames(page)).toBe(0)
+  await expect(page.locator('.dn-title-scene')).toHaveAttribute('data-seen', 'on the home')
+
+  // Back: it fades in on the same den, and ends whole.
+  await page.getByRole('button', { name: 'BACK' }).click()
+  await expect(name).toHaveCount(1)
+  expect(await nameShows(page)).toBeLessThan(1)
+  await expect.poll(() => nameShows(page)).toBe(1)
+  await expect(page.locator('.dn-title-scene')).toHaveAttribute('data-seen', 'on the home')
+})
+
+test('with reduced motion the den’s name goes and comes back at once', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await openHome(page)
+  const name = page.getByRole('heading', { name: 'Denborn', level: 1 })
+  await page.getByRole('button', { name: /OPTIONS/ }).click()
+  await expect(name).toHaveCount(0)
+  // Gone well before a fade (0.28 s) could have ended.
+  await expect.poll(() => drawnNames(page), { intervals: [10], timeout: 150 }).toBe(0)
+  await page.getByRole('button', { name: 'BACK' }).click()
+  await expect(name).toHaveCount(1)
+  expect(await nameShows(page)).toBe(1)
+})
+
 test('with reduced motion the title opens on its storm standing still, and still waits for its tap', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
