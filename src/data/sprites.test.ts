@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { battleSpriteUrl, battleSpriteUrls, itemIconCell, pokemonIconCell } from './sprites'
+import { battleSpriteUrl, battleSpriteUrls, itemIconCell, menuPokemonCell, pokemonIconCell } from './sprites'
 
 // Made-up species: the point is the choice of file, not any real Pokémon.
 const gen5 = { id: 'testmon', sprite: 'gen5ani', femaleSprite: true } as const
@@ -43,6 +43,11 @@ describe('icon sheets', () => {
     expect(pokemonIconCell(11)).toMatchObject({ x: 440, y: 0 })
     expect(pokemonIconCell(12)).toMatchObject({ x: 0, y: 30 })
     expect(pokemonIconCell(25)).toMatchObject({ x: 40, y: 60 })
+  })
+
+  it('cuts a menu Pokémon\'s cell down to its drawing: the box starts where the drawing does, inside the cell', () => {
+    // A made-up drawing, 5×7, two pixels in and three down in the cell 13 (the second of the second row).
+    expect(menuPokemonCell({ cell: 13, left: 2, top: 3, width: 5, height: 7 })).toMatchObject({ x: 42, y: 33, width: 5, height: 7, sheetWidth: 480 })
   })
 
   it('finds an item icon in the sheet, or uses the item\'s own image', () => {

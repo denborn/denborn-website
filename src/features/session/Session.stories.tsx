@@ -197,7 +197,7 @@ export const Join: StoryObj<JoinArgs> = {
     <>
       <Joining {...args} />
       <Note>
-        A player’s side, from the home’s JOIN A SESSION. Set <code>step</code> to walk it: the code (typed, or filled in from the link or
+        A player’s side, from the home’s JOIN. Set <code>step</code> to walk it: the code (typed, or filled in from the link or
         a scan), reaching the session, choosing among the characters made for the campaign being played (decision 119: one per device) or
         making a new one there and then (decision 128),
         waiting for the game master, then the party, with what is said when the game master is away or the connection drops (decision

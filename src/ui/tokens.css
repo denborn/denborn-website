@@ -43,6 +43,27 @@
   --dn-backdrop: #000000; /* menu background */
   --dn-backdrop-mark: #183931; /* its faint pattern */
 
+  /* --- The main menu's buttons (Denborn's own, from colours measured elsewhere; decisions 221 and 230) --- */
+  /* A plate in the colours of its Pokémon: its lower half, its upper half a shade lighter, its rim. */
+  /* White letters reach 4.5 to 1 on both halves. Blue is the party slot's own colours. */
+  --dn-menu-yellow: #8c5200;
+  --dn-menu-yellow-light: #9a6110; /* the gold labels' shade */
+  --dn-menu-yellow-line: #ffe08a;
+  --dn-menu-red: #9c0021; /* the great ball's red */
+  --dn-menu-red-light: #b50029; /* the great ball's lighter red */
+  --dn-menu-red-line: #f88898; /* a downed slot's rim */
+  --dn-menu-brown: #4a3931; /* the Fighting label's shade */
+  --dn-menu-brown-light: #735a4a; /* the Dark label */
+  --dn-menu-brown-line: #e0b08c;
+  --dn-menu-purple: #4a3994; /* the Dragon label's shade */
+  --dn-menu-purple-light: #6363b5; /* the Ghost label */
+  --dn-menu-purple-line: #c8b8ff;
+  --dn-menu-grey: #525252; /* Unown's greys, from its icon */
+  --dn-menu-grey-light: #6b6b6b;
+  --dn-menu-grey-line: #f3f3f3;
+  --dn-menu-checker: rgb(255 255 255 / 0.07); /* the faint checker on a plate's lower half */
+  --dn-menu-shadow: rgb(16 16 16 / 0.35); /* the shadow under a button's Pokémon: the field's, a little darker for the dark plates */
+
   /* --- Command menu (measured: BW battle touch screen) --------------------- */
   --dn-tile: #393939;
   --dn-tile-2: #424242;

@@ -1283,6 +1283,157 @@
   align-items: center;
 }
 
+/* --- The main menu: buttons two to a row, each with its Pokémon (decisions 221 and 230) --- */
+/* The home's bottom screen: a grid of four rows of two, and the notice as a last line under it. */
+.dn-menu {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(3 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u));
+}
+
+.dn-menu__grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: calc(3 * var(--dn-u)) calc(4 * var(--dn-u));
+}
+
+.dn-menu__notice {
+  text-align: center;
+}
+
+/*
+ * A button of the main menu: a plate in the colours of its Pokémon, with a
+ * party slot's rim and cut corners. Everything starts from its left end: the
+ * Pokémon, then its one word. It is as high as its row: never more, so that a
+ * row is never overlapped. Written with the slot's class, so as to come before
+ * the slot's own room for a row with no icon.
+ */
+.dn-slot.dn-menu-button {
+  min-height: 0;
+  gap: calc(2 * var(--dn-u));
+  padding: 0 calc(2 * var(--dn-u));
+  /* Back up from a press: with a small overshoot, as a thing let go of. */
+  transition: transform var(--dn-quick) var(--dn-ease-snap), filter var(--dn-quick) var(--dn-ease-out);
+}
+
+/* The plate's two colours. Blue is the party slot's own, and keeps its rim. */
+.dn-menu-button {
+  --dn-menu-deep: var(--dn-slot);
+  --dn-menu-light: var(--dn-slot-tail);
+}
+
+.dn-menu-button--yellow {
+  --dn-menu-deep: var(--dn-menu-yellow);
+  --dn-menu-light: var(--dn-menu-yellow-light);
+  --dn-slot-line: var(--dn-menu-yellow-line);
+}
+
+.dn-menu-button--red {
+  --dn-menu-deep: var(--dn-menu-red);
+  --dn-menu-light: var(--dn-menu-red-light);
+  --dn-slot-line: var(--dn-menu-red-line);
+}
+
+.dn-menu-button--brown {
+  --dn-menu-deep: var(--dn-menu-brown);
+  --dn-menu-light: var(--dn-menu-brown-light);
+  --dn-slot-line: var(--dn-menu-brown-line);
+}
+
+.dn-menu-button--purple {
+  --dn-menu-deep: var(--dn-menu-purple);
+  --dn-menu-light: var(--dn-menu-purple-light);
+  --dn-slot-line: var(--dn-menu-purple-line);
+}
+
+.dn-menu-button--grey {
+  --dn-menu-deep: var(--dn-menu-grey);
+  --dn-menu-light: var(--dn-menu-grey-light);
+  --dn-slot-line: var(--dn-menu-grey-line);
+}
+
+/* The plate (decision 230): two flat halves, the upper one a shade lighter, and a faint checker on the lower one. */
+.dn-menu-button::after {
+  background-color: var(--dn-menu-deep);
+  /* From the front: the upper half, which hides the checker there; the checker. */
+  background-image:
+    linear-gradient(var(--dn-menu-light), var(--dn-menu-light)),
+    conic-gradient(var(--dn-menu-checker) 25%, transparent 0 50%, var(--dn-menu-checker) 0 75%, transparent 0);
+  background-repeat: no-repeat, repeat;
+  background-position: top, 0 0;
+  background-size: 100% 50%, calc(4 * var(--dn-u)) calc(4 * var(--dn-u));
+  /* Whole pixels, where the browser can round: a checker of fractions blurs into grey. */
+  background-size: 100% 50%, round(up, calc(4 * var(--dn-u)), 2px) round(up, calc(4 * var(--dn-u)), 2px);
+}
+
+/*
+ * The Pokémon's place: the same on every button and on every screen (decision
+ * 232), half-way up the button. The Pokémon is in its middle and stands on its
+ * bottom, so that a small one and a large one are about the same point, on
+ * one line. A little wider than the widest Pokémon is drawn (controls.tsx).
+ */
+.dn-menu-button__pokemon {
+  flex: none;
+  width: calc(30 * var(--dn-u));
+  height: calc(24 * var(--dn-u));
+  display: grid;
+  justify-items: center;
+  align-items: end;
+}
+
+/* The Pokémon over the round shadow it casts, as on the field: as wide as the Pokémon is. */
+.dn-menu-button__body {
+  position: relative;
+  display: grid;
+}
+
+.dn-menu-button__shadow {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  /* Under the feet by one pixel only: the tallest Pokémon stands close to the button's foot. */
+  bottom: calc(-1 * var(--dn-u));
+  height: calc(4 * var(--dn-u));
+  border-radius: 50%;
+  background: var(--dn-menu-shadow);
+}
+
+.dn-menu-button__body > .dn-icon {
+  position: relative;
+  transition: transform var(--dn-quick) var(--dn-ease-snap);
+}
+
+.dn-menu-button__label {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(12 * var(--dn-t));
+  line-height: calc(14 * var(--dn-u));
+  /* One line always: a word a hair too long runs into the button's own margin, never onto a second line. */
+  white-space: nowrap;
+}
+
+/* Pressed (decision 224): it sinks and lights up, its rim turns white, and its Pokémon hops, as one picked in the party does. */
+.dn-menu-button:active:not(:disabled) {
+  --dn-slot-line: var(--dn-text);
+  transform: translateY(calc(2 * var(--dn-u)));
+  filter: brightness(1.25);
+  transition-duration: var(--dn-press);
+  transition-timing-function: var(--dn-ease-out);
+}
+
+/* It hops off its shadow, which stays on the ground. */
+.dn-menu-button:active:not(:disabled) .dn-menu-button__body > .dn-icon {
+  transform: translateY(calc(-4 * var(--dn-u)));
+  transition-duration: var(--dn-press);
+  transition-timing-function: var(--dn-ease-out);
+}
+
 /* --- Forms and lists: the pieces of a menu page ------------------------------------ */
 .dn-stack {
   display: grid;

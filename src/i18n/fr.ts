@@ -647,21 +647,16 @@ export const fr: Messages = {
   },
   home: {
     characters: 'PERSONNAGES',
-    charactersHint: 'Créer un Pokémon, voir sa fiche',
-    session: 'REJOINDRE UNE SESSION',
-    sessionHint: 'Amener un personnage dans la session d’un maître du jeu',
     campaigns: 'CAMPAGNES',
-    campaignsHint: 'Pour le maître du jeu',
+    session: 'REJOINDRE',
     options: 'OPTIONS',
-    optionsHint: 'Langue, vérification du système',
-    offline: {
-      preparing: 'Préparation de l’utilisation hors ligne…',
-      sprites: (done, of) => `Fonctionne hors ligne. Récupération des sprites des Pokémon\u00a0: ${done} sur ${of}.`,
-      stalled: (done, of) => `Fonctionne hors ligne, avec ${done} sprites de Pokémon sur ${of}. Le reste sera récupéré au retour de la connexion.`,
-      ready: 'Prête à fonctionner hors ligne.',
-    },
-    update: 'METTRE À JOUR',
+    account: 'COMPTE',
+    update: 'MISE À JOUR',
     start: 'TOUCHEZ POUR COMMENCER',
+  },
+  account: {
+    title: 'Compte',
+    soon: 'Le téléchargement de toutes vos données, l’export et l’import des sauvegardes seront ici. Pas encore fait.',
   },
   creation: {
     title: 'Nouveau personnage',

@@ -5,12 +5,14 @@ import {
   MISSING_SPRITE_URL,
   type SheetCell,
   battleSpriteUrl,
+  type MenuPokemon,
   categoryIconCell,
   itemIconCell,
+  menuPokemonCell,
   pokemonIconCell,
 } from '../data/sprites'
 import type { ItemIcon, SpeciesData } from '../data/types'
-import { usePixelScale } from './Screen'
+import { useDsUnit, usePixelScale } from './Screen'
 import { usePrefersReducedMotion } from './reduced-motion'
 
 export interface PokemonSpriteProps extends BattleSpriteOptions {
@@ -94,17 +96,21 @@ export interface IconProps {
   label?: string | undefined
 }
 
-/** One cell of an icon sheet, enlarged so that its pixels stay square. */
-function CellIcon({ cell, scale = 1, label }: IconProps & { cell: SheetCell }) {
-  const factor = usePixelScale(scale)
+/** One cell of an icon sheet, each of its pixels `pixel` CSS pixels wide. */
+function SheetIcon({ cell, pixel, label }: { cell: SheetCell; pixel: number; label?: string | undefined }) {
   const style: CSSProperties = {
-    width: cell.width * factor,
-    height: cell.height * factor,
+    width: cell.width * pixel,
+    height: cell.height * pixel,
     backgroundImage: `url(${cell.url})`,
-    backgroundPosition: `${-cell.x * factor}px ${-cell.y * factor}px`,
-    backgroundSize: `${cell.sheetWidth * factor}px auto`,
+    backgroundPosition: `${-cell.x * pixel}px ${-cell.y * pixel}px`,
+    backgroundSize: `${cell.sheetWidth * pixel}px auto`,
   }
   return <span className="dn-icon" style={style} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true} />
+}
+
+/** One cell of an icon sheet, enlarged so that its pixels stay square. */
+function CellIcon({ cell, scale = 1, label }: IconProps & { cell: SheetCell }) {
+  return <SheetIcon cell={cell} pixel={usePixelScale(scale)} label={label} />
 }
 
 /**
@@ -128,6 +134,18 @@ export function AppEmblem({ scale = 1, label }: IconProps) {
 /** A Pokémon's small menu icon, by Pokédex number. */
 export function PokemonIcon({ num, ...rest }: IconProps & { num: number }) {
   return <CellIcon cell={pokemonIconCell(num)} {...rest} />
+}
+
+/**
+ * A Pokémon of the main menu: its drawing alone, without the empty part of its
+ * cell, at exactly `scale` DS pixels per pixel of the drawing. Unlike the
+ * other icons it is not held to whole device pixels: the nearest whole size
+ * made it a third larger on one screen than on another, and the owner had it
+ * look the same on every screen (decision 232). Where a drawing's pixel is not
+ * a whole number of the device's, its pixels are not all one width.
+ */
+export function MenuPokemonIcon({ pokemon, scale }: { pokemon: MenuPokemon; scale: number }) {
+  return <SheetIcon cell={menuPokemonCell(pokemon)} pixel={scale * useDsUnit()} />
 }
 
 /** An item's icon. */

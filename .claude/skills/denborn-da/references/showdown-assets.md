@@ -11,8 +11,10 @@ Downloaded when the app is built by `scripts/assets/sync-sprites.ts` into `publi
 | `/sprites/categories/<Category>.png` | same | 32 × 14: a symbol in the middle of a coloured band, no words. The middle 16 pixels are the symbol alone. |
 | `/sprites/pokeapi/sprites/items/<file>.png` | PokéAPI's sprite repository | For the items Showdown lacks. 30 × 30, except the Linking Cord (128 × 128, drawn at 30 × 30). |
 
+A form (a Mega, an Unown that is not A) has no Pokédex number to be found by: its cell comes after every species, in an order of Showdown's, and its number is the one Showdown's client gives it (`BattlePokemonIconIndexes`, play.pokemonshowdown.com/src/battle-dex-data.ts). The few the app shows are in `MENU_POKEMON` (`src/data/sprites.ts`), each with the box its drawing takes in its cell; look at each cell, and read each box again, whenever the sheet is pinned anew.
+
 Every address is built by `src/data/sprites.ts` from the data pack (`species.sprite`, `species.femaleSprite`, `item.icon`). Do not interpolate a name yourself: forms, genders and missing sprites are exactly where guessing fails.
 
-Drawing: pass a `scale` (DS pixels per sprite pixel) to the component; it snaps to whole device pixels. Sprites animate on their own; they stop for a downed Pokémon and for anyone who prefers reduced motion.
+Drawing: pass a `scale` (DS pixels per sprite pixel) to the component; it snaps to whole device pixels. The one exception is the main menu's Pokémon (`MenuPokemonIcon`), drawn at an exact size so that the menu is the same on every screen (decision 232): do not copy it elsewhere without the owner's word. Sprites animate on their own; they stop for a downed Pokémon and for anyone who prefers reduced motion.
 
 Showdown's type labels (`types/<Type>.png`) are **not** used: they are images with English words, and the owner ruled that the app draws its own in both languages (decision 85). Use `TypeLabel`.

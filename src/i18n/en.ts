@@ -667,26 +667,22 @@ export const en = {
     saveFile: 'SAVE THE FILE',
     carryOn: 'CONTINUE',
   },
+  /** The home's menu: one word a button (decision 221). */
   home: {
     characters: 'CHARACTERS',
-    charactersHint: 'Create a Pokémon, see its sheet',
     campaigns: 'CAMPAIGNS',
-    campaignsHint: 'For the game master',
-    session: 'JOIN A SESSION',
-    sessionHint: 'Bring a character into a game master’s session',
+    session: 'JOIN',
     options: 'OPTIONS',
-    optionsHint: 'Language, system check',
-    /** How far the app is from working with no network (decisions 181 and 182). */
-    offline: {
-      preparing: 'Getting ready to work offline…',
-      sprites: (done: number, of: number) => `Works offline. Fetching the Pokémon sprites: ${done} of ${of}.`,
-      stalled: (done: number, of: number) => `Works offline, with ${done} of ${of} Pokémon sprites. The rest are fetched when the connection is back.`,
-      ready: 'Ready to work offline.',
-    },
-    /** The offer to move to a new version of the app (decision 183). */
+    account: 'ACCOUNT',
+    /** The button that moves to a new version of the app, when one waits (decisions 183 and 222). */
     update: 'UPDATE',
     /** The one button of the black bottom screen, while the title shows (decisions 205 and 211). */
     start: 'TOUCH TO START',
+  },
+  /** What this device keeps, as files (decision 223): its tools are to come. */
+  account: {
+    title: 'Account',
+    soon: 'Downloading all your data, and exporting and importing saves, will be here. Not built yet.',
   },
   /** Creating a character, step by step. */
   creation: {

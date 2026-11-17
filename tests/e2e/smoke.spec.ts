@@ -8,10 +8,8 @@ const CACHED = { timeout: 120_000 }
 test('the app caches itself and reloads with no network', async ({ page, context }) => {
   await openHome(page)
   await expect(page.getByRole('heading', { name: 'Denborn', level: 1 })).toBeVisible()
-  // The home screen says where it stands, and ends on this.
-  await expect(page.getByText('Ready to work offline.')).toBeVisible(CACHED)
 
-  // "Ready" alone is only shown once the service worker has stored the app and the page every sprite.
+  // The Options say where it stands: "Ready" alone is only shown once the service worker has stored the app and the page every sprite.
   await page.getByRole('button', { name: /OPTIONS/ }).click()
   await expect(page.getByText('Ready', { exact: true })).toBeVisible(CACHED)
 
@@ -30,7 +28,10 @@ test('a first visit with no sprites to be had works offline with MissingNo. in t
   // The sprites cannot be fetched: the first stage alone gets through.
   await page.route('**/sprites/**/*.gif', (route) => route.abort())
   await openHome(page)
-  await expect(page.getByText(/^Works offline, with 0 of \d+ Pokémon sprites\. The rest are fetched when the connection is back\.$/)).toBeVisible(CACHED)
+  // The Options say where it stands: the app is kept, and not one sprite.
+  await page.getByRole('button', { name: /OPTIONS/ }).click()
+  await expect(page.getByText(/^Ready, sprites 0 of \d+$/)).toBeVisible(CACHED)
+  await page.getByRole('button', { name: 'BACK' }).click()
   // A new campaign shows three Pokémon on its top screen: they are MissingNo. for now.
   const newCampaign = page.getByRole('heading', { name: 'New campaign' })
   await page.getByRole('button', { name: /CAMPAIGNS/ }).click()
@@ -50,7 +51,8 @@ test('a first visit with no sprites to be had works offline with MissingNo. in t
   await page.getByRole('button', { name: 'BACK' }).click()
   await expect(page.getByRole('heading', { name: 'Campaigns' })).toBeVisible()
   await page.getByRole('button', { name: 'BACK' }).click()
-  await expect(page.getByText('Ready to work offline.')).toBeVisible(CACHED)
+  await page.getByRole('button', { name: /OPTIONS/ }).click()
+  await expect(page.getByText('Ready', { exact: true })).toBeVisible(CACHED)
   await context.setOffline(true)
   await page.goto('/campaigns/new')
   await expect(page.locator('img[src="/sprites/gen5ani/bulbasaur.gif"]')).toBeVisible()

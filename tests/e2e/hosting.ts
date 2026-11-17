@@ -29,7 +29,7 @@ export async function newPlayer(gm: Page, link: string, name: string): Promise<P
 /** The player joins with the code and asks to come in with their character, Volt unless named otherwise. */
 export async function ask(player: Page, code: string, name = 'Volt'): Promise<void> {
   await openHome(player)
-  await player.getByRole('button', { name: /JOIN A SESSION/ }).click()
+  await player.getByRole('button', { name: 'JOIN', exact: true }).click()
   await player.getByRole('textbox', { name: 'Join code' }).fill(code)
   await player.getByRole('button', { name: 'JOIN', exact: true }).click()
   // Only the characters made for the campaign being played are offered.

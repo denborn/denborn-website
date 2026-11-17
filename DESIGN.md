@@ -54,7 +54,7 @@ All colours are tokens in `src/ui/tokens.css`; components use tokens only. The S
 | Status badges | `--dn-status-*` | B2W2 "HP Bars" sheet (the dark PSN is bad poison) |
 | Types, fill and shade | `--dn-type-*` | BW type labels as published by PokéAPI; Fairy (not a Gen 5 type) from Showdown's label |
 
-Denborn's own, with no counterpart in the games: the Agony colours (`--dn-agony*`), the battle backdrop (`--dn-scene-*`), the focus ring (`--dn-focus-ring`), and the title screen's (`--dn-title-*`): the night's veil, the rain, the red of the lightning, and the four golds and the deep red of the app's name.
+Denborn's own, with no counterpart in the games: the Agony colours (`--dn-agony*`), the battle backdrop (`--dn-scene-*`), the focus ring (`--dn-focus-ring`), and the title screen's (`--dn-title-*`): the night's veil, the rain, the red of the lightning, and the four golds and the deep red of the app's name. The main menu's buttons (`--dn-menu-*`, decisions 221 and 230) are Denborn's own too, each made of colours measured elsewhere: the gold labels' shade, the great ball's reds, the Fighting, Dark, Dragon and Ghost labels, and Unown's greys; with them, the faint white of a plate's checker and the shadow under a button's Pokémon.
 
 HP bars are green above half, yellow down to a fifth, red at a fifth or less (`hpTone`, tested).
 
@@ -90,6 +90,7 @@ All in `src/ui/`, exported from `src/ui/index.ts`. They hold no game logic and n
 | `Panel` | Box for text and values | B2W2 HP box bodies | `dark` (dithered), `light`. Hard shadow down-right. |
 | `Slot` | A row that can be chosen | BW party slots | resting, selected, `ok` (confirmed), `down` (downed), disabled. Cut corners, three bands split by two arrowheads; the outline changes with the state. |
 | `OptionButton` | A small choice or action | B2W2 options buttons | resting, selected / primary, disabled. Pointed at both ends. |
+| `MenuButton` (`.dn-menu-button`), `.dn-menu` | A button of the main menu; the menu's grid | Denborn's own, in a party slot's rim (decisions 221 to 224, 230) | A plate in one of six colours (yellow, red, brown, blue, purple, grey) with one word: two flat halves, the upper one a shade lighter, a faint checker of 2 DS pixels on the lower one, inside a party slot's rim and cut corners. Everything starts from the left: the Pokémon, in a place that is the same on every button and half-way up it, in whose middle it stands on the bottom, over a round shadow as wide as itself less a fifth, as on the field; then the word, at 12. The Pokémon is its drawing alone, at 0.8 DS pixel per pixel on every screen, in a place of 30 by 24; one wider than 27 DS pixels at that size is drawn as wide as that. It is the one sprite that is not held to whole pixels of the device (decision 232): the nearest whole size made it a third larger on one screen than on another. Disabled, the button is dimmed. Pressed, it sinks and lights up, its rim turns white and its Pokémon hops off its shadow. `.dn-menu` fills a screen with a grid of four rows of two (`.dn-menu__grid`) over one line (`.dn-menu__notice`). |
 | `CommandMenu` | FIGHT, BAG, RUN, SWITCH | BW touch screen | FIGHT is the great ball; the other three are dotted dark tiles with a thick white rim along the bottom. Each can be disabled. A `CornerButton`, a smaller tile hanging from the top right corner, opens the battlefield plan; its label is set small, so BATTLEFIELD fits on one line and CHAMP DE BATAILLE on two. |
 | `MoveButton` | One of six moves | BW move buttons | Type-coloured face, white rim; name, type label, category symbol, PP. Selected (rim in the selection colour), disabled. `.dn-moves` lays six of them two by three over a row for BACK. |
 | `HpBar`, `ExpBar` | Meters | B2W2 bars | Two-tone fill. HP drains at a steady pace (a full bar in 0.9 s) and changes colour on the way. `role="meter"` with its values. |
@@ -187,7 +188,7 @@ What moves, and how:
 
 | Event | Motion | With reduced motion |
 |---|---|---|
-| Press | The control sinks one or two DS pixels, or shrinks slightly; commands and moves also brighten | The same change, at once |
+| Press | The control sinks one or two DS pixels, or shrinks slightly; commands and moves also brighten. A menu button sinks two, brightens, turns its rim white and its Pokémon hops; let go, it springs back with a small overshoot (decision 224) | The same change, at once |
 | A Pokémon enters | Slides in from its own side | Appears |
 | It uses a move | Short lunge toward the foe | Nothing; the message says it |
 | It is hit | Three hard blinks in 0.42 s | Nothing; the HP bar and the message say it |
@@ -264,7 +265,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 93 | A duration reads "3 turns left" / "3 tours restants". The plan does not show everything: MORE lists all that is in effect and whom it touches. |
 | 94 | What sits on one Pokémon (stat changes, Leech Seed…) is in MORE under its letter and on its own sheet; a small mark on its tile and HUD box says it carries some. |
 | 99 | No QR code finer than 101 × 101 squares is shown; past that, the file. |
-| 100 | The home: the app's name over three Pokémon; Characters, Campaigns, Options. Its top screen is now the title screen (decision 203, below). |
+| 100 | The home: the app's name over three Pokémon; Characters, Campaigns, Options. Its top screen is now the title screen (decision 203, below), and its ways in the menu of decision 221. |
 | 101 | Character creation in seven steps: Pokémon; name, gender, nature and Ability; roleplay attributes; IVs and EVs; moves; item pack; a last look. |
 | 102 | Menus and forms: the top DS screen stays, the lower one is as long as its content and scrolls. Replaced by decisions 214 to 216, below. |
 | 103 | The character sheet: the Pokémon, its battle box and types on the top screen; five tabs below (INFO, STATS, MOVES, BAG, SHARE). |
@@ -300,17 +301,24 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 179 | The Bag outside a fight: a tapped item shows USE, HOLD or TAKE under it; who it is used on is a list of the party where those it would do nothing for are dimmed. The Pokémon Center: the Ability, then the moves with the known ones first. |
 | 180 | The hosting screen: a tapped member shows REST, GIVE OR TAKE and REMOVE FROM THE SESSION; GIVE OR TAKE is a page of its own with the character on the top screen. |
 | 181, 185 to 188 | A battle sprite that is not there shows MissingNo., animated, at its own 45 × 50 pixels; mirrored for a Pokémon seen from behind. |
-| 182, 183 | The home screen says how far the app is from working offline, in a line under the ways in; a new version is offered above them, there and in the Options only. |
+| 182, 183 | The home screen said how far the app is from working offline, in a line under the ways in, and offered a new version above them. Since decisions 221 and 222 that state is in the Options only, and the home's offer is the menu's UPDATE button. |
 | 191 to 194 | The app's emblem was the den, its light animated (replaced by decision 212). |
 | 209 | The app's still icons (a browser's tab, an iPhone, Android) are the pink grid ball seen from the front, with a margin, on the ground of the Pokémon Black icon: black, a chequer of blocks that darkens downwards. |
 | 212 | The app's emblem inside the app is the pink grid ball of decision 209, rocking left and right then resting, as a Poké Ball shakes in the games. |
 | 203 to 207, 210, 211 | The home's top screen is the title screen: the den in Showdown's meadow and nothing else, the app's name gilded a little above the middle. Each time the app starts its intro plays over a black bottom screen (the den in daylight, its light rising, a red bolt as the plain turns dark, the name, then rain and red lightning at uneven gaps); TOUCH TO START / TOUCHEZ POUR COMMENCER shows once the storm has come, and one tap at any moment puts the menu in its place, the storm going on above it. The Options hold it still ("Title screen animation", ON / OFF; OUI / NON). On the home screen this replaces the three Pokémon of decision 100 and the den's tile of decision 194. |
-| 184, 195 | The credits are a screen of their own, opened by a CREDITS button under the notice on the home screen and in the Options: the app's emblem, a sentence on what the project is, then people and teams, each with what of theirs is in the app and links to their pages. No list of packages. |
+| 184, 195 | The credits are a screen of their own, opened by a CREDITS button in the Options (and no longer on the home: decision 221): the app's emblem, a sentence on what the project is, then people and teams, each with what of theirs is in the app and links to their pages. No list of packages. |
 | 199, 200 | A type's label and a move's button: their white letters edged all around in the type's dark shade. |
 | 196 to 198 | For contrast: the muted grey a shade lighter and the main button's band a shade deeper; text clear of a row's arrows, a selected or confirmed row's second line as bright as its first, the confirmed green a shade deeper; the panel beside a Pokémon darker with a lighter red for a raised stat, the PAR badge a shade deeper. |
 | 214 to 216 | Every screen of the app is two separate DS screens, one over the other, each exactly 4:3 and each showing its own thing; together they are never taller than the window, which does not scroll, and a phone taller than them shows black above and below. What is longer than the bottom screen scrolls inside it. |
 | 217 | A page that had no top screen (the Options, the credits, five screens that tell of a failure) shows the title screen's den there: at night, in the rain, without the name, without a bolt or a flash. |
 | 218, 219 | The app always moves, as a video game does, and never feels like going from one page to another: the two screens stay, a screen that is the same on the next page carries on, and one that changes moves out and in. Never by a fade. |
 | 220 | The loading screen: the menu's black with its plus marks on both screens, the rocking ball over the word on the bottom one. |
+| 221 | The home's menu: a grid of four rows of two on the bottom screen. CHARACTERS (yellow, Pikachu) and CAMPAIGNS (red, Eternamax Eternatus since decision 231); JOIN (brown, Falinks) and OPTIONS (blue, Porygon); ACCOUNT and UPDATE; a row left empty; the notice in a line under the grid. One word a button, after its Pokémon, everything from the left. |
+| 222 | UPDATE is a button of the menu: a dimmed grey, with Unown as a question mark, while no new version waits; lit, with Unown as an exclamation mark, once one does. |
+| 223 | ACCOUNT (purple, Mega Starmie) opens a screen of its own, whose tools are to come: downloading what the device keeps, exporting and importing saves. |
+| 224 | A menu button held down sinks, lights up, turns its rim white, and its Pokémon hops; let go, it springs back. |
+| 230 | A menu button's background is a plate in its colour: two flat halves, the upper one a shade lighter, a faint checker on the lower one, in a party slot's rim. A round shadow under each Pokémon, as on the field. Pokémon and words larger. |
+| 231 | CAMPAIGNS carries Eternamax Eternatus, in place of Mega Heatran. |
+| 232 | A menu button's Pokémon is small, and as large and at the same place on every screen; Eternamax Eternatus a little smaller than the others. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

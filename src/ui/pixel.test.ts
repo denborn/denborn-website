@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { snapScale } from './pixel'
+import { fitScale, snapScale } from './pixel'
 
 describe('sprite scale', () => {
   it('keeps the size asked for when it already falls on whole device pixels', () => {
@@ -21,5 +21,16 @@ describe('sprite scale', () => {
   it('treats an unknown pixel ratio as 1', () => {
     expect(snapScale(1, 2.4, 0)).toBe(2)
     expect(snapScale(1, 2.4, Number.NaN)).toBe(2)
+  })
+})
+
+describe('a drawing that may not be wider than a width', () => {
+  it('is drawn at the size asked for when it is narrow enough, and when it is just as wide as it may be', () => {
+    expect(fitScale(0.8, 20, 27)).toBe(0.8)
+    expect(fitScale(0.5, 54, 27)).toBe(0.5)
+  })
+
+  it('is drawn smaller when it would be wider: as wide as it may be', () => {
+    expect(fitScale(0.8, 54, 27) * 54).toBe(27)
   })
 })

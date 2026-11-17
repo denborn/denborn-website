@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
-import type { OfflineState } from '../../pwa/use-offline-status'
 import { Device, Note, Phone } from '../../ui/stories/board'
 import { Home } from './Home'
 import { LoadingScreen } from './LoadingScreen'
@@ -10,35 +9,25 @@ interface HomeArgs {
   title: boolean
   /** The Options' switch for the title screen's animation. */
   animation: boolean
-  /** How far the app is from working offline. */
-  offline: 'preparing' | 'sprites' | 'stalled' | 'ready' | 'unsupported'
   /** A new version of the app waits. */
   update: boolean
-}
-
-const OFFLINE: Record<HomeArgs['offline'], Pick<OfflineState, 'status' | 'sprites'>> = {
-  preparing: { status: 'preparing' },
-  sprites: { status: 'sprites', sprites: { done: 120, of: 346, stalled: false } },
-  stalled: { status: 'sprites', sprites: { done: 120, of: 346, stalled: true } },
-  ready: { status: 'ready' },
-  unsupported: { status: 'unsupported' },
+  /** The window's width: a small phone's, or a phone's. */
+  width: 320 | 412
 }
 
 /** One start of the app: the title until it is passed, then the menu. */
-function Start({ title, animation, offline, update }: HomeArgs) {
+function Start({ title, animation, update, width }: HomeArgs) {
   const [titled, setTitled] = useState(title)
   const [opened, setOpened] = useState<string>()
   return (
     <>
-      <Device width={412} height={839}>
+      <Device width={width} height={width === 320 ? 568 : 839}>
         <Home
-          entries={['characters', 'session', 'campaigns', 'options']}
-          offline={{ ...OFFLINE[offline], updateAvailable: update, applyUpdate: () => setOpened('update') }}
           titled={titled}
           animated={animation}
           onStart={() => setTitled(false)}
           onOpen={setOpened}
-          onCredits={() => setOpened('credits')}
+          onUpdate={update ? () => setOpened('update') : undefined}
         />
       </Device>
       {opened && <Note>You pressed “{opened}”.</Note>}
@@ -56,17 +45,26 @@ function HomeScreen(args: HomeArgs) {
         screen stays black; TOUCH TO START shows once the storm has come. One tap, at any moment and on either screen, has the menu fly
         in in its place in the app (shown under Screens/The DS, Changing; here the menu is put there at once), the storm going on above it. With reduced motion, or with <code>animation</code> off (the Options’ switch), it opens
         on the storm standing still. With <code>title</code> off, the title is already passed, as when coming back from another screen.
-        Under the ways in, a line says how far the app is from working with no network (decisions 181 and 182); set{' '}
-        <code>offline</code> to read each state. With <code>update</code>, a new version waits: it is offered here and in the Options
-        only (decision 183). The window drawn here is a phone’s, 412 × 839: the two screens are whole in its middle, black above and below
-        (decision 215).
+      </Note>
+      <Note>
+        The menu (decisions 221 to 224, 230 to 232) is a grid of four rows of two. Its buttons are plates in the colours of their Pokémon: two
+        flat halves, the upper one a shade lighter, a faint checker on the lower one, in a party slot's rim; under each Pokémon, a round
+        shadow, as on the field.
+        Everything starts from the left: the Pokémon, in a place that is the same on every button and on every screen, in whose middle it stands on the bottom, then one word: CHARACTERS with Pikachu, CAMPAIGNS with Eternamax
+        Eternatus, JOIN with Falinks, OPTIONS with Porygon, ACCOUNT with Mega Starmie, UPDATE with Unown. UPDATE cannot be pressed, and Unown
+        is a question mark, until a new version waits: with <code>update</code> on, Unown is an exclamation mark and the button is lit
+        (decision 222). The fourth row is empty; the notice is a line under the grid. The credits and the state of the offline cache are in
+        the Options only. Hold a button down: it sinks and lights up, its rim turns white and its Pokémon hops off its shadow; let go, and it springs back
+        (decision 224). The colours are Denborn’s own, from colours measured elsewhere, and are to be judged here. Set{' '}
+        <code>width</code> to 320 for a small phone’s window (320 × 568); the other is a phone’s, 412 × 839. The two screens are whole in
+        the window’s middle, black above and below (decision 215).
       </Note>
       <div className="sb-tools">
         <button type="button" onClick={() => setRun((before) => before + 1)}>
           Start again
         </button>
       </div>
-      <Start key={`${run} ${args.title} ${args.animation}`} {...args} />
+      <Start key={`${run} ${args.title} ${args.animation} ${args.width}`} {...args} />
     </Phone>
   )
 }
@@ -89,7 +87,14 @@ export const Loading: StoryObj = {
 }
 
 export const FirstScreen: StoryObj<HomeArgs> = {
-  args: { title: true, animation: true, offline: 'ready', update: false },
-  argTypes: { offline: { control: 'select', options: ['preparing', 'sprites', 'stalled', 'ready', 'unsupported'] } },
+  args: { title: true, animation: true, update: false, width: 412 },
+  argTypes: { width: { control: 'inline-radio', options: [320, 412] } },
+  render: (args) => <HomeScreen {...args} />,
+}
+
+/** The menu as it is once the title is passed: what the six buttons look like. */
+export const Menu: StoryObj<HomeArgs> = {
+  args: { title: false, animation: true, update: false, width: 412 },
+  argTypes: { width: { control: 'inline-radio', options: [320, 412] } },
   render: (args) => <HomeScreen {...args} />,
 }

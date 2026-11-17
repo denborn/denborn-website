@@ -14,7 +14,7 @@ import { OptionButton } from '../ui/controls'
 import { incomingKind } from './incoming-link'
 import { useLibrary } from './library-store'
 import { OfflineContext } from './offline'
-import { CreditsPage, HomePage, OptionsPage } from './pages'
+import { AccountPage, CreditsPage, HomePage, OptionsPage } from './pages'
 import { TitleGateContext, createTitleGate, opensOnTitle } from './title-gate'
 
 // Read as the app starts, before anything changes the address: a link's code is taken out of it on arrival.
@@ -137,7 +137,7 @@ function TitleEndsOffHome() {
 }
 
 /**
- * The one place that registers the service worker; the home and the options show its state. It is a component
+ * The one place that registers the service worker; the options show its state, and the home whether a new version waits. It is a component
  * of its own so that the count of sprites, which moves often, redraws the screens that show it and nothing else.
  */
 function OfflineProvider({ children }: { children: ReactNode }) {
@@ -176,6 +176,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'options', element: <OptionsPage /> },
       { path: 'credits', element: <CreditsPage /> },
+      { path: 'account', element: <AccountPage /> },
       { path: 'campaigns', element: <CampaignsPage /> },
       { path: 'campaigns/new', element: <CampaignPage /> },
       { path: 'campaigns/import', element: <ImportCampaignPage /> },

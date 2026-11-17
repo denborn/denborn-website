@@ -1,4 +1,7 @@
 import { type ButtonHTMLAttributes, type ReactNode, useId } from 'react'
+import type { MenuPokemon } from '../data/sprites'
+import { fitScale } from './pixel'
+import { MenuPokemonIcon } from './sprites'
 
 type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className' | 'type'>
 
@@ -26,6 +29,48 @@ export function Slot({ state = 'normal', selected, children, ...rest }: SlotProp
   return (
     <button type="button" className={`dn-slot${modifier}`} aria-pressed={selected} {...rest}>
       {children}
+    </button>
+  )
+}
+
+/** The colours of a menu button's plate: those that suit its Pokémon. `blue` is the party slot's own. */
+export type MenuTone = 'yellow' | 'red' | 'brown' | 'blue' | 'purple' | 'grey'
+
+export interface MenuButtonProps extends ButtonProps {
+  tone: MenuTone
+  /** The Pokémon that stands at its left end. */
+  pokemon: MenuPokemon
+}
+
+/**
+ * How large a menu button's Pokémon is drawn, in DS pixels: the size of one
+ * pixel of its drawing, and the widest a drawing may be. Its place on the
+ * button (`.dn-menu-button__pokemon`) is a little wider than that, so that the
+ * widest Pokémon still has room around it.
+ */
+const MENU_POKEMON_SIZE = { scale: 0.8, widest: 27 } as const
+
+/**
+ * A button of the main menu (decisions 221 and 230): a plate in the colours of
+ * its Pokémon, with one word. Everything starts from the left: the Pokémon, in
+ * a place that is the same on every button and half-way up it, then the word,
+ * which so starts at the same place on every button too. In its place the
+ * Pokémon is in the middle and stands on the bottom, over its shadow: a small
+ * one and a large one are about the same point, on one line. It is as large,
+ * and at the same place, on every screen (decision 232); one whose drawing is
+ * wider than the rest is drawn a little smaller. Pressed, the button sinks and
+ * its Pokémon hops (decision 224).
+ */
+export function MenuButton({ tone, pokemon, children, ...rest }: MenuButtonProps) {
+  return (
+    <button type="button" className={`dn-slot dn-menu-button dn-menu-button--${tone}`} {...rest}>
+      <span className="dn-menu-button__pokemon">
+        <span className="dn-menu-button__body">
+          <span className="dn-menu-button__shadow" />
+          <MenuPokemonIcon pokemon={pokemon} scale={fitScale(MENU_POKEMON_SIZE.scale, pokemon.width, MENU_POKEMON_SIZE.widest)} />
+        </span>
+      </span>
+      <span className="dn-menu-button__label dn-text-shadow">{children}</span>
     </button>
   )
 }

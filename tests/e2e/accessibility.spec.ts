@@ -3,15 +3,21 @@ import { expectAccessible } from './accessible.ts'
 import { code, draftEncounter, setCampaign } from './creating.ts'
 import { ask, table } from './hosting.ts'
 
-test('a player’s screens break no rule a machine can check: the home, the options, the credits, creation step by step, the sheet', async ({ page }) => {
+test('a player’s screens break no rule a machine can check: the home, the account, the options, the credits, creation step by step, the sheet', async ({ page }) => {
   await page.goto('/')
   // The title screen, once its storm has come and TOUCH TO START shows; then the menu that one tap puts in its place.
   await expect(page.getByText('TOUCH TO START')).toHaveCSS('opacity', '1')
   await expectAccessible(page, 'title')
   await page.getByRole('button', { name: 'TOUCH TO START' }).click()
-  await expect(page.getByText('Ready to work offline.')).toBeVisible({ timeout: 120_000 })
+  await expect(page.getByRole('button', { name: 'CHARACTERS' })).toBeVisible()
   await expectAccessible(page, 'home')
+  await page.getByRole('button', { name: 'ACCOUNT' }).click()
+  await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible()
+  await expectAccessible(page, 'account')
+  await page.getByRole('button', { name: 'BACK' }).click()
   await page.getByRole('button', { name: /OPTIONS/ }).click()
+  // The Options say when the app and every sprite are kept: the screens that follow are judged with their sprites.
+  await expect(page.getByText('Ready', { exact: true })).toBeVisible({ timeout: 120_000 })
   await expectAccessible(page, 'options')
   await page.getByRole('button', { name: 'CREDITS' }).click()
   await expectAccessible(page, 'credits')

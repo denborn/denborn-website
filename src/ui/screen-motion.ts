@@ -36,8 +36,9 @@ export interface Box {
 
 /**
  * What moves piece by piece, in the kit's own layouts: a page's title, its
- * tabs, its rows and its foot's buttons; the battle's commands, moves, lists
- * and plan. A screen with none of these moves the things it holds whole.
+ * tabs, its rows and its foot's buttons; the main menu's buttons and its
+ * notice; the battle's commands, moves, lists and plan. A screen with none of
+ * these moves the things it holds whole.
  *
  * A piece that goes out by a side must not be a child of something that
  * scrolls: out by the right, it would make that thing scroll sideways to it
@@ -50,6 +51,8 @@ const PIECES = [
   '.dn-step',
   '.dn-tabs > *',
   '.dn-stack > *',
+  '.dn-menu__grid > *',
+  '.dn-menu__notice',
   '.dn-lineup > *',
   '.dn-commands > *',
   '.dn-moves > *',

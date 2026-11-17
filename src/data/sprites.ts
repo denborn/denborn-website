@@ -161,6 +161,45 @@ export function pokemonIconCell(num: number): SheetCell {
   return { url: `${ROOT}/pokemonicons-sheet.png`, x: (num % 12) * 40, y: Math.floor(num / 12) * 30, width: 40, height: 30, sheetWidth: 480 }
 }
 
+/** A Pokémon of the main menu's buttons: its cell in the icon sheet, and the box its drawing takes inside that cell, in the sheet's own pixels. */
+export interface MenuPokemon {
+  cell: number
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+/**
+ * The Pokémon of the main menu (decisions 221 to 223). A species' cell is its
+ * Pokédex number. A form's comes after every species, in an order of
+ * Showdown's: its number is the one its client gives it
+ * (`BattlePokemonIconIndexes`, play.pokemonshowdown.com/src/battle-dex-data.ts).
+ * Each cell was looked at, and each drawing's box read, in the sheet as it is
+ * pinned (data-sources/sprites.lock.json): read them again when it is pinned
+ * anew.
+ */
+export const MENU_POKEMON = {
+  pikachu: { cell: 25, left: 10, top: 8, width: 21, height: 20 },
+  eternamaxEternatus: { cell: 1396, left: 1, top: 0, width: 38, height: 30 },
+  falinks: { cell: 870, left: 5, top: 4, width: 31, height: 23 },
+  porygon: { cell: 137, left: 11, top: 10, width: 19, height: 18 },
+  megaStarmie: { cell: 1406, left: 8, top: 4, width: 22, height: 24 },
+  unownQuestion: { cell: 1041, left: 14, top: 7, width: 11, height: 21 },
+  unownExclamation: { cell: 1040, left: 14, top: 8, width: 10, height: 20 },
+} as const satisfies Record<string, MenuPokemon>
+
+/**
+ * A menu Pokémon's drawing alone: its cell, cut down to the drawing. A cell
+ * holds its drawing with empty sides, and not all at the same height; cut
+ * down, every drawing can be put about the same point, standing on the same
+ * line.
+ */
+export function menuPokemonCell(pokemon: MenuPokemon): SheetCell {
+  const cell = pokemonIconCell(pokemon.cell)
+  return { ...cell, x: cell.x + pokemon.left, y: cell.y + pokemon.top, width: pokemon.width, height: pokemon.height }
+}
+
 /**
  * An item's icon: a 24×24 cell of Showdown's sheet (sixteen per row), or
  * PokéAPI's own image for items Showdown lacks. PokéAPI's images are 30×30,

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
+import { Account } from '../../features/account/Account'
 import { Credits } from '../../features/credits/Credits'
 import { Home } from '../../features/home/Home'
 import { LoadingScreen } from '../../features/home/LoadingScreen'
@@ -39,11 +40,11 @@ function Windows() {
 
 /** Three of the app's screens in the app's own frame, to go between as the app does. */
 function Changes() {
-  const [at, setAt] = useState<'loading' | 'home' | 'credits'>('home')
+  const [at, setAt] = useState<'loading' | 'home' | 'account'>('home')
   return (
     <Phone>
       <Note>
-        How a screen changes (decisions 218 and 219). The two screens stay; nothing fades. Press CREDITS, then BACK: the den is the same
+        How a screen changes (decisions 218 and 219). The two screens stay; nothing fades. Press ACCOUNT, then BACK: the den is the same
         screen on both, so it carries on and its rain never stops, while the bottom screen’s pieces fly out and the next ones fly in. The
         title goes up over the top edge; rows go out by the left when going further in and by the right when coming back; a button goes
         by the side it is nearest to. “Loading” has another backdrop on top: black stripes sweep in from both sides, close, and sweep on
@@ -59,20 +60,12 @@ function Changes() {
         </button>
       </div>
       <Device width={412} height={839}>
-        <DualScreenFrame route={at} depth={at === 'credits' ? 1 : 0}>
+        <DualScreenFrame route={at} depth={at === 'account' ? 1 : 0}>
           {at === 'loading' && <LoadingScreen />}
           {at === 'home' && (
-            <Home
-              entries={['characters', 'session', 'campaigns', 'options']}
-              offline={{ status: 'ready', updateAvailable: false, applyUpdate: () => undefined }}
-              titled={false}
-              animated
-              onStart={() => undefined}
-              onOpen={() => undefined}
-              onCredits={() => setAt('credits')}
-            />
+            <Home titled={false} animated onStart={() => undefined} onOpen={(entry) => entry === 'account' && setAt('account')} onUpdate={undefined} />
           )}
-          {at === 'credits' && <Credits onBack={() => setAt('home')} />}
+          {at === 'account' && <Account onBack={() => setAt('home')} />}
         </DualScreenFrame>
       </Device>
     </Phone>
