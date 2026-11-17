@@ -1305,9 +1305,15 @@
   gap: calc(3 * var(--dn-u)) calc(4 * var(--dn-u));
 }
 
-/* A paragraph: every line fills the width, the last one starts at the left (decision 234). */
+/*
+ * A paragraph: every line fills the width, the last one starts at the left
+ * (decision 234). Words are cut at the end of a line, in the language the page
+ * is in, so that a line of the fixed-width font is not stretched by wide gaps.
+ */
 .dn-menu__notice {
   text-align: justify;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 /*

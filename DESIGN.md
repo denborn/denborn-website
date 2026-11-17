@@ -322,6 +322,6 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 231 | CAMPAIGNS carries Eternamax Eternatus, in place of Mega Heatran. |
 | 232 | A menu button's Pokémon is small, and as large and at the same place on every screen; Eternamax Eternatus a little smaller than the others. |
 | 233 | UPDATE has the shape of the old button that offered a new version, pointed at both ends, as large as its cell; Unown is the last letter of its word, as tall as the letters: UPDATE ?, then UPDATE !. |
-| 234 | The notice under the home's menu is a paragraph: justified, the last line from the left. |
+| 234 | The notice under the home's menu is a paragraph: justified, the last line from the left, words cut at the end of a line in the page's language. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.
