@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/assets/sync-sprites.ts && node scripts/data/build-datapack.ts && wrangler types && tsc -b && vite build",
+    "build": "node scripts/assets/restore-public.ts && node scripts/assets/sync-sprites.ts && node scripts/data/build-datapack.ts && wrangler types && tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "wrangler types && tsc -b",
     "lint": "eslint .",

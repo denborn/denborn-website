@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { openHome } from './home.ts'
 
@@ -95,6 +96,18 @@ test('every icon the app names for a phone and for a browser is a picture that i
   expect(named).toEqual(['/icon-192.png', '/icon-512.png', '/icon-maskable-512.png', '/icon-32.png', '/apple-touch-icon.png'])
   // A file that is missing would be answered with the app's own page: its type tells.
   for (const src of named) expect((await page.request.get(src)).headers()['content-type'], src).toBe('image/png')
+})
+
+// Workers Builds once put an old public/ back over the commit: the live site served the den's icons long after the ball had
+// replaced them (decision 209). Run against the live site, this tells.
+const PUBLIC = new URL('../../public/', import.meta.url)
+
+test('every file of public/ is served as the repository has it', async ({ request }) => {
+  const files = readdirSync(PUBLIC, { withFileTypes: true }).filter((entry) => entry.isFile() && !entry.name.startsWith('.'))
+  for (const { name } of files) {
+    const served = await (await request.get(`/${name}`)).body()
+    expect(served.equals(readFileSync(new URL(name, PUBLIC))), name).toBe(true)
+  }
 })
 
 test('a frame makes the round trip through the Worker and Durable Object', async ({ page }) => {

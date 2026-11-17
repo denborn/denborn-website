@@ -1305,8 +1305,9 @@
   gap: calc(3 * var(--dn-u)) calc(4 * var(--dn-u));
 }
 
+/* A paragraph: every line fills the width, the last one starts at the left (decision 234). */
 .dn-menu__notice {
-  text-align: center;
+  text-align: justify;
 }
 
 /*

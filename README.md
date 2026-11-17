@@ -52,7 +52,7 @@ pnpm storybook        # the design system's board, on http://localhost:6006 (nee
 node scripts/engine-probes/hit-fainted.mjs   # what the unmodified engine does (also action-layer, snapshot-restore)
 ```
 
-Deploys are not run by hand: Cloudflare builds and deploys every push to `main` (Workers Builds, project `denborn-website`). To run the browser tests against the live site: `E2E_BASE_URL=https://<the deployed URL> pnpm test:e2e`.
+Deploys are not run by hand: Cloudflare builds and deploys every push to `main` (Workers Builds, project `denborn-website`). Workers Builds may put an old `public/` back over the commit; the build's first step restores it as committed (`scripts/assets/restore-public.ts`). To run the browser tests against the live site: `E2E_BASE_URL=https://<the deployed URL> pnpm test:e2e`.
 
 The first end-to-end run needs a browser: `pnpm exec playwright install chromium`.
 
