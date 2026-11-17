@@ -47,13 +47,13 @@ function HomeScreen(args: HomeArgs) {
         on the storm standing still. With <code>title</code> off, the title is already passed, as when coming back from another screen.
       </Note>
       <Note>
-        The menu (decisions 221 to 224, 230 to 233) is a grid of four rows of two. Its buttons are plates in the colours of their Pokémon: two
+        The menu (decisions 221 to 224, 230 to 233, 235, 237) is a grid of four rows of two. Its buttons are plates in the colours of their Pokémon: two
         flat halves, the upper one a shade lighter, a faint checker on the lower one, in a party slot's rim; under each Pokémon, a round
         shadow, as on the field.
         Everything starts from the left: the Pokémon, in a place that is the same on every button and on every screen, in whose middle it stands on the bottom, then one word: CHARACTERS with Pikachu, CAMPAIGNS with Eternamax
         Eternatus, JOIN with Falinks, OPTIONS with Porygon, ACCOUNT with Mega Starmie. UPDATE alone has the options screen’s shape, pointed
-        at both ends, its word in the middle and Unown as its last letter, as tall as the capitals (decision 233). It cannot be pressed, and
-        reads UPDATE ?, until a new version waits: with <code>update</code> on, it reads UPDATE ! and the button is lit (decision 222). The fourth row is empty; the notice is a line under the grid. The credits and the state of the offline cache are in
+        at both ends, its word in the middle and Unown as its last letter, as large as the other Pokémon and centred on the capitals (decisions 233, 235 and 237). It cannot be pressed, and
+        reads UPDATE ?, until a new version waits: switch <code>update</code> on and Unown pops up as an exclamation mark, UPDATE !, and the button is lit (decision 222). The fourth row is empty; the notice is a line under the grid. The credits and the state of the offline cache are in
         the Options only. Hold a button down: it sinks and lights up, its rim turns white and its Pokémon hops off its shadow; let go, and it springs back
         (decision 224). The colours are Denborn’s own, from colours measured elsewhere, and are to be judged here. Set{' '}
         <code>width</code> to 320 for a small phone’s window (320 × 568); the other is a phone’s, 412 × 839. The two screens are whole in

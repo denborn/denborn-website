@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type ReactNode, useId } from 'react'
+import { type ButtonHTMLAttributes, type CSSProperties, type ReactNode, useId, useState } from 'react'
 import type { MenuPokemon } from '../data/sprites'
 import { fitScale } from './pixel'
 import { MenuPokemonIcon } from './sprites'
@@ -50,6 +50,11 @@ export interface MenuButtonProps extends ButtonProps {
  */
 const MENU_POKEMON_SIZE = { scale: 0.8, widest: 27 } as const
 
+/** The size of one pixel of a menu Pokémon's drawing, in DS pixels: the same on every button, a wide one a little smaller. */
+function menuPokemonScale(pokemon: MenuPokemon): number {
+  return fitScale(MENU_POKEMON_SIZE.scale, pokemon.width, MENU_POKEMON_SIZE.widest)
+}
+
 /**
  * A button of the main menu (decisions 221 and 230): a plate in the colours of
  * its Pokémon, with one word. Everything starts from the left: the Pokémon, in
@@ -67,7 +72,7 @@ export function MenuButton({ tone, pokemon, children, ...rest }: MenuButtonProps
       <span className="dn-menu-button__pokemon">
         <span className="dn-menu-button__body">
           <span className="dn-menu-button__shadow" />
-          <MenuPokemonIcon pokemon={pokemon} scale={fitScale(MENU_POKEMON_SIZE.scale, pokemon.width, MENU_POKEMON_SIZE.widest)} />
+          <MenuPokemonIcon pokemon={pokemon} scale={menuPokemonScale(pokemon)} />
         </span>
       </span>
       <span className="dn-menu-button__label dn-text-shadow">{children}</span>
@@ -82,16 +87,27 @@ const MENU_CAPITALS = 10
  * The main menu's one button in the options screen's shape (decision 233),
  * pointed at both ends and as large as its cell; its colours, its plate and
  * its press are those of the others. Its Pokémon is the last letter of its
- * word, as tall as the capitals: Unown as a question mark or as an
- * exclamation mark ends the sentence.
+ * word, as large as on the other buttons and centred on the capitals
+ * (decision 237): Unown as a question mark or as an exclamation mark ends the
+ * sentence. One that takes the place of the first pops up, as the games' "!"
+ * does over a head.
  */
 export function PointedMenuButton({ tone, pokemon, children, ...rest }: MenuButtonProps) {
+  const [first] = useState(pokemon.cell)
+  const scale = menuPokemonScale(pokemon)
+  // Centred on the capitals: it goes as far below their line as it rises above them, in DS pixels.
+  const drop = (pokemon.height * scale - MENU_CAPITALS) / 2
   return (
     <button type="button" className={`dn-slot dn-menu-button dn-menu-button--pointed dn-menu-button--${tone}`} {...rest}>
       <span className="dn-menu-button__label dn-text-shadow">
         {children}{' '}
-        <span className="dn-menu-button__letter">
-          <MenuPokemonIcon pokemon={pokemon} scale={MENU_CAPITALS / pokemon.height} />
+        {/* Another Pokémon is another letter: it is drawn anew, not changed in place. */}
+        <span
+          key={pokemon.cell}
+          className={`dn-menu-button__letter${pokemon.cell === first ? '' : ' dn-menu-button__letter--new'}`}
+          style={{ '--dn-letter-drop': drop } as CSSProperties}
+        >
+          <MenuPokemonIcon pokemon={pokemon} scale={scale} />
         </span>
       </span>
     </button>

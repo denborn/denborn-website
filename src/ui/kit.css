@@ -1466,10 +1466,32 @@
   flex: none;
 }
 
-/* Its Pokémon is the last letter of its word: as tall as the capitals, standing on the line they stand on. */
+/*
+ * Its Pokémon is the last letter of its word: as large as on the other
+ * buttons, centred on the capitals (decision 237), as far below their line as
+ * it rises above them (`--dn-letter-drop`, in DS pixels: controls.tsx). Taller
+ * than the letters, it takes no height on the line: its top margin takes back
+ * as much as a Pokémon's place is high, and it is moved down without moving
+ * anything else, so the word stands where the other buttons' words do.
+ */
 .dn-menu-button__letter > .dn-icon {
+  position: relative;
+  top: calc(var(--dn-letter-drop) * var(--dn-u));
   vertical-align: baseline;
+  margin-top: calc(-24 * var(--dn-u));
   transition: transform var(--dn-quick) var(--dn-ease-snap);
+}
+
+/* One that takes the place of the first pops up, as the games' "!" does over a head. Only before it ends, so the press's hop still works. */
+.dn-menu-button__letter--new > .dn-icon {
+  transform-origin: 50% 100%;
+  animation: dn-letter-pop var(--dn-move) var(--dn-ease-snap) backwards;
+}
+
+@keyframes dn-letter-pop {
+  from {
+    transform: translateY(calc(-6 * var(--dn-u))) scale(0.3);
+  }
 }
 
 /* --- Forms and lists: the pieces of a menu page ------------------------------------ */

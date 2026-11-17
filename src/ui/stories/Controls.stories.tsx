@@ -58,7 +58,7 @@ function Controls() {
           stands on the bottom, over its round shadow, so that a small one and a large one are about the same point, on one line. Blue is the party slot’s own; the other colours are Denborn’s own, from
           colours measured elsewhere. Hold one down: it sinks and lights up, its rim turns white and its Pokémon hops off its shadow; let
           go, and it springs back. The grey pair is UPDATE’s (decision 233): the options screen’s shape, pointed at both ends, as large as
-          its cell, with its Pokémon as the last letter of its word, as tall as the capitals; the second cannot be pressed.
+          its cell, with its Pokémon as the last letter of its word, as large as on the other buttons and centred on the capitals (decisions 235 and 237); the second cannot be pressed.
         </Note>
         <Screen kind="menu" label="Menu buttons">
           <div className="dn-menu">

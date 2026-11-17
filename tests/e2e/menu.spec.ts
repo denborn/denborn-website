@@ -58,19 +58,35 @@ test('UPDATE cannot be pressed while no new version waits, and ACCOUNT opens its
   await expect(page.getByRole('button', { name: 'ACCOUNT', exact: true })).toBeVisible()
 })
 
-test('UPDATE’s Unown is the last letter of its word, as tall as its capitals (decision 233)', async ({ page }) => {
+/** How large the icon sheet is drawn behind one of its icons. */
+async function sheetSize(icon: Locator): Promise<string> {
+  const size = /background-size:\s*([^;]+)/.exec((await icon.getAttribute('style')) ?? '')?.[1]
+  if (!size) throw new Error('An icon of the home’s menu has no sheet behind it.')
+  return size
+}
+
+test('UPDATE’s Unown is the last letter of its word, as large as the other buttons’ Pokémon (decision 233)', async ({ page }) => {
   await openHome(page)
   await settled(page)
-  const screen = await boxOf(page.getByRole('region', { name: 'Denborn' }).last())
-  const button = await boxOf(page.getByRole('button', { name: 'UPDATE', exact: true }))
-  const word = await boxOf(page.getByRole('button', { name: 'UPDATE', exact: true }).locator('.dn-menu-button__label'))
-  const unown = await boxOf(page.getByRole('button', { name: 'UPDATE', exact: true }).locator('.dn-icon'))
+  const update = page.getByRole('button', { name: 'UPDATE', exact: true })
+  const button = await boxOf(update)
+  const word = await boxOf(update.locator('.dn-menu-button__label'))
+  const unown = await boxOf(update.locator('.dn-icon'))
 
   // The word is in the middle of its button, and Unown ends it.
   expect(word.x + word.width / 2).toBeCloseTo(button.x + button.width / 2, 0)
   expect(unown.x + unown.width).toBeCloseTo(word.x + word.width, 0)
-  // As tall as the capitals: 10 of the screen's 256 DS pixels across.
-  expect(Math.abs(unown.height - (10 * screen.width) / 256)).toBeLessThanOrEqual(1)
+  // Drawn at the same size as JOIN's Pokémon: both are cut from one sheet, so the sheet is drawn as large behind both.
+  const join = page.getByRole('button', { name: 'JOIN', exact: true })
+  expect(await sheetSize(update.locator('.dn-icon'))).toBe(await sheetSize(join.locator('.dn-icon')))
+  // Taller than the letters, Unown does not push its word down: the word stands as high in its button as JOIN's does.
+  const joinButton = await boxOf(join)
+  const joinWord = await boxOf(join.locator('.dn-menu-button__label'))
+  expect(word.y - button.y).toBeCloseTo(joinWord.y - joinButton.y, 0)
+  expect(word.height).toBeCloseTo(joinWord.height, 0)
+  // Centred on the capitals (decision 237): its middle is the word's, within half of one of the screen's 256 DS pixels.
+  const screen = await boxOf(page.getByRole('region', { name: 'Denborn' }).last())
+  expect(Math.abs(unown.y + unown.height / 2 - (word.y + word.height / 2))).toBeLessThanOrEqual(screen.width / 256 / 2)
 })
 
 test('a button held down sinks, and comes back up when it is let go', async ({ page }) => {
