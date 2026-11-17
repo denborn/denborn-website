@@ -1,12 +1,14 @@
-import { Component, type ComponentType, type ReactNode, Suspense, lazy, useEffect, useRef } from 'react'
-import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useNavigate } from 'react-router'
+import { Component, type ComponentType, type ReactNode, Suspense, lazy, useEffect } from 'react'
+import { NavigationType, Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useNavigate, useNavigationType } from 'react-router'
 import { usePack } from '../data/use-pack'
+import { DEN, DenScreen } from '../features/home/DenScreen'
 import { LoadingScreen } from '../features/home/LoadingScreen'
 import { useMessages } from '../i18n'
 import { useOfflineStatus } from '../pwa/use-offline-status'
 import { decodeCreationCode } from '../shared/codec/codes'
 import { joinCodeIn } from '../shared/protocol/room-code'
-// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from brings only the pieces it shows.
+import { DualScreen, DualScreenFrame } from '../ui/DualScreen'
 import { Screen } from '../ui/Screen'
 import { OptionButton } from '../ui/controls'
 import { incomingKind } from './incoming-link'
@@ -51,18 +53,21 @@ const JoinSessionPage = onDemand(session, 'JoinSessionPage')
 function LoadFailed() {
   const messages = useMessages()
   return (
-    <Screen kind="menu" label={messages.nav.failed} tall>
-      <div className="dn-stack">
-        <p className="dn-note dn-note--error" role="alert">
-          {messages.nav.failed}
-        </p>
-        <div className="dn-row">
-          <OptionButton primary onClick={() => window.location.reload()}>
-            {messages.nav.retry}
-          </OptionButton>
+    <DualScreen>
+      <DenScreen key={DEN} label={messages.nav.failed} />
+      <Screen kind="menu" label={messages.nav.failed} scrolls>
+        <div className="dn-stack">
+          <p className="dn-note dn-note--error" role="alert">
+            {messages.nav.failed}
+          </p>
+          <div className="dn-row">
+            <OptionButton primary onClick={() => window.location.reload()}>
+              {messages.nav.retry}
+            </OptionButton>
+          </div>
         </div>
-      </div>
-    </Screen>
+      </Screen>
+    </DualScreen>
   )
 }
 
@@ -122,19 +127,6 @@ function IncomingLink() {
   return null
 }
 
-/** On a new page, focus goes to its title: a keyboard starts from the top, a screen reader says where it is. */
-function FocusOnNavigation() {
-  const { pathname } = useLocation()
-  const shown = useRef(pathname)
-  useEffect(() => {
-    // Only once the page has changed: on the one a visit opens on, the focus stays where the browser put it.
-    if (shown.current !== pathname) document.querySelector<HTMLElement>('[data-page-heading]')?.focus()
-    shown.current = pathname
-    window.scrollTo(0, 0)
-  }, [pathname])
-  return null
-}
-
 /** The title screen belongs to the home: leaving the home some other way than by its one tap, on a link's code for one, passes it too. */
 function TitleEndsOffHome() {
   const { pathname } = useLocation()
@@ -153,17 +145,23 @@ function OfflineProvider({ children }: { children: ReactNode }) {
 }
 
 function Shell() {
+  const location = useLocation()
+  // Which way the screens move when the address changes: back for a move back through the visit's history, or to an address less far in.
+  const depth = location.pathname.split('/').filter(Boolean).length
+  const returning = useNavigationType() === NavigationType.Pop
   return (
     <OfflineProvider>
       <TitleGateContext value={titleGate}>
-        <main className="app dn-root">
+        <main className="app dn-device dn-root">
           <LoadBoundary>
-            <Suspense fallback={<LoadingScreen />}>
-              <IncomingLink />
-              <FocusOnNavigation />
-              <TitleEndsOffHome />
-              <Outlet />
-            </Suspense>
+            {/* The two screens stay while pages come and go: each page only says what they show (decision 218). */}
+            <DualScreenFrame route={location.key} depth={depth} returning={returning}>
+              <Suspense fallback={<LoadingScreen />}>
+                <IncomingLink />
+                <TitleEndsOffHome />
+                <Outlet />
+              </Suspense>
+            </DualScreenFrame>
           </LoadBoundary>
         </main>
       </TitleGateContext>

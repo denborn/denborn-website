@@ -34,7 +34,10 @@ test('each start of the app opens on the title screen, and one tap during its in
 
 test('a tap on the top screen passes the title too, and the keyboard passes it with the button', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('region', { name: 'Denborn' }).first().click()
+  // Both screens of the home are there: the first of them is the top one.
+  const screens = page.getByRole('region', { name: 'Denborn' })
+  await expect(screens).toHaveCount(2)
+  await screens.first().click()
   await expect(firstWayIn(page)).toBeVisible()
 
   await page.reload()

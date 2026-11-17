@@ -4,7 +4,7 @@ import type { DataPack } from '../../data/types'
 import { useBattleText } from '../../data/use-battle-text'
 import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
-import { FieldPlan, type FieldTile, ItemIconImage, NumberField, OptionButton, PokemonIcon, Screen, Slot, StepHeader, TypeLabel } from '../../ui'
+import { DualScreen, FieldPlan, type FieldTile, ItemIconImage, NumberField, OptionButton, PokemonIcon, Screen, Slot, StepHeader, TypeLabel } from '../../ui'
 import type { Choice, FightCommand, TableView } from './fight'
 import { effectsOf } from './effects'
 import { type Fighter, clockText, fightersOf } from './fighters'
@@ -353,26 +353,24 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
   const order = table.order.flatMap((id) => byId(id) ?? []).map((fighter, index) => `${index + 1} ${fighter.name}`)
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="menu" label={battle.field.battlefield}>
-          <FieldPlan
-            foes={foes.map(tile)}
-            allies={allies.map(tile)}
-            shown={open ? [open.id] : []}
-            onSelect={(id) => {
-              const fighter = byId(id)
-              if (fighter) pick(fighter)
-            }}
-            labels={{ foes: battle.field.foes, allies: battle.field.party }}
-            ground={<p className="dn-field__hint">{hint}</p>}
-          >
-            <span />
-            {picking ? <OptionButton onClick={() => set({ picking: undefined, addingExtra: false })}>{text.cancel}</OptionButton> : <span />}
-          </FieldPlan>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={open?.name ?? table.encounter.name} tall>
+    <DualScreen>
+      <Screen kind="menu" label={battle.field.battlefield}>
+        <FieldPlan
+          foes={foes.map(tile)}
+          allies={allies.map(tile)}
+          shown={open ? [open.id] : []}
+          onSelect={(id) => {
+            const fighter = byId(id)
+            if (fighter) pick(fighter)
+          }}
+          labels={{ foes: battle.field.foes, allies: battle.field.party }}
+          ground={<p className="dn-field__hint">{hint}</p>}
+        >
+          <span />
+          {picking ? <OptionButton onClick={() => set({ picking: undefined, addingExtra: false })}>{text.cancel}</OptionButton> : <span />}
+        </FieldPlan>
+      </Screen>
+      <Screen kind="menu" label={open?.name ?? table.encounter.name} scrolls>
         <StepHeader title={open ? `${open.letter} · ${open.name}` : `${table.encounter.name} · ${choosing.round(table.round)}`} />
         <div className="dn-stack">
           {table.outcome && (
@@ -464,6 +462,6 @@ export function GmConsole({ pack, table, party, away, onCommand, onEnd, children
           </div>
         )}
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

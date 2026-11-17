@@ -246,7 +246,9 @@ body {
   align-items: start;
 }
 
-/* A phone's height, for a page of two screens shown whole on the board. */
-.sb-device .dn-page {
-  min-height: 760px;
+/* A window of the app, shown whole on the board, with a line where it ends. Its size is the story's. */
+.sb-device {
+  flex: none;
+  max-width: 100%;
+  outline: 1px solid #3a3a4d;
 }

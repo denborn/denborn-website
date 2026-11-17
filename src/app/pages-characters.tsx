@@ -8,6 +8,7 @@ import { usePack } from '../data/use-pack'
 import { CharacterList } from '../features/characters/CharacterList'
 import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
 import { CreationFlow } from '../features/creation/CreationFlow'
+import { DEN, DenScreen } from '../features/home/DenScreen'
 import { ImportCharacter } from '../features/import/ImportCharacter'
 import { QrCamera } from '../features/import/QrCamera'
 import { type Device, readIncomingCode, readIncomingFile } from '../features/import/incoming'
@@ -23,7 +24,7 @@ import { saveToDevice, textOfPickedFile } from '../storage/browser'
 import { characterFile, storedCharacterFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
-import { OptionButton, Panel, Screen, StepHeader } from '../ui'
+import { DualScreen, OptionButton, Panel, Screen, StepHeader } from '../ui'
 import { useLibrary } from './library-store'
 import { sessionKeys } from './session-keys'
 import { usePageTitle } from './page-title'
@@ -190,8 +191,9 @@ export function CreateCharacterPage() {
 
   if (!invitation) {
     return (
-      <div className="dn-page">
-        <Screen kind="menu" label={messages.creation.title} tall>
+      <DualScreen>
+        <DenScreen key={DEN} label={messages.creation.title} />
+        <Screen kind="menu" label={messages.creation.title} scrolls>
           <StepHeader title={messages.creation.title} />
           <div className="dn-stack">
             <p className="dn-note dn-note--error">{messages.newCharacter.unknownCampaign}</p>
@@ -200,15 +202,16 @@ export function CreateCharacterPage() {
             <OptionButton onClick={() => void navigate('/characters/new')}>{messages.nav.back}</OptionButton>
           </div>
         </Screen>
-      </div>
+      </DualScreen>
     )
   }
 
   // The device could not keep the new character: its file is offered before anything else.
   if (unsaved) {
     return (
-      <div className="dn-page">
-        <Screen kind="menu" label={messages.creation.title} tall>
+      <DualScreen>
+        <DenScreen key={DEN} label={messages.creation.title} />
+        <Screen kind="menu" label={messages.creation.title} scrolls>
           <StepHeader title={messages.creation.review.created(unsaved.character.nickname)} />
           <div className="dn-stack">
             <Panel>
@@ -226,7 +229,7 @@ export function CreateCharacterPage() {
             <OptionButton onClick={() => void navigate('/characters')}>{messages.saving.carryOn}</OptionButton>
           </div>
         </Screen>
-      </div>
+      </DualScreen>
     )
   }
 

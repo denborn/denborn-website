@@ -43,7 +43,7 @@
   }
 
   /* The screens stay off the paper when a page has a sheet to print. */
-  body:has(.dn-paper) .dn-page {
+  body:has(.dn-paper) .dn-dual {
     display: none;
   }
 }

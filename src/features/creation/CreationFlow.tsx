@@ -1,9 +1,9 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useId, useReducer, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import type { Invitation } from '../../shared/codec/codes'
 import type { CharacterDocument } from '../../shared/schema/character'
-import { OptionButton, Screen, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, Screen, StepHeader } from '../../ui'
 import { AttributesStep } from './AttributesStep'
 import { IdentityStep } from './IdentityStep'
 import { ItemsStep } from './ItemsStep'
@@ -42,16 +42,9 @@ export function CreationFlow({ invitation, pack, newId, onLeave, onCreate }: Cre
   const context = { pack, rules }
   const [draft, send] = useReducer((current: CreationDraft, choice: DraftChoice) => choose(current, choice, { pack, rules }), emptyDraft)
   const [at, setAt] = useState(0)
-  const heading = useRef<HTMLHeadingElement>(null)
+  const own = useId()
   const step = STEPS[at] ?? 'species'
   const last = at === STEPS.length - 1
-
-  // On a new step, focus goes to its title: a keyboard starts from the top, a screen reader says where it is.
-  const first = useRef(true)
-  useEffect(() => {
-    if (first.current) first.current = false
-    else heading.current?.focus()
-  }, [at])
 
   const titles: Record<StepId, string> = {
     species: text.species.title,
@@ -71,14 +64,13 @@ export function CreationFlow({ invitation, pack, newId, onLeave, onCreate }: Cre
   }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.preview}>
-          <Preview pack={pack} draft={draft} level={rules.startingLevel} view={VIEW[step]} language={language} text={text} levelText={messages.battle.level} />
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
-        <StepHeader title={titles[step]} count={text.step(at + 1, STEPS.length)} headingRef={heading} />
+    <DualScreen depth={at}>
+      <Screen kind="scene" label={text.preview}>
+        <Preview pack={pack} draft={draft} level={rules.startingLevel} view={VIEW[step]} language={language} text={text} levelText={messages.battle.level} />
+      </Screen>
+      {/* Each step is a screen of its own under the same preview: it fades in from its top, and its title takes the focus. */}
+      <Screen key={`${own} ${step}`} kind="menu" label={text.title} scrolls>
+        <StepHeader title={titles[step]} count={text.step(at + 1, STEPS.length)} />
         {step === 'species' && <SpeciesStep pack={pack} rules={rules} draft={draft} language={language} text={text.species} onChoose={(species) => send({ choose: 'species', species })} />}
         {step === 'identity' && <IdentityStep pack={pack} rules={rules} draft={draft} problems={identityProblems(draft, context)} language={language} text={text.identity} onChoose={send} />}
         {step === 'attributes' && <AttributesStep draft={draft} level={rules.startingLevel} text={text} onChoose={send} />}
@@ -95,6 +87,6 @@ export function CreationFlow({ invitation, pack, newId, onLeave, onCreate }: Cre
           </OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

@@ -3,10 +3,12 @@ import { loadDataPack } from '../../data/pack'
 import { LANGUAGES, setLanguage, useLanguage, useMessages } from '../../i18n'
 import { probeRelay } from '../../network/relay-probe'
 import type { OfflineState } from '../../pwa/use-offline-status'
-// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from brings only the pieces it shows.
+import { DualScreen } from '../../ui/DualScreen'
 import { Screen } from '../../ui/Screen'
 import { OptionButton } from '../../ui/controls'
 import { StepHeader } from '../../ui/forms'
+import { DEN, DenScreen } from '../home/DenScreen'
 import { TEXT_SPEEDS, setTextSpeed, useTextSpeed } from './text-speed'
 import { TITLE_ANIMATIONS, setTitleAnimation, useTitleAnimation } from './title-animation'
 
@@ -77,8 +79,9 @@ export function Options({ offline, onCredits, onBack }: OptionsProps) {
   const engineText = { idle: '', checking: t.system.engineChecking, ok: engine.state === 'ok' ? t.system.engineOk(engine.rounds, engine.ms) : '', failed: t.system.engineFailed }[engine.state]
 
   return (
-    <div className="dn-page">
-      <Screen kind="menu" label={t.options.title} tall>
+    <DualScreen>
+      <DenScreen key={DEN} label={t.options.title} />
+      <Screen kind="menu" label={t.options.title} scrolls>
         <StepHeader title={t.options.title} />
         <div className="dn-stack">
           <div role="radiogroup" aria-label={t.language.label} className="dn-entry">
@@ -170,6 +173,6 @@ export function Options({ offline, onCredits, onBack }: OptionsProps) {
           <OptionButton onClick={onBack}>{t.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

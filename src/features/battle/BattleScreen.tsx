@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useId, useMemo, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { useBattleText } from '../../data/use-battle-text'
 import { useLanguage, useMessages } from '../../i18n'
@@ -7,9 +7,10 @@ import type { CharacterDocument } from '../../shared/schema/character'
 import {
   AbilityBand,
   Battler,
-  type BattlerHandle,
+  type BattlerCue,
   CommandMenu,
   CornerButton,
+  DualScreen,
   FieldEffects,
   FieldPlan,
   type FieldTile,
@@ -28,7 +29,7 @@ import { TEXT_PACE, useTextSpeed } from '../options/text-speed'
 import { FighterSheet, statusOf } from './FighterSheet'
 import { effectsOf, groundOf } from './effects'
 import { type Fighter, clockText, fightersOf, reaches } from './fighters'
-import { abilityShownAt, roundScript, sentence, standingAfter } from './round-script'
+import { type Step, abilityShownAt, roundScript, sentence, standingAfter } from './round-script'
 import { useCountdown } from './use-countdown'
 import { type Wording, choiceWords, effectWords, moveName as moveNameIn, tellingOf } from './words'
 
@@ -71,6 +72,13 @@ const HOME: View = { at: 'home' }
 /** Under this much time, the clock turns red. */
 const LOW_TIME_MS = 10_000
 
+/** What a step of the round has one Pokémon of the scene do, when it has it do anything. */
+function cueOf(motion: Step['motion'], id: string | undefined, beat: string): BattlerCue | undefined {
+  if (!motion || id === undefined) return undefined
+  if (motion.attack === id) return { move: 'attack', beat }
+  return motion.hit === id ? { move: 'hit', beat } : undefined
+}
+
 /**
  * A fight on a player's phone (decisions 87 to 94): the scene on the top
  * screen, one foe and one ally at a time, and on the touch screen whatever
@@ -84,6 +92,7 @@ const LOW_TIME_MS = 10_000
  */
 export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent }: BattleScreenProps) {
   const language = useLanguage()
+  const own = useId()
   const messages = useMessages()
   const battle = messages.battle
   const words = battle.field
@@ -110,8 +119,6 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       clearTimeout(next)
     }
   }, [step, toldSteps, fight.last.round, pace])
-  const foeSprite = useRef<BattlerHandle>(null)
-  const allySprite = useRef<BattlerHandle>(null)
 
   // What the player opened lasts for the round it was opened in.
   const [opened, setOpened] = useState<{ round: number; view: View }>({ round: fight.round, view: HOME })
@@ -167,14 +174,9 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
   const foeId = foe?.id
   const allyId = ally?.id
   // The sprites play what the step says happened: the one acting lunges, the one hit recoils.
-  useEffect(() => {
-    const motion = step?.motion
-    if (!motion) return
-    for (const [id, sprite] of [[foeId, foeSprite.current], [allyId, allySprite.current]] as const) {
-      if (id !== undefined && motion.attack === id) void sprite?.attack()
-      if (id !== undefined && motion.hit === id) void sprite?.hit()
-    }
-  }, [step, foeId, allyId])
+  const beat = `${fight.last.round} ${toldSteps}`
+  const foeCue = cueOf(step?.motion, foeId, beat)
+  const allyCue = cueOf(step?.motion, allyId, beat)
   const bring = (fighter: Fighter): void => {
     const now = fighter.side === 'enemies' ? foe : ally
     const from = now && fighter.position < now.position ? 'left' : 'right'
@@ -360,10 +362,11 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
     )
   }
 
-  const touch = ((): { kind: 'touch' | 'menu'; content: ReactNode } => {
+  const touch = ((): { name: string; kind: 'touch' | 'menu'; content: ReactNode } => {
     // While the round is told: what was said so far, and the way to pass it.
     if (playing) {
       return {
+        name: 'told',
         kind: 'menu',
         content: (
           <div className="dn-roster">
@@ -388,6 +391,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         intend({ do: 'answer', kind: askToMe.kind, from: askToMe.from, accept })
       }
       return {
+        name: 'ask',
         kind: 'menu',
         content: (
           <div className="dn-ask">
@@ -409,8 +413,9 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       case 'home':
       case 'party': {
         // With nothing to choose, or once locked, the touch screen is the party's list.
-        if (view.at === 'party' || !canChoose || locked) return { kind: 'menu', content: roster() }
+        if (view.at === 'party' || !canChoose || locked) return { name: 'party', kind: 'menu', content: roster() }
         return {
+          name: 'home',
           kind: 'touch',
           content: (
             <CommandMenu labels={battle.commands} disabled={pending ? ['fight', 'bag', 'run', 'switch'] : []} onCommand={(command) => show({ at: command === 'fight' ? 'moves' : command })}>
@@ -443,6 +448,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       }
       case 'moves':
         return {
+          name: 'moves',
           kind: 'touch',
           content: (
             <div className="dn-moves">
@@ -480,6 +486,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       case 'target': {
         const targets = request?.moves.find((option) => option.id === view.move)?.targets ?? []
         return {
+          name: view.at,
           kind: 'menu',
           content: picker(
             text.target(moveName(view.move)),
@@ -491,6 +498,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       case 'allySwitch': {
         const { first } = view
         return {
+          name: view.at,
           kind: 'menu',
           content: picker(
             first ? text.allySwitchSecond : text.allySwitchFirst,
@@ -528,6 +536,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
             </li>
           ))
         return {
+          name: view.at,
           kind: 'menu',
           content: (
             <div className="dn-roster">
@@ -557,6 +566,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         const item = pack.items[view.item]
         const oneMove = item?.bag?.restorePp?.scope === 'one'
         return {
+          name: view.at,
           kind: 'menu',
           content: picker(
             text.itemTarget(item?.name[language] ?? view.item),
@@ -572,6 +582,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       case 'bagMove': {
         const target = byId(view.target)
         return {
+          name: view.at,
           kind: 'menu',
           content: (
             <div className="dn-roster">
@@ -608,6 +619,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         const offered = (fighter: Fighter): boolean =>
           !ask && !pending && fighter.side === 'players' && fighter.id !== me && (kind === 'run' ? fighter.state !== 'downed' : fighter.state === 'standing')
         return {
+          name: view.at,
           kind: 'menu',
           content: picker(
             ask ? text.asked(nameOf(ask.to)) : kind === 'run' ? text.run : text.switch,
@@ -627,6 +639,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
       }
       case 'field':
         return {
+          name: view.at,
           kind: 'menu',
           content: (
             <FieldPlan
@@ -653,6 +666,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         }
       case 'effects':
         return {
+          name: view.at,
           kind: 'menu',
           content: (
             <FieldEffects effects={effects} label={words.effects} empty={words.noEffects}>
@@ -662,19 +676,19 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         }
       case 'sheet': {
         const fighter = byId(view.id)
-        if (!fighter) return { kind: 'menu', content: null }
-        return { kind: 'menu', content: <FighterSheet pack={pack} fighter={fighter} language={language} messages={messages} onBack={() => show({ at: 'field' })} /> }
+        if (!fighter) return { name: view.at, kind: 'menu', content: null }
+        return { name: view.at, kind: 'menu', content: <FighterSheet pack={pack} fighter={fighter} language={language} messages={messages} onBack={() => show({ at: 'field' })} /> }
       }
     }
   })()
 
   return (
-    <>
+    <DualScreen depth={touch.name === 'home' ? 0 : 1}>
       <Screen kind="scene" label={fight.encounter.name}>
         {foe && (
           <>
             <div className="dn-scene__spot dn-scene__spot--foe">
-              {foe.species && <Battler key={foe.id} ref={foeSprite} species={foe.species} name={foe.name} side="foe" female={foe.gender === 'F'} pose={foe.state} scale={0.9} enterFrom={scene.foeFrom} />}
+              {foe.species && <Battler key={foe.id} cue={foeCue} species={foe.species} name={foe.name} side="foe" female={foe.gender === 'F'} pose={foe.state} scale={0.9} enterFrom={scene.foeFrom} />}
             </div>
             <div className="dn-scene__box dn-scene__box--foe">{browser(foes, foe, 'foe')}</div>
           </>
@@ -682,7 +696,7 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
         {ally && (
           <>
             <div className="dn-scene__spot dn-scene__spot--ally">
-              {ally.species && <Battler key={ally.id} ref={allySprite} species={ally.species} name={ally.name} side="player" female={ally.gender === 'F'} pose={ally.state} scale={1.1} enterFrom={scene.allyFrom} />}
+              {ally.species && <Battler key={ally.id} cue={allyCue} species={ally.species} name={ally.name} side="player" female={ally.gender === 'F'} pose={ally.state} scale={1.1} enterFrom={scene.allyFrom} />}
             </div>
             <div className="dn-scene__box dn-scene__box--ally">{browser(allies, ally, 'player')}</div>
           </>
@@ -692,9 +706,10 @@ export function BattleScreen({ pack, fight, party, me, answer, notice, onIntent 
           <MessageBox text={message} lettersPerSecond={pace.lettersPerSecond} {...(playing ? { onAdvance: () => setTold({ round: fight.last.round, steps: toldSteps + 1 }), advanceLabel: battle.next } : {})} />
         </div>
       </Screen>
-      <Screen kind={touch.kind} label={battle.commands.fight}>
+      {/* Each thing the touch screen shows is a screen of its own: its buttons fly out and the next ones fly in, as in the games. */}
+      <Screen key={`${own} ${touch.name}`} kind={touch.kind} label={battle.commands.fight}>
         {touch.content}
       </Screen>
-    </>
+    </DualScreen>
   )
 }

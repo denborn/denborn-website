@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useMessages } from '../../i18n'
 import type { CampaignDocument } from '../../shared/schema/campaign'
 import type { WriteResult } from '../../storage/library'
-import { OptionButton, Screen, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, Screen, StepHeader } from '../../ui'
 import type { CampaignProblem, IncomingCampaign, IncomingCampaignResult } from './incoming-campaign'
 
 export interface ImportCampaignProps {
@@ -47,15 +47,13 @@ export function ImportCampaign({ read, textOfFile, onKeep, onOpen, onBack }: Imp
   }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title}>
-          <div className="dn-lineup">
-            <p className="dn-note dn-text-outline">{step.at === 'found' ? step.incoming.campaign.name : text.hint}</p>
-          </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title}>
+        <div className="dn-lineup">
+          <p className="dn-note dn-text-outline">{step.at === 'found' ? step.incoming.campaign.name : text.hint}</p>
+        </div>
+      </Screen>
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         {step.at === 'ask' ? (
           <div className="dn-stack">
@@ -92,7 +90,7 @@ export function ImportCampaign({ read, textOfFile, onKeep, onOpen, onBack }: Imp
           <OptionButton onClick={step.at === 'ask' ? onBack : () => setStep({ at: 'ask' })}>{messages.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 

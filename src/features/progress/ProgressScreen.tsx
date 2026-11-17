@@ -4,7 +4,7 @@ import { sheetNumbers } from '../../domain/sheet'
 import { useLanguage, useMessages } from '../../i18n'
 import type { Party, SheetChange } from '../../shared/protocol/session'
 import type { CampaignRules } from '../../shared/schema/rules'
-import { Screen, StepHeader } from '../../ui'
+import { DualScreen, Screen, StepHeader } from '../../ui'
 import { Preview } from '../creation/Preview'
 import { Portrait } from '../sheet/Portrait'
 import { BagView } from './BagView'
@@ -90,25 +90,23 @@ export function ProgressScreen({ pack, party, view, rules, changed, unreachable,
   const title = text[view].title(mine.nickname)
   const nature = mine.nature
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={mine.nickname}>
-          {view === 'points' ? (
-            <Preview
-              pack={pack}
-              draft={{ species: mine.species, nickname: mine.nickname, gender: mine.gender, ability: mine.ability, attributes: placing.draft.scores, ivs: placing.draft.ivs, evs: placing.draft.evs, moves: [], ...(nature ? { nature } : {}) }}
-              level={mine.level}
-              view={placing.shown}
-              language={language}
-              text={messages.creation}
-              levelText={messages.battle.level}
-            />
-          ) : (
-            numbers && <Portrait pack={pack} character={mine} numbers={numbers} language={language} messages={messages} />
-          )}
-        </Screen>
-      </div>
-      <Screen kind="menu" label={title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={mine.nickname}>
+        {view === 'points' ? (
+          <Preview
+            pack={pack}
+            draft={{ species: mine.species, nickname: mine.nickname, gender: mine.gender, ability: mine.ability, attributes: placing.draft.scores, ivs: placing.draft.ivs, evs: placing.draft.evs, moves: [], ...(nature ? { nature } : {}) }}
+            level={mine.level}
+            view={placing.shown}
+            language={language}
+            text={messages.creation}
+            levelText={messages.battle.level}
+          />
+        ) : (
+          numbers && <Portrait pack={pack} character={mine} numbers={numbers} language={language} messages={messages} />
+        )}
+      </Screen>
+      <Screen kind="menu" label={title} scrolls>
         <StepHeader title={title} />
         {view === 'points' && (
           <PointsView
@@ -144,6 +142,6 @@ export function ProgressScreen({ pack, party, view, rules, changed, unreachable,
           />
         )}
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

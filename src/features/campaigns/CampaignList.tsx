@@ -1,7 +1,7 @@
 import { useMessages } from '../../i18n'
 import type { CampaignDocument } from '../../shared/schema/campaign'
 import type { Stored } from '../../storage/library'
-import { OptionButton, Screen, Slot, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, Screen, Slot, StepHeader } from '../../ui'
 
 export interface CampaignListProps {
   entries: readonly Stored<CampaignDocument>[]
@@ -18,15 +18,13 @@ export function CampaignList({ entries, onBack, onNew, onImport, onOpen }: Campa
   const messages = useMessages()
   const text = messages.campaigns
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title}>
-          <div className="dn-lineup">
-            <p className="dn-note dn-text-outline">{text.hint}</p>
-          </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title}>
+        <div className="dn-lineup">
+          <p className="dn-note dn-text-outline">{text.hint}</p>
+        </div>
+      </Screen>
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">
           {entries.length === 0 && <p className="dn-note">{text.empty}</p>}
@@ -65,6 +63,6 @@ export function CampaignList({ entries, onBack, onNew, onImport, onOpen }: Campa
           </OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

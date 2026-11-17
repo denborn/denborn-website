@@ -10,7 +10,7 @@ import { GRANTED_ITEMS_MAX } from '../../shared/protocol/session'
 import type { CharacterDocument } from '../../shared/schema/character'
 import type { ItemStack } from '../../shared/schema/common'
 import { wholeTyped } from '../../shared/text/plain'
-import { OptionButton, Screen, StepHeader, TextField } from '../../ui'
+import { DualScreen, OptionButton, Screen, StepHeader, TextField } from '../../ui'
 import { StacksEditor } from '../campaigns/StacksEditor'
 import { Portrait } from '../sheet/Portrait'
 
@@ -56,13 +56,11 @@ export function GrantScreen({ pack, character, onGrant, onDone }: GrantScreenPro
   const changes = given !== undefined && purseOk && (given > 0 || purse !== character.money || items.length > 0)
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={character.nickname}>
-          {numbers && <Portrait pack={pack} character={character} numbers={numbers} language={language} messages={messages} />}
-        </Screen>
-      </div>
-      <Screen kind="menu" label={title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={character.nickname}>
+        {numbers && <Portrait pack={pack} character={character} numbers={numbers} language={language} messages={messages} />}
+      </Screen>
+      <Screen kind="menu" label={title} scrolls>
         <StepHeader title={title} />
         <div className="dn-stack">
           <p className="dn-note">{text.hint}</p>
@@ -116,6 +114,6 @@ export function GrantScreen({ pack, character, onGrant, onDone }: GrantScreenPro
           </OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

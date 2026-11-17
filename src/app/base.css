@@ -7,33 +7,41 @@
   background: var(--dn-backdrop);
 }
 
+/* The window does not scroll (decision 214): nothing pulls it, nothing makes it bounce. What is longer than a screen scrolls inside it. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
 }
 
-/* A phone's width, centred on anything wider, clear of the notch and of rounded corners. */
+/* The window the DS is shown in (the kit's .dn-device): all of the device's, clear of the notch, of rounded corners and of the home bar. */
 .app {
-  max-width: 30rem;
-  min-height: 100dvh;
-  margin: 0 auto;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  box-sizing: border-box;
+  height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* The screen that stays at the top stays under the notch, not behind it. */
-.app .dn-page__top {
-  top: env(safe-area-inset-top, 0px);
-}
-
-/* On paper the app is the page: no phone's width, no dark surround. */
+/* On paper the app is the page: no window to fit in, no dark surround, as many sheets as it takes. */
 @media print {
   :root {
     color-scheme: light;
     background: var(--dn-paper);
   }
 
+  html,
+  body {
+    overflow: visible;
+  }
+
   .app {
-    max-width: none;
-    min-height: 0;
+    container-type: normal;
+    display: block;
+    height: auto;
     padding: 0;
+    overflow: visible;
   }
 }

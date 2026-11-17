@@ -73,17 +73,15 @@ export function JoinSessionPage() {
   // A fight takes the whole phone: the scene above, the choices below (decision 147).
   if (state?.at === 'in' && state.fight) {
     return (
-      <div className="dn-page">
-        <BattleScreen
-          pack={pack}
-          fight={state.fight}
-          party={state.party.members.map((member) => member.character)}
-          me={state.party.you}
-          answer={state.answer}
-          notice={!state.linked ? messages.session.join.lineDown : !state.hostThere ? messages.session.join.hostGone : undefined}
-          onIntent={(intent) => run.current?.intend(intent)}
-        />
-      </div>
+      <BattleScreen
+        pack={pack}
+        fight={state.fight}
+        party={state.party.members.map((member) => member.character)}
+        me={state.party.you}
+        answer={state.answer}
+        notice={!state.linked ? messages.session.join.lineDown : !state.hostThere ? messages.session.join.hostGone : undefined}
+        onIntent={(intent) => run.current?.intend(intent)}
+      />
     )
   }
 

@@ -38,6 +38,18 @@ export const TITLE = {
   'rain-fall': 0.6,
 } as const
 
+/**
+ * A screen's change (decision 218), in seconds: the gap between two pieces as
+ * they come in, the shorter one as they go out, and the gap between two
+ * stripes of a wipe. The moves themselves last `move` (coming) and `quick`
+ * (going, and a stripe).
+ */
+export const SCREEN = {
+  piece: 0.03,
+  pieceOut: 0.01,
+  stripe: 0.012,
+} as const
+
 type Bezier = readonly [number, number, number, number]
 
 export const EASE = {

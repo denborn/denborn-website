@@ -44,6 +44,8 @@ test('the sheet prints as a page of its own, in place of the screens', async ({ 
 
   // What the printer gets: the paper sheet with the character on it, and none of the screens.
   await page.emulateMedia({ media: 'print' })
+  // On paper the window is not held to one screen's height: a sheet longer than a page is not cut.
+  await expect(page.getByRole('main')).toHaveCSS('overflow-y', 'visible')
   await expect(paper).toBeVisible()
   await expect(page.getByRole('tablist')).toBeHidden()
   await expect(paper.getByRole('heading', { name: 'Volt' })).toBeVisible()

@@ -49,7 +49,7 @@ export const fr: Messages = {
     textSpeedHint: 'La vitesse à laquelle défilent les messages d’un combat.',
     textSpeeds: { slow: 'LENTE', normal: 'NORMALE', fast: 'RAPIDE' },
     titleAnimation: 'Animation de l’écran titre',
-    titleAnimationHint: 'La pluie et les éclairs du premier écran. Sur NON, la scène reste immobile.',
+    titleAnimationHint: 'La pluie et les éclairs de la tanière. Sur NON, la scène reste immobile.',
     titleAnimations: { on: 'OUI', off: 'NON' },
   },
   characters: {

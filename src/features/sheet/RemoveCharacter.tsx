@@ -1,5 +1,5 @@
 import { useMessages } from '../../i18n'
-import { OptionButton, Screen, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, Screen, StepHeader } from '../../ui'
 import { Portrait } from './Portrait'
 import type { SheetView } from './shown'
 
@@ -22,19 +22,17 @@ export function RemoveCharacter({ shown, onSaveFile, onRemove, onKeep }: RemoveC
   const text = messages.sheet
   const title = shown ? text.removal.title(shown.character.nickname) : text.removal.titleUnreadable
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={title}>
-          {shown ? (
-            <Portrait {...shown} />
-          ) : (
-            <div className="dn-lineup">
-              <p className="dn-note dn-text-outline">{messages.characters.unreadable}</p>
-            </div>
-          )}
-        </Screen>
-      </div>
-      <Screen kind="menu" label={title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={title}>
+        {shown ? (
+          <Portrait {...shown} />
+        ) : (
+          <div className="dn-lineup">
+            <p className="dn-note dn-text-outline">{messages.characters.unreadable}</p>
+          </div>
+        )}
+      </Screen>
+      <Screen kind="menu" label={title} scrolls>
         <StepHeader title={title} />
         <div className="dn-stack">
           <p className="dn-note dn-note--error">{text.removal.warning}</p>
@@ -50,6 +48,6 @@ export function RemoveCharacter({ shown, onSaveFile, onRemove, onKeep }: RemoveC
           <OptionButton onClick={onRemove}>{text.removal.remove}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

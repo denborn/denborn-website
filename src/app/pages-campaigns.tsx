@@ -15,13 +15,14 @@ import { readIncomingCampaign } from '../features/campaigns/incoming-campaign'
 import { ENEMY_FIELDS, EncounterEditor, type EncounterView, type EnemyField } from '../features/encounters/EncounterEditor'
 import { EncounterList } from '../features/encounters/EncounterList'
 import { withEncounter, withoutEncounter } from '../features/encounters/encounter-draft'
+import { DEN, DenScreen } from '../features/home/DenScreen'
 import { GrantScreen } from '../features/progress/GrantScreen'
 import { HostScreen } from '../features/session/HostScreen'
 import { useMessages } from '../i18n'
 import { saveToDevice, textOfPickedFile } from '../storage/browser'
 import { campaignFile, storedCampaignFile } from '../storage/files'
 import { newId } from '../storage/ids'
-import { OptionButton, Screen, StepHeader } from '../ui'
+import { DualScreen, OptionButton, Screen, StepHeader } from '../ui'
 import { copyText } from './clipboard'
 import { useHosting } from './hosting'
 import { useLibrary } from './library-store'
@@ -96,8 +97,9 @@ function CampaignUnavailable({ message, onSaveFile, onRemove }: CampaignUnavaila
   const navigate = useNavigate()
   const messages = useMessages()
   return (
-    <div className="dn-page">
-      <Screen kind="menu" label={messages.campaigns.title} tall>
+    <DualScreen>
+      <DenScreen key={DEN} label={messages.campaigns.title} />
+      <Screen kind="menu" label={messages.campaigns.title} scrolls>
         <StepHeader title={messages.campaigns.title} />
         <div className="dn-stack">
           <p className="dn-note dn-note--error">{message}</p>
@@ -118,7 +120,7 @@ function CampaignUnavailable({ message, onSaveFile, onRemove }: CampaignUnavaila
           <OptionButton onClick={() => void navigate('/campaigns')}>{messages.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useId, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { evBudget, ivBudget, spreadTotal } from '../../game-rules/budgets'
 import { LINE_MAX } from '../../game-rules/party'
@@ -10,7 +10,7 @@ import type { Encounter } from '../../shared/schema/encounter'
 import type { CampaignRules } from '../../shared/schema/rules'
 import { answers } from '../../shared/text/plain'
 import type { WriteResult } from '../../storage/library'
-import { ItemIconImage, NumberField, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader, TextField } from '../../ui'
+import { DualScreen, ItemIconImage, NumberField, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader, TextField } from '../../ui'
 import { StacksEditor } from '../campaigns/StacksEditor'
 import { IdentityStep } from '../creation/IdentityStep'
 import { MovesStep } from '../creation/MovesStep'
@@ -18,6 +18,7 @@ import { Preview } from '../creation/Preview'
 import { SpeciesStep } from '../creation/SpeciesStep'
 import { TrainingStep } from '../creation/TrainingStep'
 import { type CreationDraft, type DraftChoice, choose, identityProblems } from '../creation/draft'
+import { ViewFoot } from '../progress/ViewFoot'
 import { type EncounterDraft, type EnemyDraft, type EnemyState, NEW_ENCOUNTER, changedEnemy, draftOfEncounter, encounterOf, encounterState, enemyContext, hasChanges, moved, newEnemy } from './encounter-draft'
 
 /** What of an enemy can be opened by itself. */
@@ -68,23 +69,13 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
   const [draft, setDraft] = useState<EncounterDraft>(() => (encounter ? draftOfEncounter(encounter) : NEW_ENCOUNTER))
   const [notKept, setNotKept] = useState<Extract<WriteResult, { ok: false }>['reason']>()
   const [removing, setRemoving] = useState(false)
-  const heading = useRef<HTMLHeadingElement>(null)
-  const firstDraw = useRef(true)
+  const own = useId()
   const state = encounterState(draft, rules, pack)
   const changed = hasChanges(draft, encounter)
   const opened = view.at === 'enemy' ? draft.enemies.find((enemy) => enemy.id === view.id) : undefined
   const place = opened ? draft.enemies.indexOf(opened) : -1
-  const where = `${view.at}/${view.at === 'enemy' ? `${view.id}/${view.field ?? ''}` : ''}`
-
-  // Moving between the encounter's page and one of its parts is a change of page: focus goes to its title, and the page starts from the top.
-  useEffect(() => {
-    if (firstDraw.current) {
-      firstDraw.current = false
-      return
-    }
-    heading.current?.focus()
-    window.scrollTo(0, 0)
-  }, [where])
+  // The encounter's page, each of its parts and each question it asks is a screen of its own: it fades in from its top, and its title takes the focus.
+  const where = leaving ? 'leaving' : view.at === 'enemy' ? `enemy ${view.id} ${view.field ?? ''}` : view.at === 'hub' && removing ? 'removing' : view.at
 
   useEffect(() => {
     onUnsaved?.(changed)
@@ -103,24 +94,22 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
   const title = view.at === 'name' ? text.name : view.at === 'bag' ? text.bag : opened ? (view.at === 'enemy' && view.field ? fieldTitle(view.field, text) : nameOf(opened)) : draft.name.trim() || text.newTitle
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={title}>
-          {opened ? (
-            <Preview pack={pack} draft={opened.build} level={opened.level} view={view.at === 'enemy' && view.field === 'species' ? 'base' : 'stats'} language={language} text={messages.creation} levelText={messages.battle.level} />
-          ) : (
-            <div className="dn-lineup dn-lineup--party">
-              {draft.enemies.length === 0 && <p className="dn-note dn-text-outline">{text.enemiesHint}</p>}
-              {draft.enemies.map((enemy) => {
-                const species = enemy.build.species ? pack.species[enemy.build.species] : undefined
-                return species ? <PokemonSprite key={enemy.id} species={species} name={nameOf(enemy)} female={enemy.build.gender === 'F'} scale={0.5} decorative /> : null
-              })}
-            </div>
-          )}
-        </Screen>
-      </div>
-      <Screen kind="menu" label={title} tall>
-        <StepHeader title={title} headingRef={heading} />
+    <DualScreen depth={leaving ? 3 : view.at === 'hub' ? (removing ? 1 : 0) : view.at === 'enemy' && view.field ? 2 : 1}>
+      <Screen key={`${own} top ${opened?.id ?? 'party'}`} kind="scene" label={title}>
+        {opened ? (
+          <Preview pack={pack} draft={opened.build} level={opened.level} view={view.at === 'enemy' && view.field === 'species' ? 'base' : 'stats'} language={language} text={messages.creation} levelText={messages.battle.level} />
+        ) : (
+          <div className="dn-lineup dn-lineup--party">
+            {draft.enemies.length === 0 && <p className="dn-note dn-text-outline">{text.enemiesHint}</p>}
+            {draft.enemies.map((enemy) => {
+              const species = enemy.build.species ? pack.species[enemy.build.species] : undefined
+              return species ? <PokemonSprite key={enemy.id} species={species} name={nameOf(enemy)} female={enemy.build.gender === 'F'} scale={0.5} decorative /> : null
+            })}
+          </div>
+        )}
+      </Screen>
+      <Screen key={`${own} ${where}`} kind="menu" label={title} scrolls>
+        <StepHeader title={title} />
         {leaving ? (
           <Question text={messages.campaigns.leave.question} stay={messages.campaigns.leave.stay} go={messages.campaigns.leave.leave} onStay={leaving.stay} onGo={leaving.leave} />
         ) : view.at === 'name' ? (
@@ -216,27 +205,30 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
                   {text.unsaved}
                 </p>
               )}
-              {notKept && (
-                <p className="dn-note dn-note--error" role="alert">
-                  {messages.saving[notKept]}
-                </p>
-              )}
               {encounter && !changed && (
                 <div className="dn-row">
                   <OptionButton onClick={() => setRemoving(true)}>{text.remove}</OptionButton>
                 </div>
               )}
             </div>
-            <div className="dn-foot">
+            <ViewFoot
+              said={
+                notKept ? (
+                  <p className="dn-note dn-note--error" role="alert">
+                    {messages.saving[notKept]}
+                  </p>
+                ) : undefined
+              }
+            >
               <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
               <OptionButton primary disabled={!changed || !state.ready} onClick={save}>
                 {text.save}
               </OptionButton>
-            </div>
+            </ViewFoot>
           </>
         )}
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 

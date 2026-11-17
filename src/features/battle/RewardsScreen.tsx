@@ -5,7 +5,7 @@ import { MAX_LEVEL, expForLevel, levelForExp } from '../../game-rules/exp'
 import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
 import { wholeTyped } from '../../shared/text/plain'
-import { OptionButton, PokemonSprite, Screen, StepHeader, TextField } from '../../ui'
+import { DualScreen, OptionButton, PokemonSprite, Screen, StepHeader, TextField } from '../../ui'
 
 export interface RewardsScreenProps {
   pack: DataPack
@@ -40,18 +40,16 @@ export function RewardsScreen({ pack, encounter, outcome, party, defaults, onAwa
   const ready = each !== undefined && amounts.every((line) => line.exp !== undefined)
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title(encounter)}>
-          <div className="dn-lineup dn-lineup--party">
-            {party.map((character) => {
-              const species = pack.species[character.species]
-              return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.5} decorative /> : null
-            })}
-          </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title(encounter)} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title(encounter)}>
+        <div className="dn-lineup dn-lineup--party">
+          {party.map((character) => {
+            const species = pack.species[character.species]
+            return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.5} decorative /> : null
+          })}
+        </div>
+      </Screen>
+      <Screen kind="menu" label={text.title(encounter)} scrolls>
         <StepHeader title={text.title(encounter)} />
         <div className="dn-stack">
           {outcome && (
@@ -91,6 +89,6 @@ export function RewardsScreen({ pack, encounter, outcome, party, defaults, onAwa
           </OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

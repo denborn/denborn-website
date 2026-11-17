@@ -84,7 +84,9 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   background: var(--dn-backdrop);
+  /* Cut off, and not to be scrolled by anything: a piece on its way in is out by a side (screen-motion.ts). */
   overflow: hidden;
+  overflow: clip;
   position: relative;
 }
 
@@ -98,50 +100,103 @@
 }
 
 /*
- * A tall screen: as wide as a DS screen, as long as what it holds. Menus and
- * forms use it under a fixed screen, and the page scrolls: a phone is taller
- * than two DS screens, and a list of 151 Pokémon is longer than one.
+ * A screen that holds more than it shows: a menu, a form, a list. It stays a
+ * DS screen; what it holds is a column from its top, and scrolls inside it
+ * (decision 216). The backdrop stays where it is.
  */
-.dn-screen--tall {
+.dn-screen--scrolls .dn-screen__stage {
+  /* A column, so that the foot of a short one can sit at the bottom of the screen. */
   display: flex;
   flex-direction: column;
-  aspect-ratio: auto;
-  overflow: visible;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  /* Room is kept for the bar where a browser draws one beside the column: the column is as wide scrolled or not. */
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dn-select-line) var(--dn-backdrop);
 }
 
-.dn-screen--tall .dn-screen__stage {
-  position: relative;
-  inset: auto;
-  /* A column, so that the foot of a short page can sit at the bottom of the screen. */
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: calc(192 * var(--dn-u));
+/* The column's pieces keep their height: what does not fit is scrolled to, not squeezed. */
+.dn-screen--scrolls .dn-screen__stage > * {
+  flex-shrink: 0;
 }
 
-/* What takes focus in a tall screen is scrolled clear of the screen that stays above it. */
-.dn-screen--tall :is(button, input, [tabindex]) {
-  scroll-margin-top: calc(200 * var(--dn-u));
+/* What takes focus is scrolled clear of the foot that stays over the column's end. */
+.dn-screen--scrolls :is(button, input, a, [tabindex]) {
   scroll-margin-bottom: calc(40 * var(--dn-u));
 }
 
-/* A page of two screens: the first stays in sight while the second scrolls under it. */
-.dn-page {
+/* A part under a row of tabs is as wide as the screen, which cuts off what is outside: its focus ring is drawn inside it. */
+.dn-screen--scrolls [role='tabpanel']:focus-visible {
+  outline-offset: calc(-3 * var(--dn-u));
+  box-shadow: none;
+}
+
+/* The DS: its two screens, one over the other (decision 214). As wide as it is given. */
+.dn-dual {
   display: flex;
   flex-direction: column;
-  /* The whole height of the device, less the notch: the tall screen takes what the first leaves. */
-  min-height: calc(100dvh - env(safe-area-inset-top, 0px));
+  width: 100%;
+}
+
+/* In the app's frame each screen has a box that stays, black while nothing is on it: screens come and go inside it
+   (decision 218). How they move is in screen-motion.ts. */
+.dn-dual__slot {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  overflow: clip;
   background: var(--dn-backdrop);
 }
 
-.dn-page > .dn-screen--tall {
-  flex: 1;
+.dn-dual__layer {
+  position: absolute;
+  inset: 0;
 }
 
-.dn-page__top {
-  position: sticky;
-  top: 0;
-  z-index: 2;
+/* The stripes of a wipe: eight black bands over a screen, out of sight by a side until they sweep across, the odd ones from
+   the left and the even ones from the right. A hair taller than an eighth, so that no line of the screen shows between two. */
+.dn-dual__wipe {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  overflow: clip;
+  pointer-events: none;
+}
+
+.dn-dual__stripe {
+  display: block;
+  height: calc(12.5% + 1px);
+  margin-bottom: -1px;
+  background: var(--dn-backdrop);
+  translate: -101% 0;
+}
+
+.dn-dual__stripe:nth-child(even) {
+  translate: 101% 0;
+}
+
+/*
+ * The window the DS is shown in. The DS is as large as fits in it with both
+ * screens whole, the backdrop's black around it (decision 215), and no wider
+ * than 30rem. It is never narrower than 20rem, the narrowest phone the kit is
+ * drawn for: a window too short for that scrolls to the bottom screen, so
+ * that a page enlarged in a browser does grow.
+ */
+.dn-device {
+  container-type: size;
+  display: grid;
+  overflow: auto;
+  overscroll-behavior: none;
+  background: var(--dn-backdrop);
+}
+
+.dn-device > .dn-dual {
+  margin: auto;
+  /* Two 4:3 screens are 2:3 together. A multiple of four, so that the two heights are whole pixels and never add up to a hair more than the window. */
+  width: max(20rem, min(100cqw, 30rem, calc(100cqh * 2 / 3)));
+  width: max(20rem, min(100cqw, 30rem, round(down, calc(100cqh * 2 / 3), 4px)));
 }
 
 /* The battle scene. The backdrop is Denborn's own: the games paint one per place. */
@@ -1039,6 +1094,8 @@
   list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dn-select-line) var(--dn-backdrop);
 }
 
 .dn-effects__list:focus-visible {
@@ -1232,6 +1289,8 @@
   align-content: start;
   gap: calc(4 * var(--dn-u));
   padding: calc(6 * var(--dn-u));
+  /* A row on its way in or out is beside the screen: cut off here, so that what scrolls around the rows is never scrolled sideways to it (screen-motion.ts). */
+  overflow-x: clip;
 }
 
 /* A link shown as text, to be selected and copied by hand: it breaks anywhere, since it has no spaces. */
@@ -1249,6 +1308,8 @@
   padding: calc(3 * var(--dn-u)) calc(4 * var(--dn-u)) 0;
   border-bottom: calc(1 * var(--dn-u)) solid var(--dn-select-line);
   background: var(--dn-backdrop);
+  /* As for the rows: a tab on its way in or out is cut off beside the screen. */
+  overflow-x: clip;
 }
 
 .dn-tab {
@@ -1340,6 +1401,18 @@
   align-items: center;
   gap: calc(8 * var(--dn-u));
   padding-bottom: calc(10 * var(--dn-u));
+}
+
+/* A QR code on a top screen, as large as the screen is high: nowhere are its squares larger. */
+.dn-lineup--code {
+  align-items: stretch;
+  padding: 0;
+}
+
+.dn-lineup--code .dn-qr {
+  flex: none;
+  width: auto;
+  height: 100%;
 }
 
 .dn-lineup .dn-note {
@@ -1723,14 +1796,16 @@
 .dn-foot {
   position: sticky;
   bottom: 0;
-  /* At the bottom of the screen even when the page is short. */
+  /* At the bottom of the screen even when what is over it is short. */
   margin-top: auto;
   z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: calc(6 * var(--dn-u));
-  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u)) max(calc(4 * var(--dn-u)), env(safe-area-inset-bottom));
+  padding: calc(4 * var(--dn-u)) calc(6 * var(--dn-u));
   background: linear-gradient(transparent, var(--dn-backdrop) calc(8 * var(--dn-u)));
+  /* As for the rows: a button on its way in or out is cut off beside the screen. */
+  overflow-x: clip;
 }
 
 /* A foot that says something about its buttons, such as the question they answer or what the last one did: it stays in sight with them. */
@@ -2616,6 +2691,8 @@
   list-style: none;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--dn-select-line) var(--dn-backdrop);
 }
 
 /* A list within the list, under a title of its own: a fallen teammate's Bag under the player's (decision 175). */

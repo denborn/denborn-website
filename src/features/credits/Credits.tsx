@@ -1,9 +1,11 @@
 import { useMessages } from '../../i18n'
-// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from brings only the pieces it shows.
+import { DualScreen } from '../../ui/DualScreen'
 import { Screen } from '../../ui/Screen'
 import { OptionButton } from '../../ui/controls'
 import { StepHeader } from '../../ui/forms'
 import { AppEmblem } from '../../ui/sprites'
+import { DEN, DenScreen } from '../home/DenScreen'
 import { CREDIT_IDS, CREDIT_LINKS, type CreditId, SHEET_RIPPERS } from './sources'
 
 export interface CreditsProps {
@@ -22,8 +24,9 @@ export function Credits({ onBack }: CreditsProps) {
   const text = messages.credits
   const theirs = (id: CreditId): string => (id === 'sheets' ? text.entries.sheets.theirs(SHEET_RIPPERS.join(', ')) : text.entries[id].theirs)
   return (
-    <div className="dn-page">
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <DenScreen key={DEN} label={text.title} />
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">
           <div className="dn-row">
@@ -53,6 +56,6 @@ export function Credits({ onBack }: CreditsProps) {
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

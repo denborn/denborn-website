@@ -4,7 +4,7 @@ import { PARTY_MAX } from '../../game-rules/party'
 import { useLanguage, useMessages } from '../../i18n'
 import { joinLink } from '../../shared/protocol/room-code'
 import type { CharacterDocument } from '../../shared/schema/character'
-import { OptionButton, PokemonIcon, QrCode, Screen, Slot, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, PokemonIcon, QrCode, Screen, Slot, StepHeader } from '../../ui'
 import { EncounterRow } from '../encounters/EncounterList'
 import type { HostSession, JoinRequest } from './host'
 import type { HostLine } from './run-host'
@@ -72,23 +72,21 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
   }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.codeLabel(code)}>
-          <div className="dn-join">
-            <div className="dn-join__words">
-              <span className="dn-join__label dn-text-outline">{text.code}</span>
-              {/* Read out letter by letter, not as a word. */}
-              <span className="dn-join__code dn-text-outline" aria-label={text.codeLabel(code)}>
-                {code}
-              </span>
-              <span className="dn-join__name dn-text-outline">{session.campaign.name}</span>
-            </div>
-            <QrCode text={link} label={text.qr} tooLong={code} />
+    <DualScreen>
+      <Screen kind="scene" label={text.codeLabel(code)}>
+        <div className="dn-join">
+          <div className="dn-join__words">
+            <span className="dn-join__label dn-text-outline">{text.code}</span>
+            {/* Read out letter by letter, not as a word. */}
+            <span className="dn-join__code dn-text-outline" aria-label={text.codeLabel(code)}>
+              {code}
+            </span>
+            <span className="dn-join__name dn-text-outline">{session.campaign.name}</span>
           </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={session.campaign.name} tall>
+          <QrCode text={link} label={text.qr} tooLong={code} />
+        </div>
+      </Screen>
+      <Screen kind="menu" label={session.campaign.name} scrolls>
         <StepHeader title={session.campaign.name} />
         <div className="dn-stack">
           {notice && (
@@ -238,7 +236,7 @@ export function HostScreen({ pack, session, code, origin, line, notice, onEncoun
           )}
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 

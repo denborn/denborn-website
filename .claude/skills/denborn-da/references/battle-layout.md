@@ -10,7 +10,7 @@ In triple battles the HP boxes stack: three upper left for the foes, three lower
 
 ## Denborn on a phone (portrait)
 
-Two `Screen`s stacked, each the full width: `scene` above, `touch` below. A session has four players or more, so the scene shows **one foe and one ally at a time**, as the games' one-against-one battles do, and the player walks along each line with arrows (decision 87). An earlier board that drew three Pokémon a side at once was dropped for that reason.
+Two `Screen`s in a `DualScreen`, each the full width: `scene` above, `touch` below. A session has four players or more, so the scene shows **one foe and one ally at a time**, as the games' one-against-one battles do, and the player walks along each line with arrows (decision 87). An earlier board that drew three Pokémon a side at once was dropped for that reason.
 
 Measures of the board (`src/ui/stories/Scene.stories.tsx`), in DS pixels:
 

@@ -58,6 +58,22 @@ One phone that has never opened the site, or its site data cleared first. About 
 
 Also worth reading once on the Cloudflare dashboard, since only the account's owner can: the Worker's requests and the Durable Object's requests and duration after an evening of play. Pages, scripts and sprites are static files and do not count as Worker requests; a session does (one connection per device, and the messages it carries).
 
+## The two screens (decisions 214 to 217)
+
+One iPhone and one Android phone, each in the browser and as the installed app; a second phone to scan with. About 10 minutes. The browser tests run on one phone's size in a desktop browser: they say nothing of a real keyboard, a real finger or a real camera.
+
+| # | Do | Expect | Result |
+|---|---|---|---|
+| 1 | Open the app. Pass the title, open the Options, the credits, a character's sheet. | On every page: two screens of the same size, one over the other, in the middle of the phone, black above and below. Nothing is cut off under the notch or at the home bar. | |
+| 2 | On the Options, drag the bottom screen up and down, then drag the top screen and the black around the screens. | Only what is inside the bottom screen moves; BACK stays in its place. The page itself never moves, bounces or reloads. | |
+| 3 | Characters, NEW, a campaign: on the first step, tap the search field and type "pika". Do the same for a move, and for an item of a campaign's pack. | The field stays in sight above the keyboard and the results can be read. When the keyboard closes, the two screens are back where they were. Note what happens if not. | |
+| 4 | A character's sheet, SHARE: scan the QR code on the top screen with another phone (Characters, IMPORT, SCAN). Do the same with a saved campaign's code, on the campaign's page. | Both are read as fast as before. The squares are a fifth smaller than they were (decision 99 was ruled on the larger ones): note it if the scan is slow. | |
+| 5 | Turn the phone on its side, in the browser. | The two screens keep their size and the page scrolls down to the bottom one. Nothing is hidden. | |
+| 6 | Game master's computer: open a session's console in a window, then make the window shorter. | The two screens get smaller together, in the middle of the window, both whole. The wheel scrolls the round inside the bottom screen. | |
+| 7 | Go from the home to the Options, to the credits, and back; make a character step by step, going back a step once; open a character's sheet. (Decisions 218 and 219.) | Nothing fades and nothing is replaced at once. A screen's pieces fly out and the next ones fly in, by the other side when going back; black stripes sweep across the top screen when its picture changes; the den's rain never stops while the bottom screen changes. Nothing stutters, and a button answers as soon as it has landed. Note any screen that changes without moving. | |
+| 8 | In a fight: FIGHT, BACK, BAG, BACK, then a move and its target. | The commands fly out and the moves fly in; nothing gets in the way of choosing within the round's time. Note it if the moves from one view to the next feel too long. | |
+| 9 | Turn on "reduce motion" in the phone's settings and do step 7 again. | Each screen is replaced at once; nothing flies, nothing sweeps. | |
+
 ## Installed app, offline, camera (from milestones 4 and 5; still to do)
 
 | # | Do | Expect | Result |

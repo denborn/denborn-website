@@ -1,11 +1,12 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useId, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import { encodeCreationCode, qrForm } from '../../shared/codec/codes'
 import type { CampaignDocument } from '../../shared/schema/campaign'
 import { STARTING_MONEY_MAX } from '../../shared/schema/rules'
 import type { WriteResult } from '../../storage/library'
-import { NumberField, OptionButton, PokemonSprite, QrCode, Screen, Slot, StepHeader, TextField } from '../../ui'
+import { DualScreen, NumberField, OptionButton, PokemonSprite, QrCode, Screen, Slot, StepHeader, TextField } from '../../ui'
+import { ViewFoot } from '../progress/ViewFoot'
 import { MovesRule } from './MovesRule'
 import { PacksRule } from './PacksRule'
 import { SpeciesRule } from './SpeciesRule'
@@ -53,8 +54,9 @@ const MOVE_ACCESS = ['level-up', 'level-up-tm-tutor-egg'] as const
 /**
  * A campaign's page (decision 113): its rules, one row each. A tap on a row
  * opens that rule alone; SAVE THE RULES keeps the campaign, adding a version
- * of its rules when one changed. Once saved, its creation link and QR code
- * stand under the rules.
+ * of its rules when one changed. Once saved, its creation link stands under
+ * the rules, and the link's QR code is the top screen, as large as the screen
+ * is high.
  */
 export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, origin, onCopy, onSaveFile, onRemove, onHost, hosting, onEncounters, onBack, onUnsaved, leaving }: CampaignEditorProps) {
   const language = useLanguage()
@@ -62,22 +64,11 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
   const text = messages.campaigns
   const [draft, setDraft] = useState<RulesDraft>(() => (campaign ? draftOf(campaign, pack) : newDraft(pack)))
   const [notKept, setNotKept] = useState<Extract<WriteResult, { ok: false }>['reason']>()
-  const heading = useRef<HTMLHeadingElement>(null)
-  const firstDraw = useRef(true)
+  const own = useId()
   const { gaps, problems } = stateOf(draft, pack)
   const changed = hasChanges(draft, campaign, pack)
   const title = rule ? text.rules[rule] : draft.name.trim() || text.newTitle
   const set = (changes: Partial<RulesDraft>): void => setDraft({ ...draft, ...changes })
-
-  // Moving between the list of rules and one rule is a change of page: focus goes to its title, and the page starts from the top.
-  useEffect(() => {
-    if (firstDraw.current) {
-      firstDraw.current = false
-      return
-    }
-    heading.current?.focus()
-    window.scrollTo(0, 0)
-  }, [rule])
 
   useEffect(() => {
     onUnsaved?.(changed)
@@ -187,21 +178,29 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
     const species = id === undefined ? undefined : pack.species[id]
     return species ? [species] : []
   })
+  // The link players make their characters from. It shows with the list of a saved campaign's rules: as text there, as a QR code on the top screen.
+  const rules = campaign?.rulesHistory.at(-1)
+  const code = campaign && rules && !changed && !rule && !leaving ? encodeCreationCode({ campaign: { id: campaign.id, name: campaign.name }, dataPackVersion: campaign.dataPackVersion, rules }, pack.species) : undefined
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={title}>
+    <DualScreen depth={leaving ? 2 : rule ? 1 : 0}>
+      <Screen key={`${own} top ${code ? 'code' : 'faces'}`} kind="scene" label={title}>
+        {code ? (
+          <div className="dn-lineup dn-lineup--code">
+            <QrCode text={qrForm(code, origin)} label={text.link} tooLong={text.tooLarge} />
+          </div>
+        ) : (
           <div className="dn-lineup">
             {faces.length === 0 && <p className="dn-note dn-text-outline">{text.hint}</p>}
             {faces.map((species) => (
               <PokemonSprite key={species.id} species={species} name={species.name[language]} scale={0.6} decorative />
             ))}
           </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={title} tall>
-        <StepHeader title={title} headingRef={heading} />
+        )}
+      </Screen>
+      {/* The list of rules, each rule and the question on leaving are screens of their own: each fades in from its top, and its title takes the focus. */}
+      <Screen key={`${own} ${leaving ? 'leaving' : (rule ?? 'rules')}`} kind="menu" label={title} scrolls>
+        <StepHeader title={title} />
         {leaving ? (
           <>
             <div className="dn-stack">
@@ -242,29 +241,35 @@ export function CampaignEditor({ pack, campaign, rule, onRule, newId, onSave, or
                   {text.unsaved}
                 </p>
               )}
-              {notKept && (
-                <p className="dn-note dn-note--error" role="alert">
-                  {messages.saving[notKept]}
-                </p>
-              )}
-              {campaign && !changed && <CampaignLink campaign={campaign} pack={pack} origin={origin} onCopy={onCopy} onSaveFile={() => onSaveFile(campaign)} onRemove={onRemove} onHost={onHost} hosting={hosting} onEncounters={onEncounters} />}
+              {campaign && rules && code && <CampaignLink campaign={campaign} version={rules.version} code={code} origin={origin} onCopy={onCopy} onSaveFile={() => onSaveFile(campaign)} onRemove={onRemove} onHost={onHost} hosting={hosting} onEncounters={onEncounters} />}
             </div>
-            <div className="dn-foot">
+            <ViewFoot
+              said={
+                notKept ? (
+                  <p className="dn-note dn-note--error" role="alert">
+                    {messages.saving[notKept]}
+                  </p>
+                ) : undefined
+              }
+            >
               <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
               <OptionButton primary disabled={!changed || gaps.length > 0 || problems.length > 0} onClick={save}>
                 {text.save}
               </OptionButton>
-            </div>
+            </ViewFoot>
           </>
         )}
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 
 interface CampaignLinkProps {
   campaign: CampaignDocument
-  pack: DataPack
+  /** The version of the rules the link carries. */
+  version: number
+  /** The creation link's code. */
+  code: string
   origin: string
   onCopy: (text: string) => Promise<boolean>
   onSaveFile: () => void
@@ -274,14 +279,11 @@ interface CampaignLinkProps {
   onEncounters: () => void
 }
 
-/** Under the rules of a saved campaign: the way to host a session (decision 127) and to its encounters (decision 143), the link players make their characters from, as a QR code and as text, the campaign's file, and last the way to remove it. */
-function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile, onRemove, onHost, hosting, onEncounters }: CampaignLinkProps) {
+/** Under the rules of a saved campaign: the way to host a session (decision 127) and to its encounters (decision 143), the link players make their characters from, as text (its QR code is the top screen), the campaign's file, and last the way to remove it. */
+function CampaignLink({ campaign, version, code, origin, onCopy, onSaveFile, onRemove, onHost, hosting, onEncounters }: CampaignLinkProps) {
   const messages = useMessages()
   const text = messages.campaigns
   const [copied, setCopied] = useState<boolean>()
-  const rules = campaign.rulesHistory.at(-1)
-  if (!rules) return null
-  const code = encodeCreationCode({ campaign: { id: campaign.id, name: campaign.name }, dataPackVersion: campaign.dataPackVersion, rules }, pack.species)
   const link = `${origin}/#${code}`
   return (
     <>
@@ -296,10 +298,9 @@ function CampaignLink({ campaign, pack, origin, onCopy, onSaveFile, onRemove, on
         <OptionButton onClick={onEncounters}>{messages.encounters.entry}</OptionButton>
       </div>
       <span className="dn-label">
-        {text.link} · {text.version(rules.version)}
+        {text.link} · {text.version(version)}
       </span>
       <p className="dn-note">{text.linkHint}</p>
-      <QrCode text={qrForm(code, origin)} label={text.link} tooLong={text.tooLarge} />
       <div className="dn-row">
         <OptionButton onClick={() => void onCopy(link).then(setCopied)}>{text.copy}</OptionButton>
       </div>

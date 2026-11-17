@@ -1,6 +1,6 @@
 import { useMessages } from '../../i18n'
 import type { Encounter } from '../../shared/schema/encounter'
-import { OptionButton, Screen, Slot, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, Screen, Slot, StepHeader } from '../../ui'
 
 export interface EncounterListProps {
   /** The campaign's name: these are its encounters. */
@@ -30,15 +30,13 @@ export function EncounterList({ campaign, encounters, onBack, onNew, onOpen }: E
   const messages = useMessages()
   const text = messages.encounters
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title}>
-          <div className="dn-lineup">
-            <p className="dn-note dn-text-outline">{campaign}</p>
-          </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title}>
+        <div className="dn-lineup">
+          <p className="dn-note dn-text-outline">{campaign}</p>
+        </div>
+      </Screen>
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">
           {encounters.length === 0 && <p className="dn-note">{text.empty}</p>}
@@ -57,6 +55,6 @@ export function EncounterList({ campaign, encounters, onBack, onNew, onOpen }: E
           </OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

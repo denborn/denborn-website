@@ -1,5 +1,6 @@
 import { useMessages } from '../../i18n'
-import { OptionButton, Screen, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, Screen, StepHeader } from '../../ui'
+import { DEN, DenScreen } from '../home/DenScreen'
 import type { SheetProblem } from './open-sheet'
 
 export interface SheetUnavailableProps {
@@ -16,8 +17,9 @@ export function SheetUnavailable({ problem, onBack, onSaveFile, onRemove }: Shee
   const messages = useMessages()
   const text = messages.sheet
   return (
-    <div className="dn-page">
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <DenScreen key={DEN} label={text.title} />
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">
           <p className="dn-note dn-note--error">{text.problems[problem]}</p>
@@ -38,6 +40,6 @@ export function SheetUnavailable({ problem, onBack, onSaveFile, onRemove }: Shee
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

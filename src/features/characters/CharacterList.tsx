@@ -2,7 +2,7 @@ import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
 import type { Stored } from '../../storage/library'
-import { OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader } from '../../ui'
 
 export interface CharacterListProps {
   pack: DataPack
@@ -27,19 +27,17 @@ export function CharacterList({ pack, entries, kept, onBack, onNew, onImport, on
   const text = messages.characters
   const readable = entries.flatMap((entry) => (entry.read.ok ? [entry.read.value] : []))
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title}>
-          <div className="dn-lineup">
-            {readable.length === 0 && <p className="dn-note dn-text-outline">{text.empty}</p>}
-            {readable.slice(0, FACES).map((character) => {
-              const species = pack.species[character.species]
-              return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.6} decorative /> : null
-            })}
-          </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title}>
+        <div className="dn-lineup">
+          {readable.length === 0 && <p className="dn-note dn-text-outline">{text.empty}</p>}
+          {readable.slice(0, FACES).map((character) => {
+            const species = pack.species[character.species]
+            return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.6} decorative /> : null
+          })}
+        </div>
+      </Screen>
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">
           {!kept && (
@@ -84,6 +82,6 @@ export function CharacterList({ pack, entries, kept, onBack, onNew, onImport, on
           </OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

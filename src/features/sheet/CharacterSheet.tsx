@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import type { DataPack } from '../../data/types'
 import type { SheetNumbers } from '../../domain/sheet'
 import { ATTRIBUTE_IDS } from '../../game-rules/attributes'
@@ -9,6 +9,7 @@ import type { CharacterDocument } from '../../shared/schema/character'
 import {
   AgonyBadge,
   CategoryIcon,
+  DualScreen,
   ExpBar,
   ItemIconImage,
   OptionButton,
@@ -44,23 +45,29 @@ export interface CharacterSheetProps {
 /**
  * A character's sheet: the Pokémon and its HP on the top screen, and five
  * parts below: who it is, its stats, its moves, its bag, and the ways to copy
- * it elsewhere. It shows; it changes nothing.
+ * it elsewhere. While those ways show, the top screen is its QR code, as large
+ * as the screen is high. It shows; it changes nothing.
  */
 export function CharacterSheet({ pack, character, numbers, origin, notice, onBack, onSaveFile, onPrint, onRemove }: CharacterSheetProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.sheet
   const [part, setPart] = useState<PartId>('info')
+  const own = useId()
   const shown: SheetView = { pack, character, numbers, language, messages }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={character.nickname}>
+    <DualScreen>
+      <Screen key={`${own} ${part === 'share' ? 'code' : 'portrait'}`} kind="scene" label={character.nickname}>
+        {part === 'share' ? (
+          <div className="dn-lineup dn-lineup--code">
+            <QrCode text={characterLink(character, origin)} label={character.nickname} tooLong={text.tooLarge} />
+          </div>
+        ) : (
           <Portrait {...shown} />
-        </Screen>
-      </div>
-      <Screen kind="menu" label={character.nickname} tall>
+        )}
+      </Screen>
+      <Screen kind="menu" label={character.nickname} scrolls>
         <StepHeader title={character.nickname} />
         <Tabs label={text.tabsLabel} tabs={PARTS.map((id) => ({ id, label: text.tabs[id] }))} current={part} onChange={setPart}>
           {notice && (
@@ -72,13 +79,13 @@ export function CharacterSheet({ pack, character, numbers, origin, notice, onBac
           {part === 'stats' && <StatsPart {...shown} />}
           {part === 'moves' && <MovesPart {...shown} />}
           {part === 'bag' && <BagPart {...shown} />}
-          {part === 'share' && <SharePart character={character} origin={origin} text={text} onSaveFile={onSaveFile} onPrint={onPrint} onRemove={onRemove} />}
+          {part === 'share' && <SharePart text={text} onSaveFile={onSaveFile} onPrint={onPrint} onRemove={onRemove} />}
         </Tabs>
         <div className="dn-foot">
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 
@@ -243,16 +250,14 @@ function BagPart({ pack, character, language, messages }: SheetView) {
 }
 
 interface SharePartProps {
-  character: CharacterDocument
-  origin: string
   text: Messages['sheet']
   onSaveFile: () => void
   onPrint: () => void
   onRemove: () => void
 }
 
-/** The ways to take the character elsewhere: its file, its sheet on paper, and its QR code. Last, the way to remove it from here. */
-function SharePart({ character, origin, text, onSaveFile, onPrint, onRemove }: SharePartProps) {
+/** The ways to take the character elsewhere: its file, its sheet on paper, and its QR code, which the top screen shows. Last, the way to remove it from here. */
+function SharePart({ text, onSaveFile, onPrint, onRemove }: SharePartProps) {
   return (
     <>
       <p className="dn-note">{text.file}</p>
@@ -266,7 +271,6 @@ function SharePart({ character, origin, text, onSaveFile, onPrint, onRemove }: S
         <OptionButton onClick={onPrint}>{text.print}</OptionButton>
       </div>
       <p className="dn-note">{text.qr}</p>
-      <QrCode text={characterLink(character, origin)} label={character.nickname} tooLong={text.tooLarge} />
       <p className="dn-note">{text.removeHint}</p>
       <div className="dn-row">
         <OptionButton onClick={onRemove}>{text.remove}</OptionButton>

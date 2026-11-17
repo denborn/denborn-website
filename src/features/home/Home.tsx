@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useMessages } from '../../i18n'
 import type { OfflineState } from '../../pwa/use-offline-status'
-// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from must not bring the animation library with it.
+// From the kit's own files, not its one door (src/ui/index.ts): what every visit starts from brings only the pieces it shows.
+import { DualScreen } from '../../ui/DualScreen'
 import { Screen } from '../../ui/Screen'
 import { OptionButton, Slot } from '../../ui/controls'
 import { usePrefersReducedMotion } from '../../ui/reduced-motion'
 import { PokemonIcon } from '../../ui/sprites'
-import { TitleScene } from '../../ui/title-scene'
+import { DEN, DenScreen } from './DenScreen'
 
 export type HomeEntry = 'characters' | 'session' | 'campaigns' | 'options'
 
@@ -33,9 +34,9 @@ const ICONS: Record<HomeEntry, number> = { characters: 25, session: 81, campaign
  * The app's first screen (decisions 203 and 205). Its top screen is the title
  * screen: the den in its plain, with the app's name. While the title shows,
  * the bottom screen is black and one button, TOUCH TO START; one tap anywhere
- * puts the ways in in its place, the storm going on above them. A new version
- * that waits is offered first; under the ways in, a line says how far the app
- * is from working with no network.
+ * has the ways in fly in in its place, the storm going on above them. A new
+ * version that waits is offered first; under the ways in, a line says how far
+ * the app is from working with no network.
  */
 export function Home({ entries: shown, offline, titled, animated, onStart, onOpen, onCredits }: HomeProps) {
   const messages = useMessages()
@@ -58,37 +59,36 @@ export function Home({ entries: shown, offline, titled, animated, onStart, onOpe
     : offline.status === 'sprites' && sprites ? (sprites.stalled ? text.offline.stalled(sprites.done, sprites.of) : text.offline.sprites(sprites.done, sprites.of))
     : undefined
 
-  // Once the title is passed, the button that was pressed is gone: a keyboard goes on from the first thing in the menu.
-  const menu = useRef<HTMLElement>(null)
-  const wasTitled = useRef(titled)
-  useEffect(() => {
-    if (wasTitled.current && !titled) menu.current?.querySelector('button')?.focus()
-    wasTitled.current = titled
-  }, [titled])
-
+  // Once the title is passed, the button that was pressed is gone, and a keyboard goes on from the first thing in the menu:
+  // the frame gives it the focus as the menu comes in (`DualScreenFrame`).
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={messages.app.name}>
-          <TitleScene intro={titled} still={still} onStorm={() => setStormed(true)}>
-            <h1 className="dn-title" tabIndex={-1} data-page-heading>
-              <span className="dn-title__letters">{messages.app.name}</span>
-            </h1>
-          </TitleScene>
-          {/* A tap on the top screen starts too. For a finger only: a keyboard and a screen reader have the button below. */}
-          {titled && <button type="button" className="dn-start" tabIndex={-1} aria-hidden="true" onClick={onStart} />}
-        </Screen>
-      </div>
+    <DualScreen depth={titled ? 0 : 1}>
+      <DenScreen
+        key={DEN}
+        label={messages.app.name}
+        intro={titled}
+        lightning
+        animated={animated}
+        onStorm={() => setStormed(true)}
+        title={
+          <h1 className="dn-title" tabIndex={-1} data-page-heading>
+            <span className="dn-title__letters">{messages.app.name}</span>
+          </h1>
+        }
+      >
+        {/* A tap on the top screen starts too. For a finger only: a keyboard and a screen reader have the button below. */}
+        {titled && <button type="button" className="dn-start" tabIndex={-1} aria-hidden="true" onClick={onStart} />}
+      </DenScreen>
       {titled ? (
-        <Screen kind="blank" label={messages.app.name} tall>
+        <Screen key="home start" kind="blank" label={messages.app.name}>
           {/* It answers its click, not a finger going down: the rest of that same press would land on the menu that takes its place. */}
           <button type="button" className={`dn-start${stormed || still ? ' dn-start--shown' : ''}${still ? ' dn-start--still' : ''}`} onClick={onStart}>
             <span className="dn-start__words dn-text-outline">{text.start}</span>
           </button>
         </Screen>
       ) : (
-        <Screen kind="menu" label={messages.app.name} tall>
-          <nav ref={menu} className="dn-stack" aria-label={messages.app.name}>
+        <Screen key="home menu" kind="menu" label={messages.app.name} scrolls>
+          <nav className="dn-stack" aria-label={messages.app.name}>
             {offline.updateAvailable && (
               <div className="dn-entry">
                 <p className="dn-note" role="status">
@@ -119,6 +119,6 @@ export function Home({ entries: shown, offline, titled, animated, onStart, onOpe
           </nav>
         </Screen>
       )}
-    </div>
+    </DualScreen>
   )
 }

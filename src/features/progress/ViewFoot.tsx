@@ -8,9 +8,11 @@ export interface ViewFootProps {
 }
 
 /**
- * The foot of a view of a character's progress: its buttons and, over them,
- * what is said about them. Both stay in sight however far the list above
- * has been scrolled, so that an answer is never given off screen.
+ * The foot of a view: its buttons and, over them, what is said about them.
+ * Both stay in sight however far the list above has been scrolled, so that an
+ * answer is never given off screen. Made for the views of a character's
+ * progress; a campaign's page, an encounter's and the join screen say there
+ * what their own buttons ask or could not do.
  */
 export function ViewFoot({ said, children }: ViewFootProps) {
   return (

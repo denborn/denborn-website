@@ -48,9 +48,9 @@ export const en = {
     textSpeed: 'Text speed',
     textSpeedHint: 'How fast a fight’s messages go by.',
     textSpeeds: { slow: 'SLOW', normal: 'NORMAL', fast: 'FAST' },
-    /** Holds the title screen's storm still (decisions 206 and 211). */
+    /** Holds the title screen's storm still (decisions 206 and 211), and the rain of the den on the other screens that show it (decision 217). */
     titleAnimation: 'Title screen animation',
-    titleAnimationHint: 'The rain and the lightning of the first screen. Off, the scene stays still.',
+    titleAnimationHint: 'The rain and the lightning of the den. Off, the scene stays still.',
     titleAnimations: { on: 'ON', off: 'OFF' },
   },
   characters: {

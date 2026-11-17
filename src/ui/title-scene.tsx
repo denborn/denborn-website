@@ -14,8 +14,10 @@ export interface TitleSceneProps {
   onStorm?: () => void
   /** Holds the scene at one step of the intro, for the board to show each. */
   at?: TitlePhase
+  /** The storm's bolts and flashes. Without them it is rain alone: the den behind another page (decision 217). */
+  lightning?: boolean
   /** The title, set a little above the middle of the screen. */
-  children: ReactNode
+  children?: ReactNode
 }
 
 /** The intro does not wait longer than this for the plain: if it is late, the scene's own sky shows meanwhile. */
@@ -37,7 +39,7 @@ interface Strike {
  * strikes at uneven gaps, now on the den, now in the sky. Everything but the
  * name is decoration, hidden from assistive technology.
  */
-export function TitleScene({ intro, still, onStorm, at, children }: TitleSceneProps) {
+export function TitleScene({ intro, still, onStorm, at, lightning = true, children }: TitleSceneProps) {
   const { unit, ratio } = useScreenMetrics()
   const fit = fitScene(TITLE_PLAIN, unit * DS_WIDTH, ratio, TITLE_DEN.middle.x)
   const [ready, setReady] = useState(false)
@@ -72,7 +74,7 @@ export function TitleScene({ intro, still, onStorm, at, children }: TitleScenePr
   // as the storm lasts, now on the den, now in the sky.
   const { left, top, right, bottom } = fit.visible
   useEffect(() => {
-    if (still || (phase !== 'strike' && phase !== 'storm')) return
+    if (still || !lightning || (phase !== 'strike' && phase !== 'storm')) return
     const timers = new Set<number>()
     const later = (task: () => void, wait: number) => {
       const timer = window.setTimeout(() => {
@@ -97,7 +99,7 @@ export function TitleScene({ intro, still, onStorm, at, children }: TitleScenePr
     if (phase === 'strike') later(() => flash(true), 0)
     else loop()
     return () => timers.forEach((timer) => window.clearTimeout(timer))
-  }, [phase, still, left, top, right, bottom])
+  }, [phase, still, lightning, left, top, right, bottom])
 
   const pixel = fit.pixel
   const place = (art: ScenePlacement): CSSProperties => ({
@@ -158,7 +160,7 @@ export function TitleScene({ intro, still, onStorm, at, children }: TitleScenePr
         <div className="dn-title-scene__art dn-title-scene__glow" style={picture(TITLE_DEN.frontGlow)} />
         <div className="dn-title-scene__rain" />
       </div>
-      <div className="dn-title-scene__name">{children}</div>
+      {children !== undefined && <div className="dn-title-scene__name">{children}</div>}
       {strike && <div key={strike.id} className="dn-title-scene__flash" aria-hidden="true" />}
     </div>
   )

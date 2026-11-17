@@ -7,8 +7,9 @@ import type { Invitation } from '../../shared/codec/codes'
 import { ROOM_CODE_LENGTH, joinCodeIn } from '../../shared/protocol/room-code'
 import type { Party } from '../../shared/protocol/session'
 import type { CharacterDocument } from '../../shared/schema/character'
-import { OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader, TextField } from '../../ui'
+import { DualScreen, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader, TextField } from '../../ui'
 import type { ProgressView } from '../progress/ProgressScreen'
+import { ViewFoot } from '../progress/ViewFoot'
 import { grantedSentences } from '../progress/granted-words'
 import type { GuestState } from './guest'
 
@@ -64,24 +65,22 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
   }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={title}>
-          {party ? (
-            <div className="dn-lineup dn-lineup--party">
-              {party.members.map(({ character }) => {
-                const species = pack.species[character.species]
-                return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.5} decorative /> : null
-              })}
-            </div>
-          ) : (
-            <div className="dn-lineup">
-              <p className="dn-note dn-text-outline">{text.hint}</p>
-            </div>
-          )}
-        </Screen>
-      </div>
-      <Screen kind="menu" label={title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={title}>
+        {party ? (
+          <div className="dn-lineup dn-lineup--party">
+            {party.members.map(({ character }) => {
+              const species = pack.species[character.species]
+              return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.5} decorative /> : null
+            })}
+          </div>
+        ) : (
+          <div className="dn-lineup">
+            <p className="dn-note dn-text-outline">{text.hint}</p>
+          </div>
+        )}
+      </Screen>
+      <Screen kind="menu" label={title} scrolls>
         <StepHeader title={title} />
         <div className="dn-stack">
           {!state && (
@@ -142,11 +141,6 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
               {state.linked && !state.hostThere && <Status text={text.hostGone} />}
               {own && <Yours pack={pack} character={own.character} resting={own.resting} onOpen={onOpen} />}
               <Members pack={pack} party={state.party} />
-              {leaving && (
-                <p className="dn-note dn-note--error" role="alert">
-                  {text.leaveQuestion}
-                </p>
-              )}
             </>
           )}
           {state?.at === 'out' && (
@@ -155,7 +149,15 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
             </p>
           )}
         </div>
-        <div className="dn-foot">
+        <ViewFoot
+          said={
+            state?.at === 'in' && leaving ? (
+              <p className="dn-note dn-note--error" role="alert">
+                {text.leaveQuestion}
+              </p>
+            ) : undefined
+          }
+        >
           {state?.at === 'in' && leaving && (
             <>
               <OptionButton primary onClick={() => setLeaving(false)}>
@@ -174,9 +176,9 @@ export function JoinScreen({ pack, code: given, state, characters, onCode, onCho
             </>
           )}
           {state?.at !== 'in' && state?.at !== 'out' && <OptionButton onClick={state ? onLeave : onBack}>{messages.nav.back}</OptionButton>}
-        </div>
+        </ViewFoot>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 

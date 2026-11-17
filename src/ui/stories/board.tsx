@@ -25,6 +25,15 @@ export function Phone({ children }: { children: ReactNode }) {
   return <div className="sb-phone">{children}</div>
 }
 
+/** A window of the given size with the app's DS in it, as large as fits there: a phone, a phone on its side, a laptop. */
+export function Device({ width, height, children }: { width: number; height: number; children: ReactNode }) {
+  return (
+    <div className="sb-device dn-device" style={{ width, height }}>
+      {children}
+    </div>
+  )
+}
+
 /** Explanations on the board, in an ordinary font. */
 export function Note({ children }: { children: ReactNode }) {
   return <p className="sb-note">{children}</p>

@@ -1,7 +1,8 @@
 /**
  * Whether the title screen moves (decision 206): its rain and its lightning
  * go on beside the home's menu for as long as the home shows, so the Options
- * can hold them still. A choice of the device, kept like the language.
+ * can hold them still. The den on the top screen of other pages (decision 217)
+ * follows the same choice. A choice of the device, kept like the language.
  */
 import { useSyncExternalStore } from 'react'
 import { createDeviceChoice } from '../../storage/device-choice'

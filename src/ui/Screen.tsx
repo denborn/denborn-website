@@ -39,17 +39,17 @@ export interface ScreenProps {
   kind?: 'scene' | 'touch' | 'menu' | 'blank'
   /** What the screen is, for assistive technology. */
   label: string
-  /** As long as what it holds, not 4:3: for a menu or a form that the page scrolls. */
-  tall?: boolean
+  /** What it holds is a column from its top, scrolled inside the screen when it is longer: a menu, a form, a list (decision 216). */
+  scrolls?: boolean
   children?: ReactNode
 }
 
 /**
  * One DS screen: a 4:3 surface on which everything keeps the DS's proportions
- * at any size. Two of them stacked make the portrait layout of a phone. A
- * `tall` one keeps the width and the proportions but grows with its content.
+ * at any size. Two of them, one over the other, are the DS (`DualScreen`). One
+ * that `scrolls` is a DS screen still: only what it holds moves.
  */
-export function Screen({ kind = 'scene', label, tall = false, children }: ScreenProps) {
+export function Screen({ kind = 'scene', label, scrolls = false, children }: ScreenProps) {
   const ref = useRef<HTMLElement>(null)
   const [metrics, setMetrics] = useState<ScreenMetrics>({ unit: 2, ratio: 1 })
 
@@ -64,7 +64,7 @@ export function Screen({ kind = 'scene', label, tall = false, children }: Screen
   }, [])
 
   return (
-    <section ref={ref} className={`dn-root dn-screen dn-screen--${kind}${tall ? ' dn-screen--tall' : ''}`} aria-label={label}>
+    <section ref={ref} className={`dn-root dn-screen dn-screen--${kind}${scrolls ? ' dn-screen--scrolls' : ''}`} aria-label={label}>
       <div className="dn-screen__stage">
         <MetricsContext.Provider value={metrics}>{children}</MetricsContext.Provider>
       </div>

@@ -1,7 +1,7 @@
 import { type SyntheticEvent, useState } from 'react'
 import { useMessages } from '../../i18n'
 import type { Invitation } from '../../shared/codec/codes'
-import { OptionButton, Screen, Slot, StepHeader, TextField } from '../../ui'
+import { DualScreen, OptionButton, Screen, Slot, StepHeader, TextField } from '../../ui'
 
 /** Why a pasted link could not be opened. */
 export type LinkProblem = 'not-this-kind' | 'newer-version' | 'damaged' | 'unknown-species'
@@ -30,15 +30,13 @@ export function NewCharacter({ invitations, problem: arrivedWith, onBack, onCamp
   }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title}>
-          <div className="dn-lineup">
-            <p className="dn-note dn-text-outline">{text.hint}</p>
-          </div>
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title}>
+        <div className="dn-lineup">
+          <p className="dn-note dn-text-outline">{text.hint}</p>
+        </div>
+      </Screen>
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">
           <div role="group" aria-label={text.campaigns} className="dn-entry">
@@ -76,6 +74,6 @@ export function NewCharacter({ invitations, problem: arrivedWith, onBack, onCamp
           <OptionButton onClick={onBack}>{messages.nav.back}</OptionButton>
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }

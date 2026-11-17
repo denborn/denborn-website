@@ -9,12 +9,13 @@ Denborn looks and feels like Pokémon Black / White and Black 2 / White 2. The r
 
 ## Before you draw anything
 
-1. **Look for it in the kit.** `src/ui/index.ts` lists every component. A screen is assembled from them, inside a `Screen`.
+1. **Look for it in the kit.** `src/ui/index.ts` lists every component. A page is one `DualScreen` of two `Screen`s, a top one and a bottom one, each assembled from them.
 2. **If the kit lacks it, look at the games.** Find the piece on a reference sheet (`references/sources.md`), measure it (below), and redraw it in CSS or SVG. Never copy pixels from a sheet, and never commit a sheet.
 3. **If the games have no such thing** (Agony, the GM's console, anything Denborn adds), design it in the same language, mark it "Denborn's own" in the tokens and in `DESIGN.md`, show it on the board, and ask the owner before it ships. The owner decides how things look; a missing reference is not permission to decide.
 
 ## Rules that are easy to break
 
+- **Two screens, always** (decisions 214 to 216): the top screen and the bottom screen are separate boxes, each exactly 4:3, each showing its own thing; one may carry on from the other, never share a layout with it. Nothing is taller than a screen: what is longer `scrolls` inside the bottom one, and the window itself never does.
 - **Sizes in DS pixels**: `calc(N * var(--dn-u))`, text in `var(--dn-t)`. No px, rem or vw inside a `Screen`, except the 44 px touch target (`--dn-target`).
 - **Tokens only**: no colour, duration or easing written in a component. Add a token, with where it was measured.
 - **No words in components**: text comes through props, from the app's dictionaries (`src/i18n/`), in English and French. Wording the owner has not approved is shown on the board first.
@@ -22,6 +23,7 @@ Denborn looks and feels like Pokémon Black / White and Black 2 / White 2. The r
 - **Sprites and icons come from Showdown** through `src/data/sprites.ts`. Never guess a file name; never use an emoji or a generic icon where a game graphic exists.
 - **Pixel art on whole device pixels**: use the components' `scale`, never a CSS width on a sprite.
 - **Shaped controls are painted by ::before and ::after**, so the element is never clipped and its focus ring shows. Do not put `clip-path` on something that can take focus.
+- **It always moves, as a video game does** (decisions 218 and 219): nothing appears, leaves or changes at once, and nothing only fades. A new screen or view gets a `key` so that the frame moves it (`DualScreen`, `src/ui/screen-motion.ts`); a new layout adds its pieces to that file's list. If a Pokémon game never did it that way, do not do it.
 - **Motion explains, never decides**: use the tokens and `src/ui/motion.ts`; give every animation its reduced-motion form; never wait for an animation before accepting input.
 - **Every new piece gets a story**, at phone width first, in both languages.
 

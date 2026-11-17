@@ -13,6 +13,7 @@ This repository is a Pokémon-only cooperative tabletop companion PWA, **not** a
 - D100 is **only for out-of-combat roleplay**, using six independent attributes; Pokémon battle math stays in the simulator.
 - Generation **9 combat rules** are the baseline even in V0; V0 is limited to the first 151 Pokémon species. V1 adds through Gen 9; V2 is for boss balancing.
 - Six equipped moves; Gen 5-inspired animated visuals and actual item icons, Showdown `ani` fallback for missing `gen5ani`; no generic-icon substitution for existing Pokémon assets. A battle sprite that is not there (not fetched yet, or missing) shows MissingNo. in its place (decisions 181 and 185).
+- **A video game, never a website** (decisions 218 and 219): motion, animations and transitions are always there and give the feel of a video game. The two screens stay while what they show changes; nothing feels like going from one page to another. A change of screen moves (pieces fly, stripes sweep): a plain fade is not a transition. Reduced motion is the one exception.
 - GM-controlled campaigns/encounters, live room and shareable *offline* character-creation link; GM authoritative in live battles.
 - Only JSON files + `localStorage` copies for canonical saves. **No application database**, paid Cloudflare service, server-canonical saves or silent storage changes.
 - PWA installable on iOS/Android; offline UI, character creation and cached data/engine after first successful visit. Live multiplayer still needs connectivity.

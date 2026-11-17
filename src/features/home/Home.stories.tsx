@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
 import type { OfflineState } from '../../pwa/use-offline-status'
-import { Note, Phone } from '../../ui/stories/board'
+import { Device, Note, Phone } from '../../ui/stories/board'
 import { Home } from './Home'
 import { LoadingScreen } from './LoadingScreen'
 
@@ -30,7 +30,7 @@ function Start({ title, animation, offline, update }: HomeArgs) {
   const [opened, setOpened] = useState<string>()
   return (
     <>
-      <div className="sb-device">
+      <Device width={412} height={839}>
         <Home
           entries={['characters', 'session', 'campaigns', 'options']}
           offline={{ ...OFFLINE[offline], updateAvailable: update, applyUpdate: () => setOpened('update') }}
@@ -40,7 +40,7 @@ function Start({ title, animation, offline, update }: HomeArgs) {
           onOpen={setOpened}
           onCredits={() => setOpened('credits')}
         />
-      </div>
+      </Device>
       {opened && <Note>You pressed “{opened}”.</Note>}
     </>
   )
@@ -53,12 +53,13 @@ function HomeScreen(args: HomeArgs) {
       <Note>
         The app’s first screen (decisions 203 to 207). Each time the app starts, the den stands in Showdown’s meadow with no light; its
         light rises; a red bolt strikes as the plain turns dark; the name appears; then rain falls and red lightning strikes. The bottom
-        screen stays black; TOUCH TO START shows once the storm has come. One tap, at any moment and on either screen, puts the menu in
-        its place, the storm going on above it. With reduced motion, or with <code>animation</code> off (the Options’ switch), it opens
+        screen stays black; TOUCH TO START shows once the storm has come. One tap, at any moment and on either screen, has the menu fly
+        in in its place in the app (shown under Screens/The DS, Changing; here the menu is put there at once), the storm going on above it. With reduced motion, or with <code>animation</code> off (the Options’ switch), it opens
         on the storm standing still. With <code>title</code> off, the title is already passed, as when coming back from another screen.
         Under the ways in, a line says how far the app is from working with no network (decisions 181 and 182); set{' '}
         <code>offline</code> to read each state. With <code>update</code>, a new version waits: it is offered here and in the Options
-        only (decision 183).
+        only (decision 183). The window drawn here is a phone’s, 412 × 839: the two screens are whole in its middle, black above and below
+        (decision 215).
       </Note>
       <div className="sb-tools">
         <button type="button" onClick={() => setRun((before) => before + 1)}>
@@ -79,8 +80,9 @@ export const Loading: StoryObj = {
     <Phone>
       <LoadingScreen />
       <Note>
-        Shown while the game data loads, a moment at most: the app’s emblem, the ball rocking left and right then resting (decision 212), as
-        a console shows a game’s icon while it starts (decision 192), over the word. With reduced motion the ball stays upright.
+        Shown while the game data loads, a moment at most (decision 220): the menu’s backdrop on both screens and, on the bottom one,
+        the app’s emblem, the ball rocking left and right then resting (decision 212), as a console shows a game’s icon while it starts
+        (decision 192), over the word. With reduced motion the ball stays upright.
       </Note>
     </Phone>
   ),

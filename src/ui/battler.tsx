@@ -1,5 +1,5 @@
 import { MotionConfig, motion, useAnimate } from 'motion/react'
-import { type Ref, useImperativeHandle } from 'react'
+import { type Ref, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 import type { SpeciesData } from '../data/types'
 import { useDsUnit } from './Screen'
 import { DURATION, EASE, HOLD } from './motion'
@@ -17,6 +17,14 @@ export interface BattlerHandle {
   attack: () => Promise<void>
 }
 
+/** What a step of a round has a Pokémon do. */
+export interface BattlerCue {
+  /** `attack`: it uses a move, the short lunge. `hit`: it takes one, the blink. */
+  move: 'attack' | 'hit'
+  /** Which step of which round this is: the same move at another beat plays again. */
+  beat: string
+}
+
 export interface BattlerProps {
   species: Pick<SpeciesData, 'id' | 'sprite' | 'femaleSprite'>
   name: string
@@ -28,6 +36,8 @@ export interface BattlerProps {
   scale?: number
   /** Where it slides in from: its own side of the field, or the side an arrow of its line was pressed on. */
   enterFrom?: 'side' | 'left' | 'right'
+  /** What the step being told has it do. It plays it itself, as soon as it is there: a screen need not hold on to it for that. */
+  cue?: BattlerCue | undefined
   ref?: Ref<BattlerHandle>
 }
 
@@ -36,15 +46,14 @@ export interface BattlerProps {
  * when downed, and drops out of sight when gone. Motion here only shows what
  * the battle already decided; it never decides anything.
  */
-export function Battler({ species, name, side, female = false, pose = 'standing', scale = 1, enterFrom = 'side', ref }: BattlerProps) {
+export function Battler({ species, name, side, female = false, pose = 'standing', scale = 1, enterFrom = 'side', cue, ref }: BattlerProps) {
   const unit = useDsUnit()
   const reduced = usePrefersReducedMotion()
   const [body, animate] = useAnimate<HTMLDivElement>()
   const toward = side === 'player' ? 1 : -1
   const entry = enterFrom === 'side' ? -toward : enterFrom === 'left' ? -1 : 1
 
-  useImperativeHandle(
-    ref,
+  const moves = useMemo<BattlerHandle>(
     () => ({
       hit: async () => {
         // No blinking for anyone who asked for less motion: the HP bar and the message already tell.
@@ -62,6 +71,17 @@ export function Battler({ species, name, side, female = false, pose = 'standing'
     }),
     [animate, body, reduced, toward, unit],
   )
+  useImperativeHandle(ref, () => moves, [moves])
+
+  // A beat's cue is played once, when it comes: not again because the screen was drawn anew.
+  const played = useRef<string>(undefined)
+  const move = cue?.move
+  const beat = cue?.beat
+  useEffect(() => {
+    if (!move || played.current === beat) return
+    played.current = beat
+    void (move === 'attack' ? moves.attack() : moves.hit())
+  }, [move, beat, moves])
 
   const poses = {
     standing: { y: 0, opacity: 1, filter: 'grayscale(0) brightness(1)' },

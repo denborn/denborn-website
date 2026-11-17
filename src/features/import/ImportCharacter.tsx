@@ -4,7 +4,7 @@ import { sheetNumbers } from '../../domain/sheet'
 import { type Language, useLanguage, useMessages } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import type { WriteResult } from '../../storage/library'
-import { OptionButton, Screen, StepHeader, TextField } from '../../ui'
+import { DualScreen, OptionButton, Screen, StepHeader, TextField } from '../../ui'
 import { Portrait } from '../sheet/Portrait'
 import type { Incoming, IncomingCharacter, IncomingProblem } from './incoming'
 
@@ -69,27 +69,25 @@ export function ImportCharacter({ pack, arrivedWith, readFile, readCode, textOfF
   }
 
   return (
-    <div className="dn-page">
-      <div className="dn-page__top">
-        <Screen kind="scene" label={text.title}>
-          {step.at === 'ask' && (
-            <div className="dn-lineup">
-              <p className="dn-note dn-text-outline">{text.hint}</p>
-            </div>
-          )}
-          {step.at === 'scan' && camera && (
-            <div className="dn-camera">
-              {camera({
-                onText: (scanned) => setStep(afterReading(readCode(scanned), 'qr')),
-                onProblem: (reason) => setStep({ at: 'ask', problem: { way: 'qr', reason } }),
-              })}
-              <span className="dn-camera__frame" />
-            </div>
-          )}
-          {step.at === 'found' && numbers && <Portrait pack={pack} character={step.incoming.character} numbers={numbers} language={language} messages={messages} />}
-        </Screen>
-      </div>
-      <Screen kind="menu" label={text.title} tall>
+    <DualScreen>
+      <Screen kind="scene" label={text.title}>
+        {step.at === 'ask' && (
+          <div className="dn-lineup">
+            <p className="dn-note dn-text-outline">{text.hint}</p>
+          </div>
+        )}
+        {step.at === 'scan' && camera && (
+          <div className="dn-camera">
+            {camera({
+              onText: (scanned) => setStep(afterReading(readCode(scanned), 'qr')),
+              onProblem: (reason) => setStep({ at: 'ask', problem: { way: 'qr', reason } }),
+            })}
+            <span className="dn-camera__frame" />
+          </div>
+        )}
+        {step.at === 'found' && numbers && <Portrait pack={pack} character={step.incoming.character} numbers={numbers} language={language} messages={messages} />}
+      </Screen>
+      <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         {step.at === 'ask' && (
           <WaysIn
@@ -121,7 +119,7 @@ export function ImportCharacter({ pack, arrivedWith, readFile, readCode, textOfF
           {step.at === 'found' && <OptionButton onClick={() => setStep({ at: 'ask' })}>{messages.nav.back}</OptionButton>}
         </div>
       </Screen>
-    </div>
+    </DualScreen>
   )
 }
 
