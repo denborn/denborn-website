@@ -30,7 +30,7 @@ const LOOKS: Record<HomeEntry, { pokemon: MenuPokemon; tone: MenuTone }> = {
   characters: { pokemon: MENU_POKEMON.pikachu, tone: 'yellow' },
   campaigns: { pokemon: MENU_POKEMON.eternamaxEternatus, tone: 'red' },
   session: { pokemon: MENU_POKEMON.falinks, tone: 'brown' },
-  options: { pokemon: MENU_POKEMON.porygon, tone: 'blue' },
+  options: { pokemon: MENU_POKEMON.klang, tone: 'grey' },
   account: { pokemon: MENU_POKEMON.megaStarmie, tone: 'purple' },
 }
 
@@ -90,7 +90,7 @@ export function Home({ titled, animated, onStart, onOpen, onUpdate }: HomeProps)
                 </MenuButton>
               ))}
               {/* Unown asks while there is nothing to move to, and exclaims once a new version waits: UPDATE ?, then UPDATE ! */}
-              <PointedMenuButton tone="grey" pokemon={onUpdate ? MENU_POKEMON.unownExclamation : MENU_POKEMON.unownQuestion} disabled={!onUpdate} onClick={onUpdate}>
+              <PointedMenuButton tone="blue" pokemon={onUpdate ? MENU_POKEMON.unownExclamation : MENU_POKEMON.unownQuestion} disabled={!onUpdate} onClick={onUpdate}>
                 {text.update}
               </PointedMenuButton>
             </nav>

@@ -11,7 +11,7 @@ const MENU: readonly { tone: MenuTone; pokemon: MenuPokemon }[] = [
   { tone: 'yellow', pokemon: MENU_POKEMON.pikachu },
   { tone: 'red', pokemon: MENU_POKEMON.eternamaxEternatus },
   { tone: 'brown', pokemon: MENU_POKEMON.falinks },
-  { tone: 'blue', pokemon: MENU_POKEMON.porygon },
+  { tone: 'grey', pokemon: MENU_POKEMON.klang },
   { tone: 'purple', pokemon: MENU_POKEMON.megaStarmie },
 ]
 
@@ -57,7 +57,7 @@ function Controls() {
           the left: the Pokémon, in a place that is the same on every button, then one word. In its place the Pokémon is in the middle and
           stands on the bottom, over its round shadow, so that a small one and a large one are about the same point, on one line. Blue is the party slot’s own; the other colours are Denborn’s own, from
           colours measured elsewhere. Hold one down: it sinks and lights up, its rim turns white and its Pokémon hops off its shadow; let
-          go, and it springs back. The grey pair is UPDATE’s (decision 233): the options screen’s shape, pointed at both ends, as large as
+          go, and it springs back. The blue pair is UPDATE’s (decisions 233 and 239): the options screen’s shape, pointed at both ends, as large as
           its cell, with its Pokémon as the last letter of its word, as large as on the other buttons and centred on the capitals (decisions 235 and 237); the second cannot be pressed.
         </Note>
         <Screen kind="menu" label="Menu buttons">
@@ -68,11 +68,11 @@ function Controls() {
                   {tone.toUpperCase()}
                 </MenuButton>
               ))}
-              <PointedMenuButton tone="grey" pokemon={MENU_POKEMON.unownExclamation}>
-                GREY
+              <PointedMenuButton tone="blue" pokemon={MENU_POKEMON.unownExclamation}>
+                BLUE
               </PointedMenuButton>
-              <PointedMenuButton tone="grey" pokemon={MENU_POKEMON.unownQuestion} disabled>
-                GREY
+              <PointedMenuButton tone="blue" pokemon={MENU_POKEMON.unownQuestion} disabled>
+                BLUE
               </PointedMenuButton>
             </div>
           </div>
