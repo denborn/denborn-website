@@ -36,6 +36,8 @@ export const TITLE = {
   'light-loop': 0.96,
   /** The near rain falling one tile. */
   'rain-fall': 0.6,
+  /** A dead character's ghost, from the den's base to where it has broken up and gone (decision 228). */
+  ghost: 6,
 } as const
 
 /**

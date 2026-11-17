@@ -23,6 +23,8 @@ export interface PokemonSpriteProps extends BattleSpriteOptions {
   frozen?: boolean
   /** True when text next to the sprite already names the Pokémon. */
   decorative?: boolean
+  /** Called with the picture's own size, in its own pixels, once it is there to show: MissingNo.'s when it stands in. */
+  onSize?: (size: { width: number; height: number }) => void
 }
 
 /**
@@ -33,7 +35,7 @@ export interface PokemonSpriteProps extends BattleSpriteOptions {
  * for a Pokémon seen from behind (decision 188); the name it is read out by
  * stays the Pokémon's own.
  */
-export function PokemonSprite({ species, name, scale = 1, frozen = false, decorative = false, back, female }: PokemonSpriteProps) {
+export function PokemonSprite({ species, name, scale = 1, frozen = false, decorative = false, back, female, onSize }: PokemonSpriteProps) {
   const factor = usePixelScale(scale)
   const still = usePrefersReducedMotion() || frozen
   const options: BattleSpriteOptions = {}
@@ -73,7 +75,11 @@ export function PokemonSprite({ species, name, scale = 1, frozen = false, decora
         alt=""
         style={{ ...fill, display: still ? 'none' : 'block' }}
         draggable={false}
-        onLoad={(event) => setLoaded({ url, width: event.currentTarget.naturalWidth, height: event.currentTarget.naturalHeight })}
+        onLoad={(event) => {
+          const { naturalWidth: width, naturalHeight: height } = event.currentTarget
+          setLoaded({ url, width, height })
+          onSize?.({ width, height })
+        }}
         onError={() => setFailed((before) => (before.includes(url) ? before : [...before, url]))}
       />
       <canvas ref={canvas} className="dn-sprite" style={{ ...fill, display: still ? 'block' : 'none' }} aria-hidden="true" />

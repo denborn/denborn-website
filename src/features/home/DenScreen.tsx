@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Screen } from '../../ui/Screen'
 import { usePrefersReducedMotion } from '../../ui/reduced-motion'
 import { TitleScene } from '../../ui/title-scene'
+import type { CastMember } from '../../ui/wanderers'
 import { useTitleAnimation } from '../options/title-animation'
 
 /**
@@ -25,6 +26,8 @@ export interface DenScreenProps {
   onStorm?: (() => void) | undefined
   /** The app's name, on the scene: the home's. */
   title?: ReactNode
+  /** The characters on the plain: the list of characters' (decision 225). */
+  cast?: readonly CastMember[]
   /** What else the screen holds, over the scene. */
   children?: ReactNode
 }
@@ -34,14 +37,16 @@ export interface DenScreenProps {
  * and 205): its intro, the storm with its lightning, the app's name. On a page
  * that has nothing of its own to show there it is the den at night, in the
  * rain, without the name, a bolt or a flash (decision 217). The rain hangs
- * with reduced motion, and with the Options' switch off (decision 206).
+ * with reduced motion, and with the Options' switch off (decision 206). On
+ * the list of characters, they are on the plain round it (decision 225), and
+ * stand still when the rain hangs.
  */
-export function DenScreen({ label, intro = false, lightning = false, animated, onStorm, title, children }: DenScreenProps) {
+export function DenScreen({ label, intro = false, lightning = false, animated, onStorm, title, cast, children }: DenScreenProps) {
   const reduced = usePrefersReducedMotion()
   const chosen = useTitleAnimation() === 'on'
   return (
     <Screen kind="scene" label={label}>
-      <TitleScene intro={intro} still={reduced || !(animated ?? chosen)} lightning={lightning} {...(onStorm ? { onStorm } : {})}>
+      <TitleScene intro={intro} still={reduced || !(animated ?? chosen)} lightning={lightning} {...(onStorm ? { onStorm } : {})} {...(cast ? { cast } : {})}>
         {title}
       </TitleScene>
       {children}

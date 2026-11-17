@@ -2141,10 +2141,28 @@
 
 .dn-title-scene__world {
   position: absolute;
+  /* Whoever walks on the plain (decision 225) is drawn among the layers by the row its feet stand on: the world orders what is in
+     it by itself, apart from the name and the flash over it. */
+  isolation: isolate;
 }
 
 .dn-title-scene__world > * {
   position: absolute;
+}
+
+/* The layers a walker may be before or behind stand on a row of the scene too, which the component gives: the rocks at the back
+   on the row of the den's middle, the light and what is in front of it on the row the rocks in front stand on, the near rain over
+   every row. The plain, its night, the light on its ground and the far rain are under everyone. */
+.dn-title-scene__far {
+  z-index: var(--dn-title-far);
+}
+
+.dn-title-scene__near {
+  z-index: var(--dn-title-near);
+}
+
+.dn-title-scene__rain--near {
+  z-index: var(--dn-title-over);
 }
 
 .dn-title-scene__plain {
@@ -2324,6 +2342,112 @@
 /* Still (the Options' switch, or reduced motion): the rain hangs and the light holds its first frame. */
 .dn-title-scene--still .dn-title-scene__light,
 .dn-title-scene--still .dn-title-scene__rain {
+  animation: none;
+}
+
+/* --- The characters on the plain (Denborn's own; decisions 225 to 229) --------------- */
+/* A character on the scene: a box with no size, at its feet. Its sprite stands on it, placed by the component on whole device
+   pixels; its name is over the sprite, in the middle, cut with an ellipsis when it is long (twelve letters fit). */
+.dn-denizen {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.dn-denizen__name {
+  position: absolute;
+  left: 0;
+  transform: translateX(-50%);
+  max-width: calc(72 * var(--dn-u));
+  /* Room for the outline, which overflow would otherwise cut. */
+  padding: calc(1 * var(--dn-u));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+.dn-denizen__sprite {
+  position: absolute;
+  bottom: 0;
+}
+
+/* The front sprites look to the left and the back ones to the right: one that heads the other way is mirrored. */
+.dn-denizen__look {
+  display: block;
+}
+
+.dn-denizen__look--mirrored {
+  transform: scaleX(-1);
+}
+
+/* It hops as it walks, as a Pokémon's icon does in the games' menus: up two pixels of the scene and down again, each pixel held. */
+.dn-denizen--hops .dn-denizen__sprite {
+  animation: dn-denizen-hop var(--dn-title-hop) steps(1) infinite;
+}
+
+@keyframes dn-denizen-hop {
+  25%,
+  75% {
+    transform: translateY(calc(-1 * var(--dn-title-px)));
+  }
+  50% {
+    transform: translateY(calc(-2 * var(--dn-title-px)));
+  }
+}
+
+/* One that walks (decision 225): a box at the world's corner, moved to its feet's column, holding a box moved to their row. The
+   component gives each move its length and its steps, one pixel of the scene at a time, and the box its row among the layers. */
+.dn-wanderer,
+.dn-wanderer__rows {
+  left: 0;
+  top: 0;
+}
+
+.dn-wanderer__rows {
+  position: absolute;
+}
+
+/* The night dims it as it dims the rocks (decision 229); its name stays bright. */
+.is-dark .dn-wanderer .dn-denizen__sprite {
+  filter: var(--dn-title-night-sprite);
+}
+
+/* A dead character in the den's light (decision 228): a ghost. A box with no size at its feet, under the light's foot where the
+   rocks in front hide it whole, holding a box that rises to where the light breaks up, a row of the scene at a time, with its
+   name. Both are drawn by the component, the ghost on a sheet of its own small pixels and its name on one of the device's: it
+   sways within the light, wavers, glows in the Ghost type's colour, then breaks up by itself, and its name with it. */
+.dn-ghost__rise {
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: dn-ghost-rise var(--dn-title-ghost) steps(var(--dn-ghost-rows)) both;
+}
+
+@keyframes dn-ghost-rise {
+  to {
+    transform: translateY(var(--dn-ghost-run));
+  }
+}
+
+.dn-ghost__figure {
+  position: absolute;
+  image-rendering: pixelated;
+}
+
+.dn-ghost__name {
+  position: absolute;
+}
+
+/* Its name as the page writes one: the written name is made after it, and it is never shown itself. */
+.dn-ghost__label {
+  visibility: hidden;
+}
+
+/* Still: it stands in the light, over the rocks at the back, where the component puts it. */
+.dn-ghost--still .dn-ghost__rise {
   animation: none;
 }
 

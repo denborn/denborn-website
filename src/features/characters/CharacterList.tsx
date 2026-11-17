@@ -2,7 +2,9 @@ import type { DataPack } from '../../data/types'
 import { useLanguage, useMessages } from '../../i18n'
 import type { CharacterDocument } from '../../shared/schema/character'
 import type { Stored } from '../../storage/library'
-import { DualScreen, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader } from '../../ui'
+import { DualScreen, OptionButton, PokemonIcon, Screen, Slot, StepHeader } from '../../ui'
+import type { CastMember } from '../../ui/wanderers'
+import { DEN, DenScreen } from '../home/DenScreen'
 
 export interface CharacterListProps {
   pack: DataPack
@@ -17,26 +19,25 @@ export interface CharacterListProps {
   onOpen: (id: string) => void
 }
 
-/** How many of them stand on the top screen. */
-const FACES = 5
-
-/** The characters kept on this device: they stand on the top screen and are listed below. */
+/**
+ * The characters kept on this device: on the top screen they are on the plain
+ * round the den, each under its name (decision 225), the living walking, the
+ * dead in the den's light (decision 228); they are listed below. The den is
+ * the one of every other page, so it carries on from the home and back.
+ */
 export function CharacterList({ pack, entries, kept, onBack, onNew, onImport, onOpen }: CharacterListProps) {
   const language = useLanguage()
   const messages = useMessages()
   const text = messages.characters
-  const readable = entries.flatMap((entry) => (entry.read.ok ? [entry.read.value] : []))
+  const cast = entries.flatMap((entry): CastMember[] => {
+    if (!entry.read.ok) return []
+    const character = entry.read.value
+    const species = pack.species[character.species]
+    return species ? [{ id: entry.id, name: character.nickname, species, female: character.gender === 'F', dead: character.condition.state === 'dead' }] : []
+  })
   return (
     <DualScreen>
-      <Screen kind="scene" label={text.title}>
-        <div className="dn-lineup">
-          {readable.length === 0 && <p className="dn-note dn-text-outline">{text.empty}</p>}
-          {readable.slice(0, FACES).map((character) => {
-            const species = pack.species[character.species]
-            return species ? <PokemonSprite key={character.id} species={species} name={character.nickname} female={character.gender === 'F'} scale={0.6} decorative /> : null
-          })}
-        </div>
-      </Screen>
+      <DenScreen key={DEN} label={text.title} cast={cast} />
       <Screen kind="menu" label={text.title} scrolls>
         <StepHeader title={text.title} />
         <div className="dn-stack">

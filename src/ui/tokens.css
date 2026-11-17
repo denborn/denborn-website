@@ -88,6 +88,9 @@
   /* --- Title screen (Denborn's own: decisions 203 to 207, and 211) --------- */
   /* The veil over the plain and the stones once the storm has come; the light keeps its own colours. */
   --dn-title-night: rgb(10 12 36 / 0.62);
+  /* The same night on a character that walks on the plain (decision 229), as a filter, since a veil cannot be cut to a sprite that
+     moves: it keeps 0.38 of the colour under it, as the veil does, and adds the mean of what the veil adds. Denborn's own. */
+  --dn-title-night-sprite: contrast(0.8) brightness(0.47);
   --dn-title-rain: rgb(196 214 242 / 0.6);
   --dn-title-rain-far: rgb(160 180 220 / 0.35);
   --dn-title-bolt: #ff2d55; /* the red of the bolt's edges */
@@ -199,6 +202,8 @@
   --dn-title-blink: 1200ms; /* TOUCH TO START, on then off: under one blink a second */
   --dn-title-light-loop: 960ms; /* the light's eight frames of 120 ms: its squares and streaks climb five pixels a frame */
   --dn-title-rain-fall: 600ms; /* the near rain falling one tile; the far rain takes twice as long */
+  --dn-title-ghost: 6000ms; /* a dead character's ghost, from the den's base to where it has broken up and gone (decision 228) */
+  --dn-title-hop: 320ms; /* one hop of a character walking on the plain (decision 225): about three a second. Denborn's own. */
   --dn-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dn-ease-in: cubic-bezier(0.6, 0, 0.9, 0.4);
   --dn-ease-snap: cubic-bezier(0.3, 1.4, 0.5, 1); /* a small overshoot, for arrivals */

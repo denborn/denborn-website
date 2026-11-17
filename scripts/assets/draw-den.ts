@@ -10,7 +10,8 @@
  *   node scripts/assets/draw-den.ts --whole <folder>   also writes the whole den there in one file, still and animated
  *
  * It stops without writing if the pictures no longer have the places and
- * sizes the app expects (TITLE_DEN in src/data/sprites.ts).
+ * sizes the app expects (TITLE_DEN in src/data/sprites.ts), or if the ground
+ * the app takes the den to stand on no longer holds its rocks.
  */
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -696,6 +697,41 @@ function checkPlaces(): void {
   if (wrong.length > 0) throw new Error(`src/data/sprites.ts and the drawing disagree:\n${wrong.join('\n')}`)
 }
 
+/**
+ * Whoever walks on the plain goes round the den by its footprint, and is drawn
+ * behind or in front of the rocks by the row those in front stand on (decision
+ * 225): the footprint must have no dent and hold every pixel of every rock,
+ * and that row must lie under every rock at the back and over the foot of
+ * every rock in front.
+ */
+function checkGround(): void {
+  const at = { x: TITLE_DEN.back.x - RING.left, y: TITLE_DEN.back.y - RING.top }
+  const corners = TITLE_DEN.footprint.map(({ x, y }): Point => [x - at.x, y - at.y])
+  /** Which side of the edge from `a` to `b` the point is on: over zero on one side, under on the other. */
+  const side = ([ax, ay]: Point, [bx, by]: Point, x: number, y: number): number => (bx - ax) * (y - ay) - (by - ay) * (x - ax)
+  const turns = corners.map((corner, index) => {
+    const next = corners[(index + 1) % corners.length] ?? corner
+    const [x, y] = corners[(index + 2) % corners.length] ?? corner
+    return Math.sign(side(corner, next, x, y))
+  })
+  const way = turns[0] ?? 0
+  if (way === 0 || turns.some((turn) => turn !== way)) throw new Error('TITLE_DEN.footprint has a dent, or corners in a line')
+  const holds = (x: number, y: number): boolean => edgesOf(corners).every(([from, to]) => side(from, to, x, y) * way >= 0)
+  const frontFoot = TITLE_DEN.frontFoot - at.y
+  for (const rock of ROCKS) {
+    const { body, foot } = shapeOf(rock)
+    eachPixel(DEN, (x, y) => {
+      if (!marked(body, x, y)) return
+      const outside = [x, x + 1].some((cornerX) => [y, y + 1].some((cornerY) => !holds(cornerX, cornerY)))
+      if (outside) throw new Error(`TITLE_DEN.footprint leaves a rock's pixel outside: ${x}, ${y} of the drawing`)
+    })
+    const lowest = Math.max(...foot.values())
+    if (rock.row === 'behind' ? lowest >= frontFoot : lowest < frontFoot) {
+      throw new Error(`TITLE_DEN.frontFoot is row ${frontFoot} of the drawing, and a rock ${rock.row} stands on row ${lowest}`)
+    }
+  }
+}
+
 // --- Writing ---------------------------------------------------------------------------------------------------------
 
 function write(folder: string, name: string, text: string): void {
@@ -705,6 +741,7 @@ function write(folder: string, name: string, text: string): void {
 
 checkLightFootIsHidden()
 checkPlaces()
+checkGround()
 for (const [name, text] of Object.entries(sceneFiles())) write(join(ROOT, 'public'), name, text)
 
 const wholeAt = process.argv.indexOf('--whole')

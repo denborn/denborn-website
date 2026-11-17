@@ -59,9 +59,10 @@ export interface ScenePlacement {
 /**
  * The title screen's plain (decision 204): Showdown's meadow, served at three
  * times and a bit its own size; `width` and `height` are its own pixels, which
- * the scene takes it back to.
+ * the scene takes it back to. `ground` is its first row of grass under the
+ * fence: whoever walks on the plain (decision 225) keeps its feet from there down.
  */
-export const TITLE_PLAIN = { url: `${ROOT}/fx/bg-meadow.png`, width: 238, height: 158 } as const
+export const TITLE_PLAIN = { url: `${ROOT}/fx/bg-meadow.png`, width: 238, height: 158, ground: 52 } as const
 
 /** The plain's pixel at the top left corner of the den's drawing: far enough from the plain's edges for every phone to show the den in its middle. */
 const DEN_AT = { x: 42, y: -3 }
@@ -69,6 +70,11 @@ const DEN_AT = { x: 42, y: -3 }
 /** A picture of the den: `left` and `top` are where it starts in the den's drawing. */
 function denPicture(url: string, left: number, top: number, width: number, height: number): ScenePlacement {
   return { url, x: DEN_AT.x + left, y: DEN_AT.y + top, width, height }
+}
+
+/** A corner of the den's drawing, on the plain. */
+function denCorner(left: number, top: number): { x: number; y: number } {
+  return { x: DEN_AT.x + left, y: DEN_AT.y + top }
 }
 
 /**
@@ -88,6 +94,12 @@ function denPicture(url: string, left: number, top: number, width: number, heigh
  * `right` are where it shines. `middle` is the middle of the ring, on the
  * ground: the column kept in the screen's middle, and where lightning strikes
  * the den.
+ *
+ * For whoever walks on the plain (decision 225): `footprint` is the ground the
+ * rocks take, an outline with no dent that holds every one of their pixels,
+ * its corners in order; `frontFoot` is the row the rocks in front stand on,
+ * so that what stands lower is in front of them, and what stands above
+ * `middle` is behind the rocks at the back.
  */
 export const TITLE_DEN = {
   spill: denPicture('/den-spill.svg', -16, 92, 160, 70),
@@ -97,9 +109,26 @@ export const TITLE_DEN = {
   frontGlow: denPicture('/den-front-glow.svg', 0, 100, 128, 60),
   light: { url: '/den-light.svg', x: DEN_AT.x + 37, width: 54, height: 135, frames: 8, left: DEN_AT.x + 44, right: DEN_AT.x + 84, foot: DEN_AT.y + 127 },
   middle: { x: DEN_AT.x + 64, y: DEN_AT.y + 121 },
+  footprint: [
+    denCorner(4, 110),
+    denCorner(50, 104),
+    denCorner(72, 104),
+    denCorner(116, 108),
+    denCorner(126, 123),
+    denCorner(126, 147),
+    denCorner(118, 153),
+    denCorner(80, 158),
+    denCorner(53, 158),
+    denCorner(8, 148),
+    denCorner(3, 143),
+    denCorner(3, 122),
+  ],
+  frontFoot: DEN_AT.y + 145,
 } as const satisfies Record<'spill' | 'back' | 'backGlow' | 'front' | 'frontGlow', ScenePlacement> & {
   light: { url: string; x: number; width: number; height: number; frames: number; left: number; right: number; foot: number }
   middle: { x: number; y: number }
+  footprint: readonly { x: number; y: number }[]
+  frontFoot: number
 }
 
 /** Every battle sprite of the species given: seen from the front and from behind, and the female ones where there are. */
