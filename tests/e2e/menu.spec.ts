@@ -3,7 +3,7 @@ import { settled } from './accessible.ts'
 import { openHome } from './home.ts'
 
 /** The home's buttons, in the order they are read: two to a row. */
-const BUTTONS = ['CHARACTERS', 'CAMPAIGNS', 'ACCOUNT', 'JOIN', 'OPTIONS', 'UPDATE']
+const BUTTONS = ['CHARACTERS', 'CAMPAIGNS', 'JOIN', 'ACCOUNT', 'OPTIONS', 'UPDATE']
 
 /** Where a thing is in the window. */
 async function boxOf(thing: Locator) {

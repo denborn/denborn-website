@@ -314,7 +314,7 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 217 | A page that had no top screen (the Options, the credits, five screens that tell of a failure) shows the title screen's den there: at night, in the rain, without the name, without a bolt or a flash. |
 | 218, 219 | The app always moves, as a video game does, and never feels like going from one page to another: the two screens stay, a screen that is the same on the next page carries on, and one that changes moves out and in. Never by a fade. |
 | 220 | The loading screen: the menu's black with its plus marks on both screens, the rocking ball over the word on the bottom one. |
-| 221 | The home's menu: a grid of four rows of two on the bottom screen. CHARACTERS (yellow, Pikachu) and CAMPAIGNS (red, Eternamax Eternatus since decision 231); JOIN (brown, Falinks) and OPTIONS (blue, Porygon; grey, with Klang, since decision 239); ACCOUNT and UPDATE (since decision 236: ACCOUNT and JOIN; OPTIONS and UPDATE); a row left empty; the notice in a line under the grid. One word a button, after its Pokémon, everything from the left. |
+| 221 | The home's menu: a grid of four rows of two on the bottom screen. CHARACTERS (yellow, Pikachu) and CAMPAIGNS (red, Eternamax Eternatus since decision 231); JOIN (brown, Falinks) and OPTIONS (blue, Porygon; grey, with Klang, since decision 239); ACCOUNT and UPDATE (since decisions 236 and 240: JOIN and ACCOUNT; OPTIONS and UPDATE); a row left empty; the notice in a line under the grid. One word a button, after its Pokémon, everything from the left. |
 | 222 | UPDATE is a button of the menu: a dimmed grey (blue since decision 239), with Unown as a question mark, while no new version waits; lit, with Unown as an exclamation mark, once one does. |
 | 223 | ACCOUNT (purple, Mega Starmie) opens a screen of its own, whose tools are to come: downloading what the device keeps, exporting and importing saves. |
 | 224 | A menu button held down sinks, lights up, turns its rim white, and its Pokémon hops; let go, it springs back. |
@@ -324,8 +324,9 @@ Every screen built on the kit must hold to this. The kit's own pieces were check
 | 233 | UPDATE has the shape of the old button that offered a new version, pointed at both ends, as large as its cell; Unown is the last letter of its word, as tall as the letters: UPDATE ?, then UPDATE !. |
 | 234 | The notice under the home's menu is a paragraph: justified, the last line from the left, words cut at the end of a line in the page's language. |
 | 235 | UPDATE's Unown is as large as the other buttons' Pokémon, and pops up when the question mark becomes an exclamation mark. |
-| 236 | The menu's rows: CHARACTERS and CAMPAIGNS; ACCOUNT and JOIN; OPTIONS and UPDATE. |
+| 236 | The menu's rows: CHARACTERS and CAMPAIGNS; ACCOUNT and JOIN (JOIN and ACCOUNT since decision 240); OPTIONS and UPDATE. |
 | 237 | UPDATE's Unown is centred on the capitals of its word: as far below their line as it rises above them. |
 | 239 | UPDATE is blue, the party slot's own; OPTIONS is grey, with Klang. |
+| 240 | The menu's second row is JOIN, then ACCOUNT. |
 
 Any change to these is a new ruling. Anything the system does not cover yet (section 5, last paragraph) is shown on the board and ruled before it ships.

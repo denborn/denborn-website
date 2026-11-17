@@ -22,8 +22,8 @@ export interface HomeProps {
   onUpdate: (() => void) | undefined
 }
 
-/** The ways in, in the menu's reading order: two to a row (decisions 221 and 236). */
-const ENTRIES: readonly HomeEntry[] = ['characters', 'campaigns', 'account', 'session', 'options']
+/** The ways in, in the menu's reading order: two to a row (decisions 221, 236 and 240). */
+const ENTRIES: readonly HomeEntry[] = ['characters', 'campaigns', 'session', 'account', 'options']
 
 /** Each way in's Pokémon, and the colours that suit it. */
 const LOOKS: Record<HomeEntry, { pokemon: MenuPokemon; tone: MenuTone }> = {
