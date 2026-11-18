@@ -4,8 +4,9 @@ import { type CSSProperties, type ReactNode, type RefObject, useContext, useEffe
 import { type ScenePlacement, TITLE_DEN, TITLE_PLAIN } from '../data/sprites'
 import { DS_WIDTH, useScreenMetrics } from './Screen'
 import { DURATION } from './motion'
+import { drawOwnPixels } from './own-pixels'
 import { usePrefersReducedMotion } from './reduced-motion'
-import { blockCentres, fitScene } from './scene-fit'
+import { fitScene } from './scene-fit'
 import { type BoltPoint, boltOnto, boltPath, nextStrike } from './storm'
 import { type TitlePhase, nextPhase, phaseLength, reached } from './title-intro'
 import { type CastMember, Ghosts, Wanderers } from './wanderers'
@@ -278,23 +279,7 @@ function Plain({ onReady }: { onReady: (ready: true) => void }) {
     let current = true
     const image = new Image()
     image.onload = () => {
-      const target = canvas.current?.getContext('2d')
-      const scratch = document.createElement('canvas')
-      scratch.width = image.naturalWidth
-      scratch.height = image.naturalHeight
-      const source = scratch.getContext('2d', { willReadFrequently: true })
-      if (!current || !target || !source) return
-      source.drawImage(image, 0, 0)
-      const read = source.getImageData(0, 0, scratch.width, scratch.height).data
-      const out = target.createImageData(TITLE_PLAIN.width, TITLE_PLAIN.height)
-      const columns = blockCentres(scratch.width, TITLE_PLAIN.width)
-      blockCentres(scratch.height, TITLE_PLAIN.height).forEach((row, y) => {
-        columns.forEach((column, x) => {
-          const from = (row * scratch.width + column) * 4
-          out.data.set(read.subarray(from, from + 4), (y * TITLE_PLAIN.width + x) * 4)
-        })
-      })
-      target.putImageData(out, 0, 0)
+      if (!current || !canvas.current || !drawOwnPixels(canvas.current, image, TITLE_PLAIN)) return
       onReady(true)
     }
     // With no plain, the scene's own sky and grass show through, and the intro need not wait.

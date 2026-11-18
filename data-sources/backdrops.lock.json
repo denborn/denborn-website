@@ -2,7 +2,20 @@
   "base": "https://play.pokemonshowdown.com/fx",
   "credit": "Pokémon Showdown's battle backdrops, drawn by Kyle Dove (https://pokemonshowdown.com/credits).",
   "files": {
+    "bg-beach.png": "4765113dd6f71e8fc0972bc54e733a1736d6831148fb4f69e60c9707eedda600",
+    "bg-beachshore.png": "4ae480db8d0bb2bfb4f9f9fed2b3056c2aab5295cd0fdd105b93a6632b47b0d4",
+    "bg-city.png": "7d0340b918d4848881e6d7cb31801ecde8453c71de0ea6998e04e07d42879bfd",
     "bg-dampcave.png": "4273e1f66032aa14f40ca95a590e179dda3789107b75df12ae8e0879d8020b1b",
-    "bg-meadow.png": "974c416c848609de5d2996d042f733bb110e285975797a5e5179464b92efe398"
+    "bg-deepsea.png": "73014e52567904fa36a75fc80e9850c7609e0a8f393928eb15ee4ff0d8017adb",
+    "bg-desert.png": "879a0779da8ecf7b4af9faa4ebd73e367f34d9c1fee938c7a5240c1a61be453e",
+    "bg-earthycave.png": "1cd08a705a1e92783fb59fe1cdc1934c63942dae09f3aae9feab68243ee2b50f",
+    "bg-forest.png": "74e5e57e3d1fae7d5091ca3d08ff68f62ecda15fd4616cfde4e403677cc367ed",
+    "bg-icecave.png": "b1e550d728add34f34244c830fd85726686813af4bc0fd1daced3b05cd132f03",
+    "bg-meadow.png": "974c416c848609de5d2996d042f733bb110e285975797a5e5179464b92efe398",
+    "bg-mountain.png": "b98928fa15afed7b99b3412aa2fb8108d1e2c7598088e6f62d6a4ada493a8f35",
+    "bg-river.png": "ab22d6dbcd7ebf9c760ca3f68b4d82e69532cbe1e8fe107dafcf3e6c32714d35",
+    "bg-route.png": "fab0c6c5dfa663b73562fd4097e743c3977c37354f743c1911f0c76cac7b1ad3",
+    "bg-thunderplains.png": "4c55d72f0cf4bb21ec31ad19afd586e1a459b5a9096579d60498e0c4e8104785",
+    "bg-volcanocave.png": "75980183fff71fcf1c2462b8544f2b8f7bc97f49c628f865ba7530f75d8beeea"
   }
 }

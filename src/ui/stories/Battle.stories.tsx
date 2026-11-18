@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState } from 'react'
-import { AbilityBand, AgonyBadge, CommandMenu, ExpBar, HpBar, HudBox, MessageBox, MoveButton, Screen, StatusBadge, type StatusId } from '..'
+import { AbilityBand, AgonyBadge, CommandMenu, ExpBar, HpBar, HudBox, MessageBox, MoveButton, Screen, StatusBadge, type StatusId, TileButton } from '..'
 import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
 const STATUSES: StatusId[] = ['psn', 'tox', 'brn', 'par', 'slp', 'frz']
@@ -17,7 +17,8 @@ function HudAndMeters({ hp, maxHp }: { hp: number; maxHp: number }) {
         <Note>
           Name, gender and level stand on the scene; badges and the HP bar sit on the dark plate, as in Black 2. Change the HP in the
           controls below: the bar drains at a steady pace and turns yellow under half, red at a fifth. A downed Pokémon has no HP to
-          show: its Agony stacks take the bar’s place.
+          show: its Agony (decision 266) is a badge as BRN or PSN are, and three long bars in the HP bar’s place, one for each time it
+          can still agonize; a bar empties when a stack is lost.
         </Note>
         <Screen label="HUD boxes">
           <div className="sb-stack sb-pad">
@@ -73,34 +74,43 @@ function Commands() {
     <Phone>
       <Section title="Command menu and moves">
         <Note>
-          The touch screen. FIGHT is the great ball, as in Black and White; BAG, RUN and SWITCH run along the bottom. FIGHT opens the six
-          moves, each on its type’s colour.
+          The touch screen, drawn with the games’ own pieces (decision 255): the two halves of the ball, as large as the games draw
+          them, over a brown ground that shows between them as the belt; FIGHT written in the belt’s notch, with no button drawn
+          (decision 259); BAG, SWITCH and RUN on the three tiles of the bottom edge, each word written by the app (decision 256).
+          Press FIGHT: the halves part and the belt lights up; then the ball opens, the red half up under the strip and the white one
+          down, and the six moves come in the belt, two across and three down, each on its type’s colour, with the way back on RUN’s
+          own tile (decision 261). The whole command screen, with the order of the round, the strip and the tiles of the top edge, is
+          in Screens / Battle.
         </Note>
-        <Screen kind="touch" label="Commands">
+        {/* A screen of its own for each, as in the app: one that comes with its ball open opens it. */}
+        <Screen key={view} kind="touch" label="Commands" {...(view === 'moves' ? { ball: 'open' as const } : {})}>
           {view === 'commands' ? (
             <CommandMenu labels={text.commands} disabled={['run']} onCommand={(command) => command === 'fight' && setView('moves')} />
           ) : (
             <div className="dn-moves">
-              {MOVES.map((id, index) => {
-                const data = pack.moves[id]
-                if (!data) return null
-                return (
-                  <MoveButton
-                    key={id}
-                    name={data.name[locale]}
-                    type={data.type}
-                    typeLabel={pack.types[data.type.toLowerCase()]?.name[locale] ?? data.type}
-                    category={data.category}
-                    categoryLabel={text.category[data.category]}
-                    pp={index === 4 ? 0 : data.pp - index}
-                    maxPp={data.pp}
-                    ppText={text.pp}
-                    selected={move === id}
-                    disabled={index === 4}
-                    onSelect={() => setMove(id)}
-                  />
-                )
-              })}
+              <div className="dn-moves__grid">
+                {MOVES.map((id, index) => {
+                  const data = pack.moves[id]
+                  if (!data) return null
+                  return (
+                    <MoveButton
+                      key={id}
+                      name={data.name[locale]}
+                      type={data.type}
+                      typeLabel={pack.types[data.type.toLowerCase()]?.name[locale] ?? data.type}
+                      category={data.category}
+                      categoryLabel={text.category[data.category]}
+                      pp={index === 4 ? 0 : data.pp - index}
+                      maxPp={data.pp}
+                      ppText={text.pp}
+                      selected={move === id}
+                      disabled={index === 4}
+                      onSelect={() => setMove(id)}
+                    />
+                  )
+                })}
+              </div>
+              <TileButton word={text.back} edge="bottom" tone="run" onClick={() => setView('commands')} />
             </div>
           )}
         </Screen>

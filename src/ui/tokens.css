@@ -79,7 +79,11 @@
   --dn-cmd-run: #29bdf7;
   --dn-cmd-switch: #73ff52;
   --dn-shell: #4a3939; /* touch-screen background */
-  --dn-shell-2: #423131;
+  --dn-shell-2: #423131; /* the ground between the ball's two halves: the belt FIGHT is written in */
+  /* How far the ball's halves go when it opens, and when FIGHT is pressed, in DS pixels (decision 259). After the games' moves screen; Denborn's own numbers. */
+  --dn-ball-up: -69;
+  --dn-ball-down: 26;
+  --dn-ball-press: 3;
   --dn-ball-red: #9c0021;
   --dn-ball-red-2: #b50029;
   --dn-ball-white: #cecee7;
@@ -148,6 +152,14 @@
   --dn-label-gold: #f3b200; /* "Lv." and "HP" labels */
   --dn-label-gold-shade: #9a6110;
 
+  /* --- A fight's plates (measured: BW "Battle HUD" sheet, the two HP bars; decision 247) --- */
+  --dn-plate: #f8f8f8; /* the light band the HP bar sits in */
+  --dn-plate-2: #d0d0d0; /* its lowest row */
+  --dn-plate-line: #606060; /* the line over and under it */
+  --dn-plate-dark: #303030; /* the dark band under it, the box behind "HP" and the frame of the bar */
+  --dn-plate-edge: #202020; /* the dark band's lowest row */
+  --dn-order-plate: rgb(16 16 16 / 0.7); /* behind the order of a round, over the ball (decision 248). Denborn's own. */
+
   /* --- Status conditions (measured: B2W2 status icons) --------------------- */
   --dn-status-slp: #4a4a4a;
   --dn-status-psn: #6b2942;
@@ -160,6 +172,11 @@
   --dn-agony: #2b0a12;
   --dn-agony-pip: #fb3041;
   --dn-agony-pip-spent: #5a2a30;
+  --dn-agony-pip-shade: #b8182c; /* the lower row of an Agony bar, as an HP bar has its shade */
+  /* The hour of the day over a fight's background (decision 275): each is multiplied into the picture. Denborn's own. */
+  --dn-sky-dawn: #ffc7ae;
+  --dn-sky-dusk: #ff9c66;
+  --dn-sky-night: #46549a;
 
   /* --- Gender marks (measured: B2W2 HP box examples) ----------------------- */
   --dn-male: #00baf3;
@@ -239,6 +256,7 @@
   --dn-title-hop: 320ms; /* one hop of a character walking on the plain (decision 225): about three a second. Denborn's own. */
   --dn-strip-hop: 400ms; /* the shown one's icon in a strip to pick from, up and down (decision 241), as in the games' party menu. Denborn's own. */
   --dn-nudge: 1300ms; /* a carousel's arrow nudging the way it points, out and back (decisions 243 and 244: slower). Denborn's own. */
+  --dn-fight-nudge: 600ms; /* the arrowheads beside FIGHT, out and back (decision 252). Denborn's own. */
   --dn-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dn-ease-in: cubic-bezier(0.6, 0, 0.9, 0.4);
   --dn-ease-snap: cubic-bezier(0.3, 1.4, 0.5, 1); /* a small overshoot, for arrivals */

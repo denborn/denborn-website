@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { usePack } from '../data/use-pack'
-import { GmConsole } from '../features/battle/GmConsole'
+import { GmBattle } from '../features/battle/GmBattle'
 import { RewardsScreen } from '../features/battle/RewardsScreen'
 import { CampaignEditor, RULE_IDS, type RuleId } from '../features/campaigns/CampaignEditor'
 import { CampaignList } from '../features/campaigns/CampaignList'
@@ -238,7 +238,7 @@ export function HostSessionPage() {
   if (table && !sessionShown) {
     const there = new Set(session.party.filter((member) => member.present).map((member) => member.character.id))
     return (
-      <GmConsole
+      <GmBattle
         pack={pack}
         table={table}
         // A player who left mid-fight still has a Pokémon on the line: the campaign's own copy names it.
@@ -246,11 +246,10 @@ export function HostSessionPage() {
         away={table.combatants.filter((combatant) => combatant.side === 'players' && !there.has(combatant.id)).map((combatant) => combatant.id)}
         onCommand={hosting.command}
         onEnd={() => setEnding(true)}
-      >
-        <div className="dn-row">
-          <OptionButton onClick={() => setSessionShown(true)}>{messages.session.host.toSession}</OptionButton>
-        </div>
-      </GmConsole>
+        onSession={() => setSessionShown(true)}
+        sessionLabel={messages.session.host.toSession}
+        latency={hosted.latency}
+      />
     )
   }
   // What the game master gives a character of the party or takes from it has a screen of its own, outside a fight.
@@ -332,7 +331,7 @@ export function EncountersPage() {
 
 const isEnemyField = (value: string | null): value is EnemyField => ENEMY_FIELDS.some((field) => field === value)
 
-/** How deep a view is in the encounter: its page, one of its parts, one thing of one enemy. */
+/** How deep a view is in the encounter: its page, one of its parts, or one thing of one enemy. */
 const depthOf = (view: EncounterView): number => (view.at === 'hub' ? 0 : view.at === 'enemy' && view.field ? 2 : 1)
 
 /** One encounter of a campaign: a new one at …/encounters/new, a kept one at …/encounters/<id>. What is open is in the address, so that Back closes it. */
@@ -358,7 +357,11 @@ export function EncounterPage() {
   const enemy = search.get('enemy')
   const field = search.get('field')
   const part = search.get('open')
-  const view: EncounterView = enemy ? { at: 'enemy', id: enemy, ...(isEnemyField(field) ? { field } : {}) } : part === 'name' || part === 'bag' ? { at: part } : { at: 'hub' }
+  const view: EncounterView = enemy
+    ? { at: 'enemy', id: enemy, ...(isEnemyField(field) ? { field } : {}) }
+    : part === 'name' || part === 'scene' || part === 'bag'
+      ? { at: part }
+      : { at: 'hub' }
 
   return (
     <EncounterEditor
@@ -371,7 +374,11 @@ export function EncounterPage() {
       onView={(next) => {
         // Closing what is open goes back one page when this visit opened it; otherwise the address is set straight.
         if (depthOf(next) < depthOf(view) && location.key !== 'default') void navigate(-1)
-        else setSearch(next.at === 'enemy' ? { enemy: next.id, ...(next.field ? { field: next.field } : {}) } : next.at === 'hub' ? {} : { open: next.at }, { replace: depthOf(next) < depthOf(view), state: location.state as unknown })
+        else
+          setSearch(next.at === 'enemy' ? { enemy: next.id, ...(next.field ? { field: next.field } : {}) } : next.at === 'hub' ? {} : { open: next.at }, {
+            replace: depthOf(next) < depthOf(view),
+            state: location.state as unknown,
+          })
       }}
       newId={newId}
       onSave={(made) => {

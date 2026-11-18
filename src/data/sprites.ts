@@ -4,6 +4,7 @@
  * (data-sources/backdrops.lock.json) or the app's own pictures in public/;
  * nothing is guessed from a name.
  */
+import { BACKDROP_FOLDER, type BattleBackdrop } from './battle-backdrops.ts'
 import type { ItemIcon, SpeciesData } from './types'
 
 const ROOT = '/sprites'
@@ -76,6 +77,76 @@ const BASE_OF_TYPE: Readonly<Record<string, (typeof BASE_ROWS)[number]>> = {
 /** The row of `BATTLE_BASES` for a type, as the data pack names it; a route's for a type it does not know. */
 export function battleBaseRow(type: string | undefined): number {
   return BASE_ROWS.indexOf(BASE_OF_TYPE[type ?? ''] ?? 'route')
+}
+
+/**
+ * The ball of Black and White's touch screen during a fight (decisions 255
+ * and 259): the games' own picture, from Ploaj's sheet, kept in the
+ * repository by the owner's leave like the grounds. It is drawn as large as
+ * the games draw it, one of its pixels to one of a DS screen's, so a screen
+ * shows the middle of it: the belt between its two halves, with the notch
+ * FIGHT is written in.
+ *
+ * The picture holds the two halves one over the other, each as wide as a
+ * screen, cut out of the sheet by `scripts/assets/cut-battle-hud.ts`: `red`
+ * with the line and the shade under it, `white` with those over it, and
+ * nothing where the sheet has the ball's ground, which the screen paints
+ * itself. For each, `y` and `height` are its rows in the picture, and `screen`
+ * the row of a DS screen its first row is on while the ball is shut. `notch`
+ * is the rows of the screen the belt takes in its middle, where it is widest,
+ * and `belt` those it takes at the screen's two sides.
+ *
+ * The games show the ball 12 rows higher: here the commands also hang from
+ * the top edge (decision 248), and the belt is in the middle of what the
+ * strip leaves.
+ */
+export const BATTLE_TOUCH = {
+  url: '/battle-touch.png',
+  width: 256,
+  height: 210,
+  red: { y: 0, height: 109, screen: -8 },
+  white: { y: 111, height: 99, screen: 101 },
+  notch: { top: 74, bottom: 128 },
+  belt: { top: 91, bottom: 111 },
+} as const
+
+/**
+ * The other pieces of Black and White's battle screens the app draws a fight
+ * with (decision 255), cut from the same sheet into one picture by
+ * `scripts/assets/cut-battle-hud.ts`, which places them by these numbers.
+ * The words the games drew into them are taken out: the app writes its own,
+ * in both languages (decision 256).
+ *
+ * `tiles`: the three tiles along the bottom of the touch screen; `screen` is
+ * where each one's top left corner is on a DS screen in the games, read off
+ * the sheet, where they lie as on the screen. `plates`: the band of a Pokémon's plate, the far side's pointing
+ * right and the near side's pointing left over the dark band its HP is
+ * written on; `hp` is the box "HP" is written in, `bar` the well of the HP
+ * bar, `numbers` the dark band's rows. `battery`: full, half, empty.
+ */
+export const BATTLE_HUD = {
+  url: '/battle-hud.png',
+  width: 248,
+  height: 88,
+  tiles: {
+    left: { x: 0, y: 0, width: 78, height: 60, screen: { x: 0, y: 132 } },
+    middle: { x: 80, y: 0, width: 76, height: 44, screen: { x: 90, y: 148 } },
+    right: { x: 158, y: 0, width: 78, height: 60, screen: { x: 178, y: 132 } },
+  },
+  plates: {
+    far: { x: 0, y: 62, width: 124, height: 9, hp: { x: 29, width: 13 }, bar: { x: 44, y: 2, width: 48, height: 2 } },
+    near: { x: 126, y: 62, width: 120, height: 14, hp: { x: 41, width: 13 }, bar: { x: 56, y: 2, width: 48, height: 2 }, numbers: { y: 6, height: 7 } },
+  },
+  battery: [
+    { x: 0, y: 78, width: 8, height: 10 },
+    { x: 10, y: 78, width: 8, height: 10 },
+    { x: 20, y: 78, width: 8, height: 10 },
+  ],
+} as const
+
+/** The picture of a fight's background (decisions 246 and 268), among those the build fetched. */
+export function battleBackdropUrl(backdrop: BattleBackdrop): string {
+  return `${ROOT}/${BACKDROP_FOLDER}/${backdrop.file}`
 }
 
 /**

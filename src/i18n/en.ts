@@ -293,6 +293,40 @@ export const en = {
     enemyLine: (species: string, level: number, mobClass: string) => `${species} · Lv. ${level} · ${mobClass}`,
     bag: 'Their Bag',
     bagHint: 'The items the enemies may use during the fight. Only items that do something from a Bag.',
+    /** Where the encounter is fought, and when (decisions 246, 268 and 275): a background and an hour of the day. */
+    scene: {
+      title: 'Scene',
+      hint: 'What the fight is drawn on, and at what hour. It changes nothing of the fight itself.',
+      /** What the encounter's page says of its scene: "Meadow · 9 PM". */
+      value: (background: string, hour: string) => `${background} · ${hour}`,
+      hour: 'Hour of the day',
+      hourHint: (hour: string, light: string) => `${hour}: ${light}.`,
+      earlier: 'An hour earlier',
+      later: 'An hour later',
+      /** An hour as it is said: 0 is midnight. */
+      hourText: (hour: number) => `${hour % 12 === 0 ? 12 : hour % 12} ${hour < 12 ? 'AM' : 'PM'}`,
+      /** How an hour lights the scene. */
+      light: { day: 'daylight', dawn: 'dawn', dusk: 'dusk', night: 'night' },
+      background: 'Background',
+      /** The backgrounds, by the name an encounter keeps each by. */
+      backgrounds: {
+        forest: 'Forest',
+        'earthy-cave': 'Earthy cave',
+        desert: 'Desert',
+        'deep-sea': 'Deep sea',
+        'damp-cave': 'Damp cave',
+        city: 'City',
+        beach: 'Beach',
+        'beach-shore': 'Shore',
+        meadow: 'Meadow',
+        'ice-cave': 'Ice cave',
+        mountain: 'Mountain',
+        'volcano-cave': 'Volcano cave',
+        'thunder-plains': 'Thunder plains',
+        route: 'Route',
+        river: 'River',
+      } as Readonly<Record<string, string>>,
+    },
     bagCount: (kinds: number) => (kinds === 0 ? 'Empty' : kinds === 1 ? '1 kind of item' : `${kinds} kinds of item`),
     bagSearch: 'Add an item',
     money: (amount: number) => `Pokédollars for each participant: ${amount}`,
@@ -603,13 +637,14 @@ export const en = {
       },
       showdown: {
         who: 'The Pokémon Showdown team',
-        theirs: 'Smogon and its many contributors: the battle simulator every fight runs on, its game data, the collection of sprites and icons, and the way a fight is told line by line. The meadow of the first screen and the cave inside the den are two of its battle backdrops, drawn by Kyle Dove.',
+        theirs: 'Smogon and its many contributors: the battle simulator every fight runs on, its game data, the collection of sprites and icons, and the way a fight is told line by line. The backgrounds a fight is drawn on, among them the meadow of the first screen and the cave inside the den, are its battle backdrops, drawn by Kyle Dove.',
       },
       pokeapi: { who: 'The PokéAPI contributors', theirs: 'The list of Bag items, the French names, and the icons of the items Showdown does not have.' },
       corpus: { who: 'abcboy101 and the Poké Corpus contributors', theirs: 'The games’ text kept line by line in every language: where the battle messages, in English and French, are read from.' },
       checked: { who: 'Serebii and PokémonDB', theirs: 'Where the values of the Bag items were checked, and Serebii’s screenshots of the games.' },
       missingno: { who: 'Pokemon-Ranger-Sumi', theirs: '“MissingNo. GIF” (2017): the MissingNo. shown in the place of a sprite that is not there.' },
-      bases: { who: 'Tsuka', theirs: 'The rip of the battle bases of Pokémon HeartGold and SoulSilver, on The Spriters Resource: the grounds the characters stand on in their list, and the Pokémon in a fight.' },
+      bases: { who: 'Tsuka', theirs: 'The rip of the battle bases of Pokémon HeartGold and SoulSilver, on The Spriters Resource: the grounds the characters stand on in their list.' },
+      hud: { who: 'Ploaj', theirs: 'The rip of the battle screens of Pokémon Black and White, on The Spriters Resource: the ball, the tiles and the HP plates a fight is drawn with.' },
       sheets: {
         who: 'The rippers of The Spriters Resource',
         theirs: (rippers: string) => `The sprite sheets the games’ look was studied on: ${rippers}, with Smogon’s sprite project and KleinStudio’s Pokémon Essentials BW.`,
@@ -799,9 +834,12 @@ export const en = {
     category: { Physical: 'Physical', Special: 'Special', Status: 'Status' },
     /** The battle view: walking along a line, and the battlefield plan (decisions 87 to 91). */
     field: {
-      battlefield: 'BATTLEFIELD',
+      /** The tile that opens the plan of the two lines, with what is in effect and each Pokémon's sheet (decision 274). */
+      battlefield: 'INFO',
       foes: 'FOES',
       party: 'PARTY',
+      /** The enemies' line as the game master is shown it: theirs to play, so not "foes". */
+      enemies: 'ENEMIES',
       ability: 'Ability',
       item: 'Item',
       previous: (letter: string) => `Previous Pokémon: ${letter}`,
@@ -836,10 +874,18 @@ export const en = {
       round: (round: number) => `Round ${round}`,
       /** While a round is played back. */
       skip: 'SKIP',
+      /** Goes on to what is told next of the round (decision 272). */
+      nextStep: 'NEXT',
       opening: 'The fight begins',
       /** The party's order (decision 135). */
       order: 'ORDER',
       orderLabel: (names: string) => `The party's order this round: ${names}`,
+      /** The foes over FIGHT, for a player: as they stand on their line, their order not being told (decision 272). */
+      foesLineLabel: (names: string) => `The foes, as they stand on their line: ${names}`,
+      /** One Pokémon of an order, as it is read out: its rank when it acts this round, its name, then what is worth saying of it. */
+      orderEntry: (rank: number | undefined, name: string, said: readonly string[]) => [rank === undefined ? name : `${rank}, ${name}`, ...said].join(', '),
+      orderReady: 'ready',
+      orderDown: 'down',
       timer: (clock: string) => `Time left: ${clock}`,
       timerStopped: 'stopped',
       target: (move: string) => `Choose a target for ${move}.`,
@@ -930,6 +976,16 @@ export const en = {
       noChoice: 'No choice this round.',
       done: 'DONE',
       refused: 'That cannot be done right now.',
+      /** The game master's seat at the players' two screens (decision 250). */
+      tools: 'TOOLS',
+      playShort: 'PLAY',
+      enemiesOrderLabel: (names: string) => `The enemies' order this round: ${names}`,
+      partyOrderLabel: (names: string) => `The party's order this round: ${names}`,
+      awaySaid: 'their player is away',
+      waiting: 'Every enemy has chosen. Waiting for the players…',
+      runHint: 'Trade places with which neighbour?',
+      /** Whom an effect touches, in the game master's words. */
+      scope: { field: 'Whole field', foes: 'Enemies’ side', party: 'Party’s side' },
       /** Ending the encounter and awarding its rewards (decisions 4, 130, 134, 159 and 160). */
       end: 'END THE ENCOUNTER',
       rewards: {
@@ -942,7 +998,21 @@ export const en = {
         award: 'AWARD AND END',
       },
     },
-    agony: 'AGONY',
+    /** The strip across the bottom screen of a fight: the time, the ping to the relay, the battery (decision 249). */
+    strip: {
+      ping: (milliseconds: number) => `${milliseconds} ms`,
+      noPing: '— ms',
+      /** Said of the ping, by how good it is. */
+      pingLabel: {
+        good: (milliseconds: number) => `Connection to the relay: good, ${milliseconds} ms`,
+        fair: (milliseconds: number) => `Connection to the relay: fair, ${milliseconds} ms`,
+        poor: (milliseconds: number) => `Connection to the relay: poor, ${milliseconds} ms`,
+        none: 'Connection to the relay: not known',
+      },
+      battery: (percent: number) => `${percent}%`,
+      batteryLabel: (percent: number, charging: boolean) => (charging ? `Battery: ${percent}%, charging` : `Battery: ${percent}%`),
+    },
+    agony: 'AGN',
     agonyLabel: (stacks: number, of: number) => `Agonizing, ${stacks} of ${of} left`,
     messages: {
       prompt: (name: string) => `What will ${name} do?`,

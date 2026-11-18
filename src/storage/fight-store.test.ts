@@ -18,6 +18,13 @@ describe('the fight a device keeps', () => {
     expect(store.fightOf('campaign-b')).toEqual(fight(7))
   })
 
+  it('gives back where the fight is drawn along with it (decision 246)', () => {
+    const store = openFightStore(memoryStorage())
+    const scene = { background: 'river' }
+    store.keep('campaign-a', { ...fight(1), fight: { ...fight(1).fight, scene } })
+    expect(store.fightOf('campaign-a')?.fight).toMatchObject({ scene })
+  })
+
   it('is forgotten once the encounter is over', () => {
     const store = openFightStore(memoryStorage())
     store.keep('campaign-a', fight(1))

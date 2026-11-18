@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test'
 import { expectAccessible } from './accessible.ts'
 import { openSheetOf } from './characters.ts'
 import { code, draftEncounter, setCampaign } from './creating.ts'
+import { openTools } from './fighting.ts'
 import { ask, table } from './hosting.ts'
 
 test('a player’s screens break no rule a machine can check: the home, the account, the options, the credits, creation step by step, the sheet', async ({ page }) => {
@@ -116,12 +117,15 @@ test('a session’s and a fight’s screens break no rule a machine can check, o
     await player.getByRole('button', { name: 'BACK' }).click()
   }
 
-  // The fight: the console and the phone, while choosing and once a round was played.
+  // The fight: the game master's seat and the player's, while choosing and once a round was played.
   await gm.getByRole('button', { name: /^The quarry/ }).click()
   await gm.getByRole('button', { name: 'LAUNCH' }).click()
-  await expect(gm.getByRole('heading', { name: 'The quarry · Round 1' })).toBeVisible({ timeout: 30_000 })
+  await expect(gm.getByRole('button', { name: 'FIGHT' })).toBeVisible({ timeout: 30_000 })
   await expect(player.getByRole('button', { name: 'FIGHT' })).toBeVisible()
-  await expectAccessible(gm, 'console: choosing')
+  await expectAccessible(gm, 'game master: the commands')
+  await openTools(gm, 'The quarry · Round 1')
+  await expectAccessible(gm, 'game master: tools')
+  await gm.getByRole('button', { name: 'BACK' }).click()
   await expectAccessible(player, 'fight: the commands')
   await player.getByRole('button', { name: 'BAG' }).click()
   await expectAccessible(player, 'fight: the Bag')
@@ -132,14 +136,17 @@ test('a session’s and a fight’s screens break no rule a machine can check, o
   await expectAccessible(player, 'fight: the target')
   await player.getByRole('group', { name: 'FOES' }).getByRole('button').first().click()
   await expectAccessible(player, 'fight: locked')
-  const enemy = gm.getByRole('button', { name: /^A · Pikachu/ })
-  await enemy.click()
-  await expectAccessible(gm, 'console: an enemy opened')
+  await gm.getByRole('button', { name: 'FIGHT' }).click()
+  await expectAccessible(gm, 'game master: an enemy’s moves')
   await gm.getByRole('button', { name: /^Thunder Shock/ }).click()
+  await expectAccessible(gm, 'game master: the target')
   await gm.getByRole('group', { name: 'PARTY' }).getByRole('button').first().click()
-  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
-  await expectAccessible(gm, 'console: after a round')
+  await expect(gm.getByRole('button', { name: 'SKIP' })).toBeVisible()
+  await expectAccessible(gm, 'game master: a round being told')
   await expectAccessible(player, 'fight: a round being told')
+  await gm.getByRole('button', { name: 'SKIP' }).click()
+  await openTools(gm, 'The quarry · Round 2')
+  await expectAccessible(gm, 'game master: tools after a round')
   await gm.getByRole('button', { name: 'END THE ENCOUNTER' }).click()
   await expectAccessible(gm, 'rewards')
 })

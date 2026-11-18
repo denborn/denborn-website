@@ -59,10 +59,11 @@ const skirmish: Encounter = {
   enemies: [{ id: 'enemy-bug-0001', species: 'caterpie', gender: 'M', level: 1, ability: 'shielddust', ivs: ANN.ivs, evs: ANN.evs, moves: [{ id: 'tackle', ppUps: 0 }], agony: false, class: 'minion' }],
   bag: [],
 }
-/** Two enemies, for what the game master does between them. */
+/** Two enemies, for what the game master does between them; fought in a cave, for where a fight is drawn. */
 const pair: Encounter = {
   id: 'encounter-0003',
   name: 'The gate',
+  scene: { background: 'river' },
   enemies: [
     { ...skirmish.enemies[0], id: 'enemy-slow-0001', species: 'snorlax', ability: 'immunity', level: 5 } as Encounter['enemies'][number],
     { ...skirmish.enemies[0], id: 'enemy-fast-0001', species: 'caterpie', level: 5 } as Encounter['enemies'][number],
@@ -249,6 +250,21 @@ describe('a fight inside a session', () => {
     expect(ann.fight()?.last.log.some((line) => line.startsWith('|move|'))).toBe(true)
     expect(ann.fight()?.combatants.find((combatant) => combatant.id === FOE)?.hp).toBeLessThan(view().table?.combatants.find((combatant) => combatant.id === FOE)?.maxHp ?? 0)
     expect(bob.fight()).toEqual(ann.fight())
+  })
+
+  it('tells everyone where the encounter is fought, and keeps it with the fight (decision 246)', async () => {
+    const { ann, launch, view, kept } = table()
+    await launch(pair.id)
+    expect(view().table?.scene).toEqual(pair.scene)
+    expect(ann.fight()?.scene).toEqual(pair.scene)
+    expect(kept.fights.at(-1)?.fight.scene).toEqual(pair.scene)
+  })
+
+  it('says nothing of a scene for an encounter that names none', async () => {
+    const { ann, launch, view } = table()
+    await launch()
+    expect(view().table).not.toHaveProperty('scene')
+    expect(ann.fight()).not.toHaveProperty('scene')
   })
 
   it('tells everyone the new order when two teammates exchange Speed', async () => {

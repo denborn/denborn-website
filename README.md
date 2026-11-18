@@ -58,6 +58,8 @@ The first end-to-end run needs a browser: `pnpm exec playwright install chromium
 
 ## Artwork and game texts are not in this repository
 
-Sprites, icons, the games' texts and the reference sheets used for the art direction belong to their rights holders and are never committed. A build downloads the sprites and PokéAPI's tables from the versions pinned in `data-sources/*.lock.json`, checks every file against its recorded checksum, and generates the data pack from them. `CREDITS.md` lists every source.
+Sprites, icons, the backgrounds of a fight, the games' texts and the reference sheets used for the art direction belong to their rights holders and are never committed. A build downloads the sprites, the backgrounds and PokéAPI's tables from the versions pinned in `data-sources/*.lock.json`, checks every file against its recorded checksum, and generates the data pack from them. `CREDITS.md` lists every source.
 
-When a pinned source or the engine changes: `pnpm data:pin` re-pins the downloads, `pnpm data:accept` shows what changed in the game data and records the new pack.
+Three things are kept in `public/` by the owner's decision, each cut from something the owner supplied: MissingNo. (`missingno.gif`), the battle bases (`battle-bases.png`), and the pieces of Black and White's battle screens that a fight is drawn with (`battle-touch.png`, `battle-hud.png`; cut by `node scripts/assets/cut-battle-hud.ts` from a sheet in `tmp/`, which is not committed).
+
+When a pinned source or the engine changes: `pnpm data:pin` re-pins the downloads, `pnpm data:accept` shows what changed in the game data and records the new pack. The backgrounds of a fight are re-pinned apart, at the commit their lock names: `node scripts/assets/sync-sprites.ts --pin-battle-backdrops`.

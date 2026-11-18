@@ -1,4 +1,6 @@
 import { type ReactNode, useEffect, useId, useState } from 'react'
+import { BATTLE_BACKDROPS } from '../../data/battle-backdrops'
+import { sceneArt } from '../../data/battle-scene'
 import type { DataPack } from '../../data/types'
 import { evBudget, ivBudget, spreadTotal } from '../../game-rules/budgets'
 import { LINE_MAX } from '../../game-rules/party'
@@ -10,7 +12,7 @@ import type { Encounter } from '../../shared/schema/encounter'
 import type { CampaignRules } from '../../shared/schema/rules'
 import { answers } from '../../shared/text/plain'
 import type { WriteResult } from '../../storage/library'
-import { DualScreen, ItemIconImage, NumberField, OptionButton, PokemonIcon, PokemonSprite, Screen, Slot, StepHeader, TextField } from '../../ui'
+import { Battler, DualScreen, ItemIconImage, NumberField, OptionButton, PokemonIcon, PokemonSprite, SceneSpot, SceneWorld, Screen, Slot, StepHeader, TextField, skyAt, spriteScale } from '../../ui'
 import { StacksEditor } from '../campaigns/StacksEditor'
 import { IdentityStep } from '../creation/IdentityStep'
 import { MovesStep } from '../creation/MovesStep'
@@ -25,8 +27,8 @@ import { type EncounterDraft, type EnemyDraft, type EnemyState, NEW_ENCOUNTER, c
 export const ENEMY_FIELDS = ['species', 'level', 'identity', 'training', 'moves', 'ppUps', 'held', 'mobClass', 'atZero'] as const
 export type EnemyField = (typeof ENEMY_FIELDS)[number]
 
-/** Where the game master is in the encounter: its page, its name, its Bag, one enemy, or one thing of one enemy. */
-export type EncounterView = { at: 'hub' } | { at: 'name' } | { at: 'bag' } | { at: 'enemy'; id: string; field?: EnemyField | undefined }
+/** Where the game master is in the encounter: its page, its name, its scene, its Bag, one enemy, or one thing of one enemy. */
+export type EncounterView = { at: 'hub' } | { at: 'name' } | { at: 'scene' } | { at: 'bag' } | { at: 'enemy'; id: string; field?: EnemyField | undefined }
 
 export interface EncounterEditorProps {
   pack: DataPack
@@ -91,12 +93,37 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
   }
 
   const nameOf = (enemy: EnemyDraft): string => enemy.build.nickname.trim() || (enemy.build.species ? (pack.species[enemy.build.species]?.name[language] ?? enemy.build.species) : text.newEnemy)
-  const title = view.at === 'name' ? text.name : view.at === 'bag' ? text.bag : opened ? (view.at === 'enemy' && view.field ? fieldTitle(view.field, text) : nameOf(opened)) : draft.name.trim() || text.newTitle
+  const title =
+    view.at === 'name'
+      ? text.name
+      : view.at === 'scene'
+        ? text.scene.title
+        : view.at === 'bag'
+          ? text.bag
+          : opened
+            ? view.at === 'enemy' && view.field
+              ? fieldTitle(view.field, text)
+              : nameOf(opened)
+            : draft.name.trim() || text.newTitle
+  const art = sceneArt(draft.scene)
+  const backgroundName = (id: string): string => text.scene.backgrounds[id] ?? id
+  /** The first enemy that has a species: the one the scene's preview shows. */
+  const firstShown = draft.enemies.flatMap((enemy) => {
+    const species = enemy.build.species ? pack.species[enemy.build.species] : undefined
+    return species ? [{ enemy, species }] : []
+  })[0]
 
   return (
     <DualScreen depth={leaving ? 3 : view.at === 'hub' ? (removing ? 1 : 0) : view.at === 'enemy' && view.field ? 2 : 1}>
-      <Screen key={`${own} top ${opened?.id ?? 'party'}`} kind="scene" label={title}>
-        {opened ? (
+      <Screen key={`${own} top ${view.at === 'scene' ? 'scene' : (opened?.id ?? 'party')}`} kind="scene" label={title}>
+        {view.at === 'scene' ? (
+          // The scene as a fight will draw it (decisions 246, 268, 275 and 277): its background at its hour, and the first enemy where a foe stands. The camera rests.
+          <SceneWorld backdrop={art.backdrop} url={art.url} hour={art.hour}>
+            <SceneSpot side="far" id={firstShown?.enemy.id} scale={spriteScale('far', firstShown?.species.sprite)}>
+              {firstShown && <Battler species={firstShown.species} name={nameOf(firstShown.enemy)} side="foe" female={firstShown.enemy.build.gender === 'F'} scale={spriteScale('far', firstShown.species.sprite)} />}
+            </SceneSpot>
+          </SceneWorld>
+        ) : opened ? (
           <Preview pack={pack} draft={opened.build} level={opened.level} view={view.at === 'enemy' && view.field === 'species' ? 'base' : 'stats'} language={language} text={messages.creation} levelText={messages.battle.level} />
         ) : (
           <div className="dn-lineup dn-lineup--party">
@@ -115,6 +142,18 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
         ) : view.at === 'name' ? (
           <Part done={text.done} onDone={() => onView({ at: 'hub' })}>
             <TextField label={text.name} value={draft.name} onChange={(name) => setDraft({ ...draft, name })} hint={text.nameHint} maxLength={NAME_MAX} autoComplete="off" enterKeyHint="done" />
+          </Part>
+        ) : view.at === 'scene' ? (
+          <Part done={text.done} onDone={() => onView({ at: 'hub' })}>
+            <p className="dn-note">{text.scene.hint}</p>
+            <NumberField label={text.scene.hour} value={art.hour} min={0} max={23} onChange={(hour) => setDraft({ ...draft, scene: { ...draft.scene, hour } })} lowerLabel={text.scene.earlier} raiseLabel={text.scene.later} />
+            <p className="dn-note">{text.scene.hourHint(text.scene.hourText(art.hour), text.scene.light[skyAt(art.hour).veil ?? 'day'])}</p>
+            <span className="dn-label">{text.scene.background}</span>
+            {BATTLE_BACKDROPS.map((backdrop) => (
+              <Slot key={backdrop.id} selected={art.backdrop.id === backdrop.id} state={art.backdrop.id === backdrop.id ? 'ok' : 'normal'} onClick={() => setDraft({ ...draft, scene: { ...draft.scene, background: backdrop.id } })}>
+                <span className="dn-slot__main dn-text-shadow">{backgroundName(backdrop.id)}</span>
+              </Slot>
+            ))}
           </Part>
         ) : view.at === 'bag' ? (
           <Part done={text.done} onDone={() => onView({ at: 'hub' })}>
@@ -190,6 +229,11 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
                   {text.addEnemy}
                 </OptionButton>
               </div>
+
+              <Slot onClick={() => onView({ at: 'scene' })}>
+                <span className="dn-slot__main dn-text-shadow">{text.scene.title}</span>
+                <span className="dn-slot__side">{text.scene.value(backgroundName(art.backdrop.id), text.scene.hourText(art.hour))}</span>
+              </Slot>
 
               <Slot onClick={() => onView({ at: 'bag' })}>
                 <span className="dn-slot__main dn-text-shadow">{text.bag}</span>

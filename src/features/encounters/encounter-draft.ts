@@ -7,6 +7,7 @@
  * very draft a character's creation uses, under the campaign's rules read at
  * the enemy's own level and with every species of the game data.
  */
+import { DEFAULT_SCENE } from '../../data/battle-scene.ts'
 import type { DataPack } from '../../data/types.ts'
 import { type EncounterProblem, type EnemyProblem, checkEncounter, checkEnemy } from '../../domain/encounter-check.ts'
 import { tidyNickname } from '../../game-rules/nickname.ts'
@@ -15,7 +16,7 @@ import type { MobClass } from '../../game-rules/rewards.ts'
 import { sameValue } from '../../shared/same-value.ts'
 import type { CampaignDocument } from '../../shared/schema/campaign.ts'
 import type { ItemStack } from '../../shared/schema/common.ts'
-import type { Encounter, Enemy } from '../../shared/schema/encounter.ts'
+import type { BattleScene, Encounter, Enemy } from '../../shared/schema/encounter.ts'
 import type { CampaignRules } from '../../shared/schema/rules.ts'
 import { type CreationContext, type CreationDraft, emptyDraft } from '../creation/draft.ts'
 
@@ -37,9 +38,11 @@ export interface EncounterDraft {
   /** In the order they stand on their line. */
   enemies: readonly EnemyDraft[]
   bag: readonly ItemStack[]
+  /** Where it is fought (decision 246): the grass by day until the game master picks. */
+  scene: BattleScene
 }
 
-export const NEW_ENCOUNTER: EncounterDraft = { name: '', enemies: [], bag: [] }
+export const NEW_ENCOUNTER: EncounterDraft = { name: '', enemies: [], bag: [], scene: DEFAULT_SCENE }
 
 /** The rules an enemy is built under: the campaign's, at the enemy's own level, with every species of the game data to choose from. */
 export function enemyContext(rules: CampaignRules, pack: DataPack, level: number): CreationContext {
@@ -102,7 +105,8 @@ export function draftOfEnemy(enemy: Enemy): EnemyDraft {
 }
 
 export function draftOfEncounter(encounter: Encounter): EncounterDraft {
-  return { name: encounter.name, enemies: encounter.enemies.map(draftOfEnemy), bag: encounter.bag }
+  // An encounter saved before there were scenes is fought where a new one is.
+  return { name: encounter.name, enemies: encounter.enemies.map(draftOfEnemy), bag: encounter.bag, scene: encounter.scene ?? DEFAULT_SCENE }
 }
 
 /** What an enemy still needs before it can stand in an encounter. */
@@ -131,7 +135,7 @@ export function encounterOf(draft: EncounterDraft, id: string, rules: CampaignRu
   const name = draft.name.trim()
   const enemies = draft.enemies.flatMap((enemy) => enemyOf(enemy, rules) ?? [])
   if (name === '' || enemies.length === 0 || enemies.length !== draft.enemies.length || enemies.length > LINE_MAX) return undefined
-  return { id, name, enemies, bag: draft.bag.map((stack) => ({ ...stack })) }
+  return { id, name, enemies, bag: draft.bag.map((stack) => ({ ...stack })), scene: { ...draft.scene } }
 }
 
 export interface EncounterState {

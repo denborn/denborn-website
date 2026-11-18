@@ -31,6 +31,8 @@ export function JoinSessionPage() {
   const visit = `${code ?? ''}#${attempt}`
   /** Where the player stands, with the visit it is true of: what a former visit left is not shown for the next. */
   const [stand, setStand] = useState<{ visit: string; state: GuestState }>()
+  /** How long the relay took to answer the last check of this device's line, with the visit it is true of. */
+  const [latency, setLatency] = useState<{ visit: string; milliseconds: number | undefined }>()
   const messages = useMessages()
   usePageTitle(messages.session.join.title)
 
@@ -53,6 +55,8 @@ export function JoinSessionPage() {
       },
       // The copy the game master's side gave back is the one that counts (decision 13): it takes the place of the device's.
       onKeep: (copy) => void useLibrary.getState().saveCharacter(copy),
+      // The screen's alone: how far the relay is, for the strip of a fight.
+      onLatency: (milliseconds) => setLatency({ visit, milliseconds }),
     })
     run.current = started
     return () => {
@@ -80,6 +84,7 @@ export function JoinSessionPage() {
         me={state.party.you}
         answer={state.answer}
         notice={!state.linked ? messages.session.join.lineDown : !state.hostThere ? messages.session.join.hostGone : undefined}
+        latency={latency?.visit === visit ? latency.milliseconds : undefined}
         onIntent={(intent) => run.current?.intend(intent)}
       />
     )

@@ -92,7 +92,7 @@ export function StatusBadge({ status, text, label }: StatusBadgeProps) {
   )
 }
 
-export interface AgonyBadgeProps {
+export interface AgonyProps {
   /** Stacks left, from 0 to `of`. */
   stacks: number
   of?: number
@@ -102,14 +102,44 @@ export interface AgonyBadgeProps {
   label: string
 }
 
-/** Denborn's own badge for a downed Pokémon: the Agony stacks it has left, shown as pips. */
-export function AgonyBadge({ stacks, of = 3, text, label }: AgonyBadgeProps) {
+export type AgonyBadgeProps = AgonyProps
+
+/**
+ * Agony's badge (decision 266), Denborn's own: one of a Pokémon's conditions,
+ * drawn as the games draw BRN or PSN. How many stacks are left is told by the
+ * bars that go with it, and spoken by them.
+ */
+export function AgonyMark({ text }: Pick<AgonyProps, 'text'>) {
   return (
-    <span className="dn-agony" role="img" aria-label={label}>
+    <span className="dn-status" data-status="agony" aria-hidden="true">
       {text}
+    </span>
+  )
+}
+
+/**
+ * The Agony stacks a downed Pokémon has left (decision 266), in the HP bar's
+ * place: as many long bars as it started with, one for each time it can
+ * still agonize. A bar empties when a stack is lost, the last one first.
+ */
+export function AgonyBars({ stacks, of = 3, label }: Omit<AgonyProps, 'text'>) {
+  return (
+    <span className="dn-agony-bars" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={of} aria-valuenow={stacks}>
       {Array.from({ length: of }, (_, index) => (
-        <span key={index} className={`dn-agony__pip${index < stacks ? '' : ' dn-agony__pip--spent'}`} />
+        <span key={index} className="dn-agony-bars__bar">
+          <span className="dn-agony-bars__fill" style={{ transform: `scaleX(${index < stacks ? 1 : 0})` }} />
+        </span>
       ))}
+    </span>
+  )
+}
+
+/** A downed Pokémon's Agony where there is no plate to put it on: its badge, then its bars. */
+export function AgonyBadge(props: AgonyProps) {
+  return (
+    <span className="dn-agony">
+      <AgonyMark text={props.text} />
+      <AgonyBars {...props} />
     </span>
   )
 }
@@ -125,7 +155,8 @@ const GENDER_MARKS = {
   F: bitmapPath(['.###..', '#...#.', '#...#.', '#...#.', '.###..', '..#...', '.###..', '..#...']),
 }
 
-function GenderMark({ gender, label }: { gender: 'M' | 'F'; label: string }) {
+/** The games' mark of a male or of a female Pokémon, beside its name. */
+export function GenderMark({ gender, label }: { gender: 'M' | 'F'; label: string }) {
   return (
     <svg className={`dn-hud__gender dn-hud__gender--${gender.toLowerCase()}`} viewBox="-1 -1 8 10" role="img" aria-label={label} shapeRendering="crispEdges">
       <path d={GENDER_MARKS[gender]} fill="currentColor" stroke="var(--dn-ink-soft)" strokeWidth="2" strokeLinejoin="miter" paintOrder="stroke" />

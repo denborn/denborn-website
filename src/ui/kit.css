@@ -208,10 +208,84 @@
     linear-gradient(var(--dn-scene-sky) 0, var(--dn-scene-sky-2) 30%, var(--dn-scene-ground) 30%, var(--dn-scene-ground-2) 100%);
 }
 
-.dn-screen--touch .dn-screen__stage {
-  background:
-    radial-gradient(circle at 50% calc(84 * var(--dn-u)), var(--dn-shell-2) 0 calc(90 * var(--dn-u)), transparent calc(90 * var(--dn-u))),
-    var(--dn-shell);
+/*
+ * The battle's touch screen (decisions 255 and 259): the two halves of the
+ * games' own ball over a brown ground, behind what the screen holds. Each
+ * half is as large as the games draw it, and the ground shows between them
+ * as the belt FIGHT is written in.
+ */
+.dn-screen--touch {
+  background: var(--dn-shell-2);
+  transition: background-color var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-ball {
+  /* The halves are placed in DS pixels, which the stage beside them counts in too. */
+  --dn-u: calc(100cqw / 256);
+  position: absolute;
+  inset: 0;
+}
+
+.dn-ball__half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transition: translate var(--dn-press) var(--dn-ease-out);
+}
+
+/* Open: the red half up under the strip and the white one down to the tiles, as the games' ball when FIGHT is pressed. */
+.dn-ball--open .dn-ball__half--red {
+  translate: 0 calc(var(--dn-ball-up) * var(--dn-u));
+}
+
+.dn-ball--open .dn-ball__half--white {
+  translate: 0 calc(var(--dn-ball-down) * var(--dn-u));
+}
+
+/* A screen that comes with its ball open opens it, and one that comes with it shut shuts it: the halves clack together. */
+.dn-ball--open .dn-ball__half {
+  animation: dn-ball-open var(--dn-move) var(--dn-ease-out) backwards;
+}
+
+.dn-ball--shut .dn-ball__half--red {
+  animation: dn-ball-shut-red var(--dn-move) var(--dn-ease-snap) backwards;
+}
+
+.dn-ball--shut .dn-ball__half--white {
+  animation: dn-ball-shut-white var(--dn-move) var(--dn-ease-snap) backwards;
+}
+
+@keyframes dn-ball-open {
+  from {
+    translate: 0 0;
+  }
+}
+
+@keyframes dn-ball-shut-red {
+  from {
+    translate: 0 calc(var(--dn-ball-up) * var(--dn-u));
+  }
+}
+
+@keyframes dn-ball-shut-white {
+  from {
+    translate: 0 calc(var(--dn-ball-down) * var(--dn-u));
+  }
+}
+
+/* FIGHT pressed: the halves part a little and the ground between them lights up, before the ball opens. */
+.dn-screen--touch:has(.dn-command--fight:active:not(:disabled)) {
+  background: var(--dn-shell);
+}
+
+.dn-screen--touch:has(.dn-command--fight:active:not(:disabled)) .dn-ball__half--red {
+  translate: 0 calc(-1 * var(--dn-ball-press) * var(--dn-u));
+}
+
+.dn-screen--touch:has(.dn-command--fight:active:not(:disabled)) .dn-ball__half--white {
+  translate: 0 calc(var(--dn-ball-press) * var(--dn-u));
 }
 
 /* The options screen's black with faint plus marks. The mark's colour is --dn-backdrop-mark, written out: a data URI cannot read a token. */
@@ -416,7 +490,7 @@
   filter: grayscale(1) brightness(0.6);
 }
 
-/* --- Command menu (BW touch screen): FIGHT, BAG, RUN, SWITCH ---------------- */
+/* --- Command menu (BW touch screen): FIGHT in the ball's belt, and the games' tiles along the bottom and the top (decisions 248, 255 and 259) --- */
 .dn-commands {
   position: absolute;
   inset: 0;
@@ -426,41 +500,13 @@
   --dn-command-ink: var(--dn-text);
   position: absolute;
   isolation: isolate;
-  bottom: 0;
   display: grid;
   place-items: center;
-  width: calc(82 * var(--dn-u));
-  height: calc(46 * var(--dn-u));
-  padding-top: calc(8 * var(--dn-u));
-  font-size: calc(13 * var(--dn-t));
+  /* The games' size; a tile gives a smaller one to a word too long for its rim. */
+  font-size: calc(var(--dn-word-size, 13) * var(--dn-t));
   letter-spacing: calc(1 * var(--dn-u));
   color: var(--dn-command-ink);
   transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
-}
-
-/* The games' dark dotted tile with its thick white rim, running off the bottom of the screen. */
-.dn-command::before,
-.dn-command::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  clip-path: polygon(var(--dn-cut-x) 0, calc(100% - var(--dn-cut-x)) 0, 100% var(--dn-cut-y), 100% 100%, 0 100%, 0 var(--dn-cut-y));
-}
-
-.dn-command::before {
-  --dn-cut-x: calc(16 * var(--dn-u));
-  --dn-cut-y: calc(16 * var(--dn-u));
-  inset: 0;
-  background: var(--dn-text);
-}
-
-.dn-command::after {
-  --dn-cut-x: calc(15 * var(--dn-u));
-  --dn-cut-y: calc(15 * var(--dn-u));
-  inset: calc(3 * var(--dn-u)) calc(3 * var(--dn-u)) 0;
-  background:
-    radial-gradient(circle, var(--dn-tile-2) 0 38%, transparent 40%) 0 0 / calc(4 * var(--dn-u)) calc(4 * var(--dn-u)),
-    linear-gradient(var(--dn-tile), var(--dn-tile-4));
 }
 
 .dn-command__label {
@@ -475,108 +521,144 @@
     calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-ink);
 }
 
+/* A tile of the games: its picture fills the button, and the word is written where the games write theirs. */
+.dn-command--tile {
+  place-items: start center;
+}
+
+.dn-command__tile {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  image-rendering: pixelated;
+}
+
+.dn-command--tile .dn-command__label {
+  /* The games' word is three fifths of the way down a side tile, and two thirds down the middle one. */
+  position: absolute;
+  top: 60%;
+  left: var(--dn-tile-middle, 50%);
+  display: grid;
+  justify-items: center;
+  translate: -50% -50%;
+  /* A word on two lines keeps them close: both stay inside the dome. */
+  line-height: 1.05;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.dn-command--bottom {
+  bottom: 0;
+}
+
+.dn-command--left {
+  left: 0;
+  /* The dome is not in the middle of the tile: its shelf takes the rest. */
+  --dn-tile-middle: 55%;
+}
+
+.dn-command--right {
+  right: 0;
+  --dn-tile-middle: 45%;
+}
+
+.dn-command--middle {
+  left: 50%;
+  translate: -50% 0;
+}
+
+.dn-command--middle .dn-command__label {
+  top: 67%;
+  /* The small tile's dome is narrow: its letters stand close. */
+  letter-spacing: 0;
+}
+
+/* On the top edge the same tile hangs upside down from under the strip, whole (decision 260): only its picture is turned, not its word. */
+.dn-command--top {
+  top: calc(10 * var(--dn-u));
+}
+
+.dn-command--top .dn-command__tile {
+  scale: 1 -1;
+}
+
+.dn-command--top .dn-command__label {
+  top: 40%;
+  letter-spacing: 0;
+}
+
+.dn-command--top.dn-command--middle .dn-command__label {
+  top: 36%;
+  line-height: calc(11 * var(--dn-u));
+}
+
 .dn-command--bag {
   --dn-command-ink: var(--dn-cmd-bag);
-  left: calc(2 * var(--dn-u));
 }
 
 .dn-command--run {
   --dn-command-ink: var(--dn-cmd-run);
-  left: calc(87 * var(--dn-u));
-  height: calc(38 * var(--dn-u));
 }
 
 .dn-command--switch {
   --dn-command-ink: var(--dn-cmd-switch);
-  right: calc(2 * var(--dn-u));
 }
 
-/* FIGHT is the games' great Poké Ball, filling the middle of the touch screen. */
+/*
+ * FIGHT, written in the ball's belt where it is widest, as the games write
+ * theirs (decision 259): the button is the belt's notch itself, with nothing
+ * drawn of its own. Pressed, the ball's halves part and the belt lights up.
+ */
 .dn-command--fight {
   --dn-command-ink: var(--dn-cmd-fight);
-  top: calc(4 * var(--dn-u));
-  bottom: auto;
-  left: calc(50% - 78 * var(--dn-u));
-  width: calc(156 * var(--dn-u));
-  height: calc(156 * var(--dn-u));
-  padding: 0;
-  border-radius: 50%;
-  font-size: calc(22 * var(--dn-t));
+  top: calc(78 * var(--dn-u));
+  left: calc(50% - 72 * var(--dn-u));
+  width: calc(144 * var(--dn-u));
+  height: calc(46 * var(--dn-u));
+  /* The games' size for a word as short as theirs; the menu gives a smaller one to a longer word. */
+  font-size: calc(var(--dn-fight-size, 22) * var(--dn-t));
   letter-spacing: calc(2 * var(--dn-u));
 }
 
-.dn-command--fight::before {
-  inset: 0;
-  clip-path: none;
-  border-radius: 50%;
-  background: var(--dn-ink);
+/* The orders of the round, over the belt and under it, where the games line up Poké Balls. */
+.dn-commands__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  height: calc(22 * var(--dn-u));
+  pointer-events: none;
 }
 
-.dn-command--fight::after {
-  inset: calc(3 * var(--dn-u));
-  clip-path: none;
-  border-radius: 50%;
-  background:
-    linear-gradient(transparent 0 46%, var(--dn-ink) 46% 54%, transparent 54%),
-    radial-gradient(ellipse 62% 70% at 50% 100%, var(--dn-ball-red-2) 0 99%, transparent 100%) top / 100% 46% no-repeat,
-    radial-gradient(ellipse 62% 70% at 50% 0, var(--dn-ball-white-2) 0 99%, transparent 100%) bottom / 100% 46% no-repeat,
-    linear-gradient(var(--dn-ball-red) 0 50%, var(--dn-ball-white) 50% 100%);
+.dn-commands__bar > * {
+  pointer-events: auto;
 }
 
-.dn-command--fight .dn-command__label {
-  padding: calc(3 * var(--dn-u)) calc(12 * var(--dn-u)) calc(4 * var(--dn-u));
-  background: var(--dn-ink);
-  border: calc(2 * var(--dn-u)) solid var(--dn-shell);
-  border-radius: calc(20 * var(--dn-u));
-  text-shadow:
-    calc(1 * var(--dn-u)) 0 0 var(--dn-text),
-    calc(-1 * var(--dn-u)) 0 0 var(--dn-text),
-    0 calc(1 * var(--dn-u)) 0 var(--dn-text),
-    0 calc(-1 * var(--dn-u)) 0 var(--dn-text),
-    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-text),
-    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-text),
-    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-text),
-    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-text);
+.dn-commands__bar--above {
+  top: calc(53 * var(--dn-u));
 }
 
-/* A tile hanging from the top right corner, beside the ball: the way to the battlefield plan. */
-.dn-command--corner {
-  top: 0;
-  right: calc(2 * var(--dn-u));
-  bottom: auto;
-  width: calc(62 * var(--dn-u));
-  height: max(calc(34 * var(--dn-u)), var(--dn-target));
-  padding: 0 calc(4 * var(--dn-u)) calc(7 * var(--dn-u));
-  /* Small and close-set: a long word fits on one line, two short ones on two. */
-  font-size: calc(8 * var(--dn-t));
-  line-height: calc(9 * var(--dn-u));
-  letter-spacing: 0;
-}
-
-.dn-command--corner::before,
-.dn-command--corner::after {
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--dn-cut-y)), calc(100% - var(--dn-cut-x)) 100%, var(--dn-cut-x) 100%, 0 calc(100% - var(--dn-cut-y)));
-}
-
-.dn-command--corner::before {
-  --dn-cut-x: calc(10 * var(--dn-u));
-  --dn-cut-y: calc(10 * var(--dn-u));
-}
-
-.dn-command--corner::after {
-  --dn-cut-x: calc(9 * var(--dn-u));
-  --dn-cut-y: calc(9 * var(--dn-u));
-  inset: 0 calc(3 * var(--dn-u)) calc(3 * var(--dn-u));
+.dn-commands__bar--below {
+  top: calc(127 * var(--dn-u));
 }
 
 .dn-command:active:not(:disabled),
 .dn-command[aria-pressed='true'] {
-  transform: translateY(calc(2 * var(--dn-u)));
   filter: brightness(1.25);
 }
 
+/* A tile of the bottom edge sinks; one of the top edge is pushed up. */
+.dn-command--bottom:active:not(:disabled) {
+  transform: translateY(calc(2 * var(--dn-u)));
+}
+
+.dn-command--top:active:not(:disabled) {
+  transform: translateY(calc(-2 * var(--dn-u)));
+}
+
 .dn-command--fight:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: scale(1.06);
 }
 
 .dn-command:disabled {
@@ -584,20 +666,56 @@
 }
 
 /* --- Move button: coloured by the move's type -------------------------------- */
-/* The six moves, two by three, over a last row for the way back. */
+/*
+ * The six moves, in the belt of the open ball (decisions 259 and 261): two
+ * across and three down, between the red half under the strip and the white
+ * one; under them, on the white half, the way back on RUN's own tile and,
+ * for the game master, what goes with an enemy's moves.
+ */
 .dn-moves {
   position: absolute;
   inset: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-rows: repeat(3, 1fr) auto;
-  gap: calc(3 * var(--dn-u)) calc(4 * var(--dn-u));
-  padding: calc(5 * var(--dn-u)) calc(6 * var(--dn-u));
 }
 
-.dn-moves__back {
-  grid-column: 1 / -1;
-  justify-self: end;
+.dn-moves__grid {
+  position: absolute;
+  top: calc(23 * var(--dn-u));
+  left: calc(4 * var(--dn-u));
+  right: calc(4 * var(--dn-u));
+  height: calc(108 * var(--dn-u));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: calc(1.5 * var(--dn-u)) calc(3 * var(--dn-u));
+}
+
+/* A third of the belt each: smaller than a move of the games, which has four to show. */
+.dn-moves__grid .dn-move {
+  min-height: 0;
+  height: 100%;
+  gap: calc(1 * var(--dn-u)) calc(4 * var(--dn-u));
+  padding: calc(4 * var(--dn-u)) calc(8 * var(--dn-u)) calc(5 * var(--dn-u));
+}
+
+/* On the white half, beside the way back: what is lined up for an enemy and the ways to change it, or Struggle for a player who is away. */
+.dn-moves__foot {
+  position: absolute;
+  left: calc(4 * var(--dn-u));
+  right: calc(82 * var(--dn-u));
+  bottom: calc(3 * var(--dn-u));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+}
+
+/* What is lined up is written on a dark plate: the ball behind it is white. */
+.dn-moves__foot .dn-note {
+  flex: 1 1 100%;
+  margin: 0;
+  padding: calc(1 * var(--dn-u)) calc(4 * var(--dn-u));
+  color: var(--dn-text);
+  background: var(--dn-order-plate);
 }
 
 .dn-move {
@@ -764,30 +882,49 @@
   background: var(--dn-status-par);
 }
 
-/* Agony: Denborn's own. The stacks left are shown as pips, not by colour alone. */
+/* Agony (decisions 266 and 280), Denborn's own: a badge as PAR or BRN are, three white letters on a colour of its own. */
+.dn-status[data-status='agony'] {
+  background: var(--dn-agony);
+}
+
+/* Where there is no plate to put it on: the badge, then the bars. */
 .dn-agony {
   display: inline-flex;
   align-items: center;
-  gap: calc(2 * var(--dn-u));
-  padding: 0 calc(3 * var(--dn-u));
-  font-size: calc(8 * var(--dn-t));
-  line-height: calc(9 * var(--dn-u));
-  color: #ffffff;
-  background: var(--dn-agony);
-  border: calc(1 * var(--dn-u)) solid var(--dn-agony-pip);
+  gap: calc(3 * var(--dn-u));
 }
 
-.dn-agony__pip {
-  width: calc(4 * var(--dn-u));
+.dn-agony .dn-agony-bars {
+  width: calc(38 * var(--dn-u));
   height: calc(4 * var(--dn-u));
-  background: var(--dn-agony-pip);
-  transform: rotate(45deg);
 }
 
-.dn-agony__pip--spent {
-  background: transparent;
-  outline: calc(1 * var(--dn-u)) solid var(--dn-agony-pip-spent);
-  outline-offset: calc(-1 * var(--dn-u));
+/*
+ * The stacks left, in the HP bar's place: as many long bars as there are
+ * stacks, side by side. One that is lost empties from its end, as an HP bar
+ * does; an empty one is still there, so that the count is not told by colour
+ * alone.
+ */
+.dn-agony-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: calc(1 * var(--dn-u));
+  width: 100%;
+  height: 100%;
+}
+
+.dn-agony-bars__bar {
+  overflow: hidden;
+  background: var(--dn-agony-pip-spent);
+}
+
+.dn-agony-bars__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(var(--dn-agony-pip) 0 50%, var(--dn-agony-pip-shade) 50% 100%);
+  transform-origin: left;
+  transition: transform var(--dn-slow) linear;
 }
 
 /* The mark of a Pokémon that carries stat changes or effects of its own: an arrow up over an arrow down. */
@@ -1303,11 +1440,9 @@
   width: calc(30 * var(--dn-u));
 }
 
-.dn-tile__pips {
-  display: flex;
-  gap: calc(3 * var(--dn-u));
-  height: calc(5 * var(--dn-u));
-  align-items: center;
+.dn-tile .dn-agony-bars {
+  width: calc(30 * var(--dn-u));
+  height: calc(4 * var(--dn-u));
 }
 
 /* --- The main menu: buttons two to a row, each with its Pokémon (decisions 221 and 230) --- */
@@ -1777,38 +1912,81 @@
   border-color: var(--dn-slot-down-outline);
 }
 
-/* A number to set: its name and value, then a slider between a minus and a plus. */
+/* A number to set (decision 251): its name, then a minus, the number and a plus, on one row. */
 .dn-number {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   align-items: center;
-  gap: 0 calc(4 * var(--dn-u));
+  gap: 0 calc(1 * var(--dn-u));
 }
 
 .dn-number__name {
-  grid-column: 1 / 3;
+  padding-right: calc(3 * var(--dn-u));
   font-size: calc(10 * var(--dn-t));
   line-height: calc(12 * var(--dn-u));
 }
 
+/* The number, in the dark box of a slot: it can be typed. */
 .dn-number__value {
-  justify-self: end;
+  width: max(calc(30 * var(--dn-u)), var(--dn-target));
+  height: max(calc(20 * var(--dn-u)), var(--dn-target));
+  padding: 0;
+  font: inherit;
   font-size: calc(12 * var(--dn-t));
-  line-height: calc(12 * var(--dn-u));
+  text-align: center;
   color: var(--dn-label-gold);
+  background: var(--dn-slot);
+  border: calc(1 * var(--dn-u)) solid var(--dn-select-soft);
+  border-radius: 0;
 }
 
+/* The minus and the plus: the two ends of an option button, each pointed away from the number. */
 .dn-number__step {
+  position: relative;
+  isolation: isolate;
   display: grid;
   place-items: center;
-  width: max(calc(20 * var(--dn-u)), var(--dn-target));
+  width: max(calc(22 * var(--dn-u)), var(--dn-target));
   height: max(calc(20 * var(--dn-u)), var(--dn-target));
+  padding-right: calc(4 * var(--dn-u));
   font-size: calc(14 * var(--dn-t));
   line-height: 1;
   color: var(--dn-text);
-  background: var(--dn-option);
-  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  /* Held down, it repeats: a long press must not select it or open a menu on it. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-touch-callout: none;
   transition: transform var(--dn-press) var(--dn-ease-out), filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-number__step--lower {
+  padding-right: 0;
+  padding-left: calc(4 * var(--dn-u));
+}
+
+.dn-number__step::before,
+.dn-number__step::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(0 0, calc(100% - var(--dn-cut)) 0, 100% 50%, calc(100% - var(--dn-cut)) 100%, 0 100%);
+}
+
+.dn-number__step--lower::before,
+.dn-number__step--lower::after {
+  clip-path: polygon(var(--dn-cut) 0, 100% 0, 100% 100%, var(--dn-cut) 100%, 0 50%);
+}
+
+.dn-number__step::before {
+  --dn-cut: calc(7 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-ink);
+}
+
+.dn-number__step::after {
+  --dn-cut: calc(6.4 * var(--dn-u));
+  inset: calc(1 * var(--dn-u));
+  background: var(--dn-option);
 }
 
 .dn-number__step:active:not(:disabled) {
@@ -1819,46 +1997,6 @@
 .dn-number__step:disabled {
   color: var(--dn-text-muted);
   opacity: 0.5;
-}
-
-/* The slider is drawn from scratch: a track that fills in the EXP bar's colour, and a block to drag. */
-.dn-number__slider {
-  width: 100%;
-  height: var(--dn-target);
-  margin: 0;
-  background: transparent;
-  appearance: none;
-  cursor: pointer;
-}
-
-.dn-number__slider::-webkit-slider-runnable-track {
-  height: calc(6 * var(--dn-u));
-  background: linear-gradient(to right, var(--dn-exp) 0 var(--dn-number-fill), var(--dn-panel-edge) var(--dn-number-fill));
-  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
-}
-
-.dn-number__slider::-moz-range-track {
-  height: calc(4 * var(--dn-u));
-  background: linear-gradient(to right, var(--dn-exp) 0 var(--dn-number-fill), var(--dn-panel-edge) var(--dn-number-fill));
-  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
-}
-
-.dn-number__slider::-webkit-slider-thumb {
-  width: calc(8 * var(--dn-u));
-  height: calc(16 * var(--dn-u));
-  margin-top: calc(-6 * var(--dn-u));
-  background: var(--dn-text);
-  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
-  border-radius: 0;
-  appearance: none;
-}
-
-.dn-number__slider::-moz-range-thumb {
-  width: calc(8 * var(--dn-u));
-  height: calc(16 * var(--dn-u));
-  background: var(--dn-text);
-  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
-  border-radius: 0;
 }
 
 /* A summary: a name on the left, what it is on the right, line after line. */
@@ -3445,42 +3583,6 @@
   }
 }
 
-/* WAIT hangs from the top left corner as BATTLEFIELD does from the right. Denborn's own (decision 137). */
-.dn-command--corner-left {
-  right: auto;
-  left: calc(2 * var(--dn-u));
-}
-
-/* The party's order, down the left of the ball (decision 135). Denborn's own. A tap opens the party's list. */
-.dn-order {
-  position: absolute;
-  top: calc(37 * var(--dn-u));
-  left: calc(2 * var(--dn-u));
-  display: grid;
-  justify-items: start;
-  gap: calc(1 * var(--dn-u));
-  width: calc(46 * var(--dn-u));
-  padding: calc(1 * var(--dn-u)) calc(3 * var(--dn-u));
-  font-size: calc(8 * var(--dn-t));
-  line-height: calc(9 * var(--dn-u));
-  color: var(--dn-text);
-}
-
-.dn-order__title {
-  color: var(--dn-label-gold);
-}
-
-.dn-order__entry {
-  display: flex;
-  align-items: center;
-  gap: calc(2 * var(--dn-u));
-  height: calc(15 * var(--dn-u));
-}
-
-.dn-order__entry--mine .dn-order__rank {
-  box-shadow: 0 calc(2 * var(--dn-u)) 0 var(--dn-label-gold);
-}
-
 /* A Pokémon whose action is locked: a small tick, drawn. */
 .dn-tick {
   flex: none;
@@ -3748,4 +3850,469 @@ button.dn-roster__row:active:not(:disabled) {
   gap: calc(1 * var(--dn-u));
   line-height: calc(11 * var(--dn-u));
   color: var(--dn-text);
+}
+
+/* === A fight, reworked (decisions 245 to 252) ================================ */
+
+/* --- The strip across a fight's bottom screen: the time, the ping, the battery (decision 249). Denborn's own, after the games' strip. --- */
+.dn-topstrip {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: calc(6 * var(--dn-u));
+  height: calc(10 * var(--dn-u));
+  padding: 0 calc(4 * var(--dn-u));
+  font-size: calc(7 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  white-space: nowrap;
+  color: var(--dn-text-muted);
+  background: var(--dn-ink);
+  /* Nothing on it is pressed: a press near the top edge goes to what hangs under it. */
+  pointer-events: none;
+}
+
+.dn-topstrip__clock {
+  margin-right: auto;
+}
+
+.dn-topstrip__ping,
+.dn-topstrip__battery {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+}
+
+/*
+ * The ping: a small square and a figure in one colour (decision 262). The
+ * square is darker toward its edges, as a light of the games' strip; it is
+ * also as full as the line is good, so that the colour is not the only sign.
+ */
+.dn-topstrip__ping {
+  --dn-ping-rows: 0;
+}
+
+.dn-topstrip__ping[data-level='good'] {
+  --dn-ping-rows: 3;
+  color: var(--dn-hp-high);
+}
+
+.dn-topstrip__ping[data-level='fair'] {
+  --dn-ping-rows: 2;
+  color: var(--dn-hp-mid);
+}
+
+.dn-topstrip__ping[data-level='poor'] {
+  --dn-ping-rows: 1;
+  color: var(--dn-hp-low);
+}
+
+.dn-topstrip__square {
+  position: relative;
+  width: calc(5 * var(--dn-u));
+  height: calc(5 * var(--dn-u));
+  /* Its rim, the darkest; then a ring a shade lighter around the light itself. */
+  background: color-mix(in srgb, currentColor 35%, var(--dn-ink));
+}
+
+.dn-topstrip__square::before,
+.dn-topstrip__square::after {
+  content: '';
+  position: absolute;
+  inset: auto calc(1 * var(--dn-u)) calc(1 * var(--dn-u));
+  height: calc(var(--dn-ping-rows) * var(--dn-u));
+}
+
+.dn-topstrip__square::before {
+  background: color-mix(in srgb, currentColor 70%, var(--dn-ink));
+}
+
+/* The light: the middle of the rows that are lit. */
+.dn-topstrip__square::after {
+  inset-inline: calc(2 * var(--dn-u));
+  background: currentColor;
+}
+
+/* The battery: one of the games' three marks, on whole pixels of the device; a bolt before it while it charges. */
+.dn-topstrip__cell {
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+.dn-topstrip__battery--charging::before {
+  content: '';
+  width: calc(4 * var(--dn-u));
+  height: calc(7 * var(--dn-u));
+  background: var(--dn-label-gold);
+  clip-path: polygon(62% 0, 0 58%, 42% 58%, 26% 100%, 100% 40%, 56% 40%, 88% 0);
+}
+
+/* --- A fight's world (decisions 246, 268, 277 and 279): what its camera looks at --- */
+/*
+ * A layer of the world, as large as the screen: the background's, then one
+ * for each Pokémon. The camera moves a layer and grows it, about the point
+ * the component gives it; the far Pokémon's layer moves as the background's
+ * does, the near one's twice as far. Nothing on them is pressed (decision 272).
+ */
+.dn-world {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* A side keeps the order of what it draws to itself: nothing of a Pokémon, however large, is drawn over the message band or the plates. */
+.dn-world--far {
+  z-index: 0;
+}
+
+/* The near side's Pokémon is nearer: it is drawn over the far one where they meet. */
+.dn-world--near {
+  z-index: 1;
+}
+
+/* One of Showdown's backdrops on its own pixels. Where it lies and how large is worked out by the component (`scene-camera.ts`). */
+.dn-backdrop {
+  position: absolute;
+  image-rendering: pixelated;
+}
+
+/*
+ * The hour of the day (decision 275), Denborn's own: a veil of one colour over
+ * the background, which darkens and tints it as the colour is deep; the
+ * component shows more or less of it. The Pokémon are not under it, and the
+ * camera does not move it.
+ */
+.dn-backdrop-sky {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.dn-backdrop-sky--dawn {
+  background: var(--dn-sky-dawn);
+}
+
+.dn-backdrop-sky--dusk {
+  background: var(--dn-sky-dusk);
+}
+
+.dn-backdrop-sky--night {
+  background: var(--dn-sky-night);
+}
+
+/* --- Where a side's Pokémon stands (decisions 277 and 283): its feet on the middle of the battle base painted for it --- */
+/* A column with no width, from the row no head goes above down to the row of the feet. The component places it. */
+.dn-spot {
+  position: absolute;
+  width: 0;
+}
+
+/* Each Pokémon that stands there, or is leaving, has the column to itself, its middle on the column. */
+.dn-spot__stand {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/*
+ * It stands on the column's foot. One taller than the column starts at its
+ * top and goes down past the foot: the margin over it takes up room only
+ * where there is some. It is brought to its exact size from its feet.
+ */
+.dn-spot__pokemon {
+  flex: none;
+  /* A box as large as the Pokémon's own and no larger: no room is kept under it for a line of text. */
+  display: grid;
+  margin-top: auto;
+  transform-origin: 50% 100%;
+}
+
+/* The background's own light ground is under a Pokémon: no shadow is drawn on it. */
+.dn-spot .dn-battler__base {
+  display: none;
+}
+
+/* The message band lies over both Pokémon, as in the games; the plates over everything. It rises as the scene opens. */
+.dn-world ~ .dn-scene__message {
+  z-index: 2;
+  animation: dn-band-in var(--dn-move) var(--dn-ease-out) both;
+}
+
+@keyframes dn-band-in {
+  from {
+    translate: 0 100%;
+  }
+}
+
+/*
+ * A side's plate (decisions 247 and 278), where Black and White put it. On
+ * the games' own screen the far band's first row is 40 down, against the left
+ * edge, and the near band's 120 down, against the right edge; a plate's name
+ * is the 10 rows over its band. A plate never moves once it is in.
+ */
+.dn-scene__plate {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.dn-scene__plate--far {
+  top: calc(30 * var(--dn-u));
+  left: 0;
+}
+
+.dn-scene__plate--near {
+  top: calc(110 * var(--dn-u));
+  right: 0;
+}
+
+/* --- A fight's plate: the games' own band under a name the app writes (decisions 247, 255 and 256) --- */
+.dn-plate {
+  /* One pixel of the band, and one of the text written on it: set by the plate, on whole pixels of the device. */
+  --dn-hud-px: var(--dn-u);
+  --dn-hud-t: calc(var(--dn-hud-px) * var(--dn-font-scale));
+  display: grid;
+  /* As wide as the band and no wider: a long name is cut, not the level after it. */
+  grid-template-columns: minmax(0, 1fr);
+  font-size: calc(10 * var(--dn-t));
+  color: var(--dn-text);
+}
+
+/* Its place on the line, its name, its gender and its level stand on the scene. */
+.dn-plate__title {
+  display: flex;
+  align-items: baseline;
+  gap: calc(2 * var(--dn-u));
+  height: calc(10 * var(--dn-u));
+  padding: 0 calc(4 * var(--dn-u)) 0 calc(2 * var(--dn-u));
+  line-height: calc(10 * var(--dn-u));
+  white-space: nowrap;
+}
+
+.dn-plate--near .dn-plate__title {
+  padding: 0 calc(2 * var(--dn-u)) 0 calc(8 * var(--dn-u));
+}
+
+.dn-plate__letter {
+  font-size: calc(8 * var(--dn-t));
+  color: var(--dn-label-gold);
+}
+
+.dn-plate__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Room for the outline, which overflow would otherwise cut. */
+  padding: calc(1 * var(--dn-u));
+  margin: calc(-1 * var(--dn-u));
+}
+
+.dn-plate--unreached .dn-plate__name {
+  color: var(--dn-text-muted);
+}
+
+/* The band: everything on it is placed in its own pixels. */
+.dn-plate__band {
+  position: relative;
+  display: block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  line-height: 1;
+}
+
+.dn-plate__band > * {
+  position: absolute;
+}
+
+/* The badges, on the band's light rows before the box of "HP". A badge is taller than they are: it stands over them. */
+.dn-plate__states {
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(1 * var(--dn-hud-px));
+  height: calc(6 * var(--dn-hud-px));
+}
+
+.dn-plate--near .dn-plate__states {
+  padding-left: calc(6 * var(--dn-hud-px));
+}
+
+.dn-plate__states .dn-status,
+.dn-plate__states .dn-changes {
+  flex: none;
+  scale: 0.8;
+}
+
+/* "HP", written by the app in the box the games write theirs in. */
+.dn-plate__hp {
+  top: 0;
+  display: grid;
+  place-items: center;
+  height: calc(6 * var(--dn-hud-px));
+  font-size: calc(6 * var(--dn-hud-t));
+  letter-spacing: calc(1 * var(--dn-hud-px));
+  text-indent: calc(1 * var(--dn-hud-px));
+  color: var(--dn-hp-high);
+}
+
+/* The bar, in the band's well: two rows of pixels, as the games'. */
+.dn-plate__bar .dn-meter {
+  height: 100%;
+  background: var(--dn-plate-dark);
+  border: 0;
+}
+
+.dn-plate__bar .dn-meter__fill {
+  background: linear-gradient(var(--dn-meter-fill) 0 50%, var(--dn-meter-shade) 50% 100%);
+}
+
+/* A downed Pokémon's Agony, in the well: its bars are as far apart as a pixel of the band. */
+.dn-plate__bar .dn-agony-bars {
+  gap: var(--dn-hud-px);
+}
+
+/* The HP in numbers, on the dark rows of the played Pokémon's band. */
+.dn-plate__numbers {
+  right: calc(16 * var(--dn-hud-px));
+  display: grid;
+  place-items: center;
+  font-size: calc(7 * var(--dn-hud-t));
+  font-style: italic;
+  letter-spacing: calc(1 * var(--dn-hud-px));
+}
+
+/* --- The order of a round, where the games line up Poké Balls (decision 248). Denborn's own. --- */
+.dn-orderbar {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(5 * var(--dn-u));
+  height: calc(22 * var(--dn-u));
+  padding: 0 calc(9 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+/* A dark plate pointed at both ends, so that icons and ranks read over the ball's red and its white. */
+.dn-orderbar::before {
+  content: '';
+  position: absolute;
+  inset: calc(2 * var(--dn-u)) 0;
+  z-index: -1;
+  background: var(--dn-order-plate);
+  clip-path: polygon(calc(7 * var(--dn-u)) 0, calc(100% - 7 * var(--dn-u)) 0, 100% 50%, calc(100% - 7 * var(--dn-u)) 100%, calc(7 * var(--dn-u)) 100%, 0 50%);
+}
+
+.dn-orderbar__entry {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: calc(20 * var(--dn-u));
+  height: calc(22 * var(--dn-u));
+  /* Never under the least a small target may be: the same Pokémon can also be picked on the battlefield, where its tile is full size. */
+  min-width: var(--dn-target-min);
+  min-height: var(--dn-target-min);
+  padding: 0;
+  transition: filter var(--dn-press) var(--dn-ease-out);
+}
+
+/* The small arrow to the one that acts next. */
+.dn-orderbar__entry--before::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: calc(-5 * var(--dn-u));
+  width: calc(4 * var(--dn-u));
+  height: calc(6 * var(--dn-u));
+  margin-top: calc(-3 * var(--dn-u));
+  background: var(--dn-label-gold);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.dn-orderbar__rank {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(8 * var(--dn-u));
+}
+
+/* The one of its line that the scene shows (decision 272): a frame in the selection's colour, which pops as it is picked. */
+.dn-orderbar__entry--shown {
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-select);
+  animation: dn-order-pick var(--dn-quick) var(--dn-ease-snap);
+}
+
+@keyframes dn-order-pick {
+  from {
+    scale: 0.8;
+  }
+}
+
+/* The one being played: a gold frame, and its rank in gold. Shown too, its frame is gold inside the selection's. */
+.dn-orderbar__entry--current {
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-label-gold);
+}
+
+.dn-orderbar__entry--shown.dn-orderbar__entry--current {
+  box-shadow:
+    inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-select),
+    inset 0 0 0 calc(2 * var(--dn-u)) var(--dn-label-gold);
+}
+
+.dn-orderbar__entry--current .dn-orderbar__rank {
+  color: var(--dn-label-gold);
+}
+
+.dn-orderbar__entry--down .dn-icon {
+  filter: grayscale(1) brightness(0.6);
+}
+
+.dn-orderbar__tick {
+  position: absolute;
+  right: 0;
+  bottom: calc(1 * var(--dn-u));
+  margin: 0;
+  animation: dn-tick-in var(--dn-quick) var(--dn-ease-snap) both;
+}
+
+@keyframes dn-tick-in {
+  from {
+    scale: 0;
+  }
+}
+
+button.dn-orderbar__entry:active:not(:disabled) {
+  filter: brightness(1.3);
+}
+
+/* --- A fight's touch screen: what stands around the commands (decisions 248 to 250) --- */
+/* A player's timer, top centre, where the game master has TOOLS. */
+.dn-timer--top {
+  top: calc(12 * var(--dn-u));
+  right: auto;
+  left: 50%;
+  justify-items: center;
+  width: auto;
+  translate: -50% 0;
+}
+
+/* The game master's, on the TOOLS tile under its word. */
+.dn-command .dn-timer--inline .dn-timer__clock {
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+}
+
+/* The band that names an Ability lies over both lines, as the plates do. */
+.dn-world ~ .dn-ability {
+  z-index: 3;
 }

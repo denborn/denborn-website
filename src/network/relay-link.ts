@@ -8,7 +8,7 @@
  */
 import { CLOSED, type ClientFrame, type RelayFrame, decodeRelayFrame, encodeFrame } from '../shared/protocol/relay.ts'
 
-/** How often the line is checked, and how long the relay has to answer. The relay answers without waking the room. */
+/** How often the line is checked, after a first check as soon as it is connected, and how long the relay has to answer. The relay answers without waking the room. */
 export const PING_EVERY_MS = 20_000
 export const PONG_WITHIN_MS = 10_000
 
@@ -41,10 +41,14 @@ export interface RelayLinkOptions {
   onFrame: (frame: RelayFrame) => void
   /** Disconnected, with the code; `comingBack` says whether the line will try again by itself. */
   onDown: (code: number, comingBack: boolean) => void
+  /** How long the relay took to answer the last check of the line, in milliseconds; nothing once the line is down. */
+  onLatency?: (milliseconds: number | undefined) => void
   /** Opens a socket. The browser's own by default. */
   connect?: (url: string) => SocketLike
   /** A number from 0 to 1, to spread the returns of many browsers. */
   random?: () => number
+  /** A clock in milliseconds, to time the relay's answers with. The browser's own by default. */
+  now?: () => number
 }
 
 export interface RelayLink {
@@ -66,6 +70,7 @@ function browserSocket(url: string): SocketLike {
 export function openRelayLink(options: RelayLinkOptions): RelayLink {
   const connect = options.connect ?? browserSocket
   const random = options.random ?? Math.random
+  const now = options.now ?? (() => performance.now())
   let socket: SocketLike | undefined
   let up = false
   let closed = false
@@ -74,6 +79,8 @@ export function openRelayLink(options: RelayLinkOptions): RelayLink {
   let retry: ReturnType<typeof setTimeout> | undefined
   let ping: ReturnType<typeof setInterval> | undefined
   let pong: ReturnType<typeof setTimeout> | undefined
+  /** When the check that is still unanswered was sent. */
+  let checkedAt: number | undefined
 
   const stopTimers = (): void => {
     clearTimeout(retry)
@@ -89,8 +96,10 @@ export function openRelayLink(options: RelayLinkOptions): RelayLink {
     socket = undefined
     up = false
     stopTimers()
+    checkedAt = undefined
     const comingBack = !OVER.has(code)
     options.onDown(code, comingBack)
+    options.onLatency?.(undefined)
     if (!comingBack) return
     // Half to all of the wait, so that browsers dropped together do not all return together.
     const wait = Math.min(RETRY_MOST_MS, RETRY_FIRST_MS * 2 ** drops) * (0.5 + random() / 2)
@@ -105,22 +114,31 @@ export function openRelayLink(options: RelayLinkOptions): RelayLink {
       if (socket !== mine) return
       up = true
       mine.send(encodeFrame(options.hello))
-      ping = setInterval(() => {
+      const check = (): void => {
         mine.send('ping')
+        checkedAt = now()
         clearTimeout(pong)
         // No answer: the connection is dead even if the browser has not noticed. Close it and come back.
         pong = setTimeout(() => {
           mine.close(CLOSED_SILENT)
           dropped(mine, CLOSED_SILENT)
         }, PONG_WITHIN_MS)
-      }, PING_EVERY_MS)
+      }
+      // Checked at once, so that how far the relay is is known from the start; then now and then.
+      check()
+      ping = setInterval(check, PING_EVERY_MS)
       options.onUp()
     }
     mine.onmessage = ({ data }) => {
       if (socket !== mine || typeof data !== 'string') return
       // Anything heard shows the line is alive.
       clearTimeout(pong)
-      if (data === 'pong') return
+      if (data === 'pong') {
+        // The answer to the last check: the time it took is the way there and back.
+        if (checkedAt !== undefined) options.onLatency?.(Math.round(now() - checkedAt))
+        checkedAt = undefined
+        return
+      }
       const decoded = decodeRelayFrame(data)
       if (decoded.ok) {
         drops = 0

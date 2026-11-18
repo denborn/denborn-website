@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { HpBar } from './battle'
+import { AgonyBars, HpBar } from './battle'
 import { ArrowButton } from './controls'
 import { type FieldState, neighbourSlot } from './line'
 import { PokemonIcon } from './sprites'
@@ -144,11 +144,8 @@ export function FieldPlan({ foes, allies, shown = [], onSelect, labels, ground, 
               {tile.changed && <span className="dn-changes dn-tile__changes" />}
               <PokemonIcon num={tile.num} />
               {tile.state === 'downed' ? (
-                <span className="dn-tile__pips">
-                  {Array.from({ length: 3 }, (_, index) => (
-                    <span key={index} className={`dn-agony__pip${index < (tile.stacks ?? 0) ? '' : ' dn-agony__pip--spent'}`} />
-                  ))}
-                </span>
+                // A downed Pokémon's Agony stacks, as three bars in its HP bar's place (decision 266).
+                <AgonyBars stacks={tile.stacks ?? 0} label={tile.label} />
               ) : (
                 <HpBar current={tile.hp} max={tile.maxHp} label={tile.label} />
               )}

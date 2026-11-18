@@ -35,6 +35,24 @@ export const enemy = z.object({
 
 export type Enemy = z.infer<typeof enemy>
 
+/** The name of a background: the app's own, in lower-case letters, digits and hyphens. */
+const sceneId = z.string().regex(/^[a-z0-9-]{1,40}$/)
+
+/**
+ * Where an encounter is fought, and when (decisions 246, 268 and 275): a
+ * background and an hour of the day, picked by the game master. The names
+ * are the app's own (src/data/battle-backdrops.ts); one that a version of the
+ * app does not have is drawn as the meadow. The hour only changes how the
+ * background is lit; a scene with none is lit as by day.
+ */
+export const battleScene = z.object({
+  background: sceneId,
+  /** From 0 to 23. */
+  hour: whole(0, 23).optional(),
+})
+
+export type BattleScene = z.infer<typeof battleScene>
+
 export const encounter = z.object({
   id: documentId,
   name: z.string().min(1).max(60),
@@ -42,6 +60,8 @@ export const encounter = z.object({
   enemies: z.array(enemy).min(1).max(LINE_MAX),
   /** The Bag the enemies use items from. */
   bag: z.array(itemStack).max(100),
+  /** Where it is fought. An encounter saved before there were scenes has none, and is fought in the meadow. */
+  scene: battleScene.optional(),
 })
 
 export type Encounter = z.infer<typeof encounter>

@@ -1,5 +1,6 @@
 import { type ButtonHTMLAttributes, type CSSProperties, type ReactNode, useId, useState } from 'react'
-import type { MenuPokemon } from '../data/sprites'
+import { BATTLE_HUD, type MenuPokemon } from '../data/sprites'
+import { usePixelScale } from './Screen'
 import { fitScale } from './pixel'
 import { MenuPokemonIcon } from './sprites'
 
@@ -152,7 +153,90 @@ export function ArrowButton({ way, label, ...rest }: ArrowButtonProps) {
   return <button type="button" className={`dn-arrow dn-arrow--${way}`} aria-label={rest.disabled ? undefined : label} {...rest} />
 }
 
-export type CommandId = 'fight' | 'bag' | 'run' | 'switch'
+export type CommandId = 'fight' | 'bag' | 'switch' | 'run'
+
+/** Which of the games' three tiles a button is drawn with: the one with its shelf to the left, the small one in the middle, the one with its shelf to the right. */
+export type TilePlace = keyof typeof BATTLE_HUD.tiles
+
+/** How wide a letter of the kit's font is, for its size. */
+const LETTER_WIDTH = 0.56
+
+/** How wide a word may be on each tile, in DS pixels: inside its dome's rim. */
+const TILE_ROOM: Record<TilePlace, number> = { left: 54, middle: 52, right: 54 }
+
+/** The games' size for a tile's word, in DS pixels of text. */
+const TILE_WORD = 13
+
+/**
+ * A word's size, in DS pixels of text: `most` when it is short enough, smaller
+ * for a longer one, so that it stays within `room` DS pixels with its letters
+ * `apart` from one another.
+ */
+function wordSize(word: string, room: number, most: number, apart = 0): number {
+  return Math.min(most, (room / Math.max(1, word.length) - apart) / LETTER_WIDTH)
+}
+
+/**
+ * A tile's word as it is written on it: on one line, or, when it is several
+ * words too long for one at the games' size, on the two lines that are the
+ * most alike in length (CHAMP DE / BATAILLE).
+ */
+function tileLines(word: string, room: number): string[] {
+  const parts = word.split(' ')
+  if (parts.length < 2 || wordSize(word, room, TILE_WORD) === TILE_WORD) return [word]
+  const longest = (lines: readonly string[]): number => Math.max(...lines.map((line) => line.length))
+  return parts
+    .slice(1)
+    .map((_, at) => [parts.slice(0, at + 1).join(' '), parts.slice(at + 1).join(' ')])
+    .reduce((best, split) => (longest(split) < longest(best) ? split : best))
+}
+
+export interface TileButtonProps extends ButtonProps {
+  /** The word written on it, in the app's language. */
+  word: string
+  /** Which of the games' three tiles it is: the right one unless told otherwise. */
+  side?: TilePlace
+  /** The edge of the screen it stands on. On the top one the games' tile hangs upside down, from under the strip. */
+  edge?: 'top' | 'bottom'
+  /** The command whose colour its word takes; white when it is none of them. */
+  tone?: CommandId | undefined
+  /** What stands under its word: the round's clock on the game master's TOOLS. */
+  children?: ReactNode
+}
+
+/**
+ * One of the games' tiles of the touch screen (decision 255), with a word the
+ * app writes on it (decision 256): a command along the bottom edge, or one
+ * hanging from the top edge (decisions 248 and 260). The tile is the games'
+ * own picture, on whole pixels of the device; the button is as large as the
+ * picture.
+ */
+export function TileButton({ word, side = 'right', edge = 'top', tone, children, ...rest }: TileButtonProps) {
+  const tile = BATTLE_HUD.tiles[side]
+  const pixel = usePixelScale(1)
+  const lines = tileLines(word, TILE_ROOM[side])
+  const size = Math.min(...lines.map((line) => wordSize(line, TILE_ROOM[side], TILE_WORD)))
+  const art: CSSProperties = {
+    backgroundImage: `url(${BATTLE_HUD.url})`,
+    backgroundSize: `${BATTLE_HUD.width * pixel}px ${BATTLE_HUD.height * pixel}px`,
+    backgroundPosition: `${-tile.x * pixel}px ${-tile.y * pixel}px`,
+  }
+  return (
+    <button
+      type="button"
+      className={`dn-command dn-command--tile dn-command--${edge} dn-command--${side}${tone ? ` dn-command--${tone}` : ''}`}
+      style={{ width: tile.width * pixel, height: tile.height * pixel, '--dn-word-size': size } as CSSProperties}
+      {...rest}
+    >
+      <span className="dn-command__tile" style={art} aria-hidden="true" />
+      <span className="dn-command__label">
+        {/* Two lines are two words to whoever is read them: the space between them is kept. */}
+        {lines.flatMap((line, index) => [index > 0 ? ' ' : null, <span key={line}>{line}</span>])}
+        {children}
+      </span>
+    </button>
+  )
+}
 
 export interface CommandMenuProps {
   /** The four labels, in the app's language. */
@@ -160,40 +244,41 @@ export interface CommandMenuProps {
   /** Commands that cannot be used right now. */
   disabled?: readonly CommandId[]
   onCommand: (command: CommandId) => void
-  /** Something for the free corner, top right: the way to the battlefield plan. */
+  /** What stands over FIGHT and under it, where the games line up Poké Balls: the orders of the round (decision 248). */
+  above?: ReactNode
+  below?: ReactNode
+  /** The rest: the tiles of the top edge, the strip, the timer. */
   children?: ReactNode
 }
 
+/** How wide FIGHT's word may be, in DS pixels: the belt's notch, less its slanted ends. */
+const FIGHT_ROOM = 104
+
+/** The three commands of the bottom edge, from the left, each on its tile (decision 248). */
+const BOTTOM_TILES: readonly { command: Exclude<CommandId, 'fight'>; side: TilePlace }[] = [
+  { command: 'bag', side: 'left' },
+  { command: 'switch', side: 'middle' },
+  { command: 'run', side: 'right' },
+]
+
 /**
- * The battle's four commands on the touch screen: FIGHT as the great ball in
- * the middle, BAG, RUN and SWITCH along the bottom.
+ * The battle's commands on the touch screen, after the games': FIGHT written
+ * in the belt of the ball (decision 259), and BAG, SWITCH and RUN on the
+ * three tiles along the bottom.
  */
-export function CommandMenu({ labels, disabled = [], onCommand, children }: CommandMenuProps) {
-  const order: CommandId[] = ['fight', 'bag', 'run', 'switch']
+export function CommandMenu({ labels, disabled = [], onCommand, above, below, children }: CommandMenuProps) {
   return (
     <div className="dn-commands">
-      {order.map((command) => (
-        <button
-          key={command}
-          type="button"
-          className={`dn-command dn-command--${command}`}
-          disabled={disabled.includes(command)}
-          onClick={() => onCommand(command)}
-        >
-          <span className="dn-command__label">{labels[command]}</span>
-        </button>
-      ))}
       {children}
+      {above && <div className="dn-commands__bar dn-commands__bar--above">{above}</div>}
+      <button type="button" className="dn-command dn-command--fight" style={{ '--dn-fight-size': wordSize(labels.fight, FIGHT_ROOM, 22, 2) } as CSSProperties} disabled={disabled.includes('fight')} onClick={() => onCommand('fight')}>
+        <span className="dn-command__label">{labels.fight}</span>
+      </button>
+      {below && <div className="dn-commands__bar dn-commands__bar--below">{below}</div>}
+      {BOTTOM_TILES.map(({ command, side }) => (
+        <TileButton key={command} word={labels[command]} side={side} edge="bottom" tone={command} disabled={disabled.includes(command)} onClick={() => onCommand(command)} />
+      ))}
     </div>
-  )
-}
-
-/** A small tile hanging from a top corner of the touch screen, beside the ball: the right corner unless told `left`. */
-export function CornerButton({ children, side = 'right', ...rest }: ButtonProps & { side?: 'left' | 'right' }) {
-  return (
-    <button type="button" className={`dn-command dn-command--corner${side === 'left' ? ' dn-command--corner-left' : ''}`} {...rest}>
-      <span className="dn-command__label">{children}</span>
-    </button>
   )
 }
 

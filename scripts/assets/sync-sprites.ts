@@ -5,21 +5,23 @@
  * data-sources/sprites.lock.json lists every file with its source and SHA-256;
  * data-sources/backdrops.lock.json does the same for the backdrops.
  *
- *   node scripts/assets/sync-sprites.ts                  download what is missing and check everything against the locks
- *   node scripts/assets/sync-sprites.ts --pin            rebuild the sprite lock from what the sources serve today
- *   node scripts/assets/sync-sprites.ts --pin-backdrops  rebuild the backdrop lock alone
+ *   node scripts/assets/sync-sprites.ts                         download what is missing and check everything against the locks
+ *   node scripts/assets/sync-sprites.ts --pin                   rebuild the sprite lock from what the sources serve today
+ *   node scripts/assets/sync-sprites.ts --pin-backdrops         rebuild the backdrop lock alone
  *
  * Pokémon sprites, Pokémon icons, item icons, type and category icons come
  * from Pokémon Showdown. Icons of items Showdown does not have come from
- * PokéAPI's sprite repository, at a pinned commit. The title screen's plain
- * is one of Showdown's battle backdrops (decision 204), and so is the inside
- * of the den behind the list of characters (decision 244). The backdrops have a
- * lock of their own: the sprites' offline cache is named after the sprite
- * lock, and pinning a backdrop must not make every device fetch the sprites
- * again.
+ * PokéAPI's sprite repository, at a pinned commit. A fight's backgrounds are
+ * Showdown's battle backdrops, the ones src/data/battle-backdrops.ts lists
+ * (decision 246); the title screen's plain is one of them (decision 204), and
+ * so is the inside of the den behind the list of characters (decision 244).
+ * The backdrops have a lock of their own: the sprites' offline cache is named
+ * after the sprite lock, and pinning a backdrop must not make every device
+ * fetch the sprites again.
  */
 import { join } from 'node:path'
 import { Dex } from '@pkmn/dex'
+import { BACKDROP_FOLDER, backdropFiles } from '../../src/data/battle-backdrops.ts'
 import { readBagTable } from '../data/lib/bag-table.ts'
 import { NotFoundError, ROOT, ensureFile, inBatches, readJson, writeJson } from '../data/lib/pinned.ts'
 
@@ -28,8 +30,8 @@ const BACKDROP_LOCK_PATH = join(ROOT, 'data-sources/backdrops.lock.json')
 const OUT = join(ROOT, 'public/sprites')
 const SHOWDOWN = 'https://play.pokemonshowdown.com/sprites'
 const LAST_SPECIES = 151
-/** The backdrops the app shows, served under public/sprites/fx/. */
-const BACKDROPS = ['bg-meadow.png', 'bg-dampcave.png']
+/** The backdrops the app shows, served under public/sprites/fx/: a fight's backgrounds, among them the title's plain and the den's inside. */
+const BACKDROPS = backdropFiles()
 
 export interface SpriteLock {
   showdown: {
@@ -138,7 +140,7 @@ if (pin) {
 }
 
 if (pinBackdrops) {
-  const found = await fetchAll(backdrops.base, BACKDROPS, {}, 'fx')
+  const found = await fetchAll(backdrops.base, BACKDROPS, {}, BACKDROP_FOLDER)
   if (found.missing.length) throw new Error(`Showdown does not serve: ${found.missing.join(', ')}`)
   backdrops.files = found.found
   await writeJson(BACKDROP_LOCK_PATH, backdrops)
@@ -147,6 +149,6 @@ if (pinBackdrops) {
   const absent = BACKDROPS.filter((name) => !(name in backdrops.files))
   if (absent.length) throw new Error(`data-sources/backdrops.lock.json lacks: ${absent.join(', ')}. Run with --pin-backdrops after reviewing.`)
   // Checked against the lock in every other run, --pin included: pinning the sprites leaves the backdrops as they are.
-  await inBatches(Object.keys(backdrops.files), 6, (name) => ensureFile({ url: `${backdrops.base}/${name}`, path: join(OUT, 'fx', name), sha256: backdrops.files[name] }))
+  await inBatches(Object.keys(backdrops.files), 6, (name) => ensureFile({ url: `${backdrops.base}/${name}`, path: join(OUT, BACKDROP_FOLDER, name), sha256: backdrops.files[name] }))
   console.log(`Backdrops ready: ${Object.keys(backdrops.files).length} file checked against the lock`)
 }

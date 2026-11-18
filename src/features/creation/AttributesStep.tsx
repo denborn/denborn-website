@@ -17,7 +17,7 @@ export function AttributesStep({ draft, level, text, onChoose }: AttributesStepP
   return (
     <div className="dn-stack">
       <p className="dn-note">{text.attributes.intro}</p>
-      {/* Said again when it changes, without taking focus from the slider. */}
+      {/* Said again when it changes, without taking focus from the number being set. */}
       <p className={`dn-note${tally.toPlace > 0 ? ' dn-note--error' : ''}`} role="status">
         {tally.toPlace > 0 ? text.attributes.toPlace(tally.toPlace) : text.attributes.placed}
       </p>

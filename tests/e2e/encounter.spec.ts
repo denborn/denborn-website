@@ -25,6 +25,17 @@ test('an encounter prepared from its campaign’s page is kept with the campaign
   await done.click()
   // An enemy starts at the level characters start at (decision 142).
   await expect(page.getByText('Pikachu · Lv. 5 · BOSS')).toBeVisible()
+  // Where it is fought, and when (decisions 246, 268 and 275): a new encounter is in the meadow at noon; another background is
+  // picked from the list, and the hour is set an hour at a time.
+  const scene = page.getByRole('button', { name: /^Scene/ })
+  await expect(scene).toContainText('Meadow · 12 PM')
+  await scene.click()
+  await page.getByRole('button', { name: 'Damp cave', exact: true }).click()
+  await page.getByRole('button', { name: 'An hour later' }).click()
+  await expect(page.getByRole('spinbutton', { name: 'Hour of the day' })).toHaveValue('13')
+  await expect(page.getByText('1 PM: daylight.')).toBeVisible()
+  await done.click()
+  await expect(scene).toContainText('Damp cave · 1 PM')
 
   await back.click()
   await expect(page.getByRole('alert')).toContainText('Leave without saving them?')
@@ -46,6 +57,7 @@ test('an encounter prepared from its campaign’s page is kept with the campaign
   await page.getByRole('button', { name: /Pikachu · Lv. 5 · BOSS/ }).click()
   await expect(page.getByRole('button', { name: /^PP Ups/ })).toContainText('1 given')
   await done.click()
+  await expect(scene).toContainText('Damp cave · 1 PM')
   await page.getByRole('button', { name: 'REMOVE THIS ENCOUNTER' }).click()
   await page.getByRole('button', { name: 'REMOVE', exact: true }).click()
   await expect(page.getByText('No encounter is prepared yet.')).toBeVisible()

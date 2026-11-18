@@ -64,6 +64,8 @@ export interface HostRunOptions {
   restoreBattle?: (snapshot: BattleSnapshot) => Promise<StartedBattle>
   /** The fight changed: what to keep so that it survives the page, or nothing once it is over. */
   onFight?: (kept: KeptFight | undefined) => void
+  /** How long the relay took to answer the last check of the line, in milliseconds; nothing while that is not known. It is the screen's alone: the session's logic never hears of it. */
+  onLatency?: (milliseconds: number | undefined) => void
   /** Random bytes, for the seed of a fight. The browser's own by default. */
   random?: (length: number) => Uint8Array
   /** The clock, in milliseconds. */
@@ -188,6 +190,7 @@ export function runHost(options: HostRunOptions): HostRun {
       line = lineAfter(code, comingBack)
       apply({ on: 'offline' })
     },
+    ...(options.onLatency ? { onLatency: options.onLatency } : {}),
   })
 
   return {

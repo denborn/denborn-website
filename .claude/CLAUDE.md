@@ -28,7 +28,7 @@ This repository is a Pokémon-only cooperative tabletop companion PWA, **not** a
 - Do not fetch simulator scripts or Pokémon API resources from CDNs at application runtime.
 - Use pnpm. `pnpm verify` runs the type check, lint, every test project, the production build and the end-to-end tests; run it after each change.
 - Test only logic that is ours and can vary. Never write a test that asserts fixed game data; real data is checked by the data-pack generator.
-- Pokémon artwork and the reference sheets in `tmp/` are never committed, with two exceptions the owner made: `public/missingno.gif` (decisions 181 and 187) and `public/battle-bases.png`, cut from a sheet the owner supplied (decision 242). Credit every source in `CREDITS.md`. Stage files by name, never with `git add -A`: the owner drops files at the root.
+- Pokémon artwork and the reference sheets in `tmp/` are never committed, with three exceptions the owner made, each cut from something the owner supplied: `public/missingno.gif` (decisions 181 and 187), `public/battle-bases.png` (decision 242), and the pieces of Black and White's battle screens a fight is drawn with, `public/battle-touch.png` and `public/battle-hud.png` (decision 255). Credit every source in `CREDITS.md`. Stage files by name, never with `git add -A`: the owner drops files at the root.
 
 ## Rules organization
 Detailed topic/path-scoped rules are in `.claude/rules/`. See `README.md` for layout and `docs/INTEGRATION_SPIKES.md` for proof-of-concept gates. Claude Code reads unscoped rules at startup and path-scoped rules when matching files are worked on. Run `/doctor prompt-audit` when supported to check instruction conflicts.

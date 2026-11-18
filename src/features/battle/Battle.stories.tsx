@@ -10,7 +10,7 @@ import { Note, Phone, usePack } from '../../ui/stories/board'
 import { sampleQuarry } from '../encounters/samples'
 import { BattleScreen } from './BattleScreen'
 import { rewardDefaults } from '../../domain/rewards'
-import { GmConsole } from './GmConsole'
+import { GmBattle } from './GmBattle'
 import { RewardsScreen } from './RewardsScreen'
 import { fightSetup } from './fight-setup'
 import { type Author, type Choice, type Fight, type FightCommand, type FightContext, fightStep, isReady, openFight, partyView, tableView } from './fight'
@@ -48,6 +48,8 @@ function openTable(pack: DataPack, timerSeconds: number, carrierDown = false): L
   const fight = openFight(
     {
       encounter: { id: encounter.id, name: encounter.name },
+      // The quarry is fought in the mountains (decision 246).
+      scene: { background: 'mountain' },
       enemies: encounter.enemies,
       bags: Object.fromEntries(party.map((character) => [character.id, character.bag])),
       enemyBag: encounter.bag,
@@ -186,7 +188,17 @@ function Table({ timer, seat, carrierDown = false }: { timer: number; seat: 'pla
       <>
         <div className="sb-row sb-row--top">
           <Phone>
-            <GmConsole pack={pack} table={tableView(table.fight, context(table.now))} party={table.party} away={[...absent]} onCommand={(command) => carryOut([{ author: 'gm', command }])} onEnd={() => undefined} />
+            <GmBattle
+              pack={pack}
+              table={tableView(table.fight, context(table.now))}
+              party={table.party}
+              away={[...absent]}
+              onCommand={(command) => carryOut([{ author: 'gm', command }])}
+              onEnd={() => undefined}
+              onSession={() => undefined}
+              sessionLabel="THE SESSION"
+              latency={48}
+            />
           </Phone>
           {phone(first)}
         </div>
@@ -204,14 +216,22 @@ function Table({ timer, seat, carrierDown = false }: { timer: number; seat: 'pla
           {again}
         </div>
         <Note>
-          The game master’s console (approved, decision 151), on the left, beside one player’s phone (Volt). The battlefield stays on the console’s top screen;
-          below it, the round as it stands: the timer (off until turned on, decision 150), each enemy and what it has locked, each
-          player’s Pokémon and what it has locked, and the order of everyone. A tap on a Pokémon, in the list or on the battlefield,
-          opens it. An enemy is given a move (aimed on the battlefield above when it takes a target), WAIT or an item of the enemies’
-          Bag; extra moves are lined up first with ADD AN EXTRA MOVE, then the move chosen locks them all; it can be moved along its
-          line and exchange Speed with another enemy. The Pokémon of a player who is away (the button below) can be chosen for,
-          Struggle included. The round is played by the last lock. Not here yet: the end of the fight and its rewards, and the round
-          played back step by step.
+          The game master’s seat (decision 250), on the left, beside one player’s phone (Volt): a player’s two screens, mirrored. One
+          Pokémon of each line is on the scene, on the base painted for it and at the games’ size (decisions 277 and 283): one of the enemies in the
+          foreground, seen from behind, and one of the party facing it. The plates never move (decision 278); the camera does
+          (decision 279): its slow round while choices are awaited, closer on a Pokémon while a round is told about it. Nothing on the
+          top screen is pressed (decision 272). On the touch screen the
+          enemies’ order is under FIGHT and the party’s above it, with everyone’s rank across the two; a press on a Pokémon of either
+          puts it on the scene, and picks it as the one the game master plays when it is theirs to play (an enemy, or the Pokémon of a
+          player who is away: the button below): its plate is then the large one. The player has the same two lines: the foes above, by
+          their places and not by their order, and their party below; a press only looks. FIGHT then gives the Pokémon played
+          a move, aimed on the battlefield when it takes a target; under the moves, an enemy’s extra moves are lined up first with ADD AN
+          EXTRA MOVE, then the move chosen locks them all, and an away player’s Pokémon can be given STRUGGLE. BAG is the enemies’ Bag;
+          RUN trades places with a neighbour and SWITCH trades Speed with another enemy, at once. Once the Pokémon played has locked,
+          FIGHT reads CHANGE, and the game master is taken on to the next enemy that has to choose. TOOLS, top centre, is theirs alone:
+          the timer (off until turned on, decision 150), each enemy with its class and what it has locked, the order of everyone, what
+          is in effect, the last round as it was told, END THE ENCOUNTER and the way to the rest of the session. The round is played by
+          the last lock, and told to the game master step by step as to the players.
         </Note>
       </>
     )
@@ -241,16 +261,21 @@ function Table({ timer, seat, carrierDown = false }: { timer: number; seat: 'pla
       <Note>
         A real fight, played in this page by the real battle engine: two players’ phones side by side, Volt’s (A) on the left and Braise’s
         (B) on the right. The buttons underneath stand in for the rest of the table: <strong>THE OTHERS CHOOSE</strong> locks something for
-        the third player (Mousse) and for the three enemies; the round is played as soon as everyone has locked. Approved (decisions 147
-        to 149): WAIT in the top left corner; the party’s ORDER down the left of the ball (a tap opens the party’s list, which is also
-        what a player sees once locked); the timer on the right (set <code>timer</code> below); a target chosen on the battlefield plan;
-        the Bag’s list, then its target; RUN and SWITCH asking an ally, who answers on their own phone; a Pokémon’s sheet from the
-        battlefield. Approved too (decisions 155 and 156): once everyone has locked, the round is told step by step on the top screen,
-        in the games’ own words in both languages (decision 154): the scene follows who acts and who is hit, HP bars move as each hit
-        lands, and the touch screen lists what was said so far, with SKIP to go straight to the next choices; a tap on the message goes to
-        the next step. The text goes at the speed set in the app’s Options (slow, normal, fast). The battlefield now names the terrain
-        and the weather, and MORE lists everything in effect with the games’ own names and descriptions: try Volt’s Electric Terrain
-        or Rain Dance, Braise’s Swords Dance, then BATTLEFIELD. Not said yet: what items and Abilities do when they trigger (their
+        the third player (Mousse) and for the three enemies; the round is played as soon as everyone has locked. The scene (decisions
+        247, 268, 277 to 279 and 283): one Pokémon of each line on the encounter’s background, on the base painted for it and at the games’ size;
+        Black and White’s plates where the games put them, no EXP, never moving; a camera that moves the scene under them; nothing on
+        it is pressed (decision 272). The touch screen (decisions 248, 249, 255, 259 and 272): the two
+        halves of the games’ ball with FIGHT written in its belt; BAG, SWITCH and RUN; WAIT and INFO hanging from under the strip;
+        over FIGHT the foes as they stand on their line, under it the party in the round’s order, and a press on a Pokémon of either
+        puts it on the scene, to be looked at, until something is done; the strip with the time, the ping and the battery; the timer
+        top centre (set <code>timer</code> below). As before (decision 147): a target chosen on the battlefield plan; the Bag’s list,
+        then its target; RUN and SWITCH asking an ally, who answers on their own phone; a Pokémon’s sheet from the battlefield, behind
+        INFO. Approved too (decisions 155 and 156): once everyone has locked, the round is told step by step on the top screen, in the
+        games’ own words in both languages (decision 154): the scene follows who acts and who is hit, HP bars move as each hit lands,
+        and the touch screen lists what was said so far, with NEXT to go on to the next step and SKIP to go straight to the next
+        choices. The text goes at the speed set in the app’s Options (slow, normal, fast). The battlefield names the terrain and the
+        weather, and MORE lists everything in effect with the games’ own names and descriptions: try Volt’s Electric Terrain or Rain
+        Dance, Braise’s Swords Dance, then INFO. Not said yet: what items and Abilities do when they trigger (their
         effects still play).
       </Note>
     </>
@@ -308,8 +333,8 @@ function Ending() {
   )
 }
 
-/** The game master's console, beside one player's phone. */
-export const GameMastersConsole: StoryObj<typeof meta> = { args: { seat: 'gm' }, render: (args) => <Table key={args.timer} {...args} /> }
+/** The game master's seat, beside one player's phone. */
+export const GameMastersSeat: StoryObj<typeof meta> = { args: { seat: 'gm' }, render: (args) => <Table key={args.timer} {...args} /> }
 
 /** Ending an encounter: the rewards the game master awards. */
 export const EndOfAnEncounter: StoryObj<typeof meta> = { render: () => <Ending /> }

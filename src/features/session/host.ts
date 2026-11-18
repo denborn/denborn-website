@@ -514,6 +514,7 @@ export function launchFor(session: HostSession, encounterId: string, seed: strin
     setup: launch.setup,
     start: {
       encounter: { id: encounter.id, name: encounter.name },
+      ...(encounter.scene ? { scene: encounter.scene } : {}),
       enemies: encounter.enemies,
       bags: Object.fromEntries(fighting.map((character) => [character.id, character.bag])),
       enemyBag: encounter.bag,

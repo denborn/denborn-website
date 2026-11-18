@@ -23,7 +23,7 @@ import {
 import type { BagEffect, BagUse } from '../../game-rules/bag-effects'
 import type { MobClass } from '../../game-rules/rewards'
 import type { ItemStack } from '../../shared/schema/common'
-import type { Enemy } from '../../shared/schema/encounter'
+import type { BattleScene, Enemy } from '../../shared/schema/encounter'
 
 /** The battle, as far as the table drives it. `DenbornBattle` is the one that plays. */
 export interface FightEngine {
@@ -95,6 +95,8 @@ export interface PlayedRound {
 
 export interface Fight {
   encounter: { id: string; name: string }
+  /** Where the encounter is fought, when it says (decision 246). It is for the screens alone: nothing of the fight depends on it. */
+  scene?: BattleScene | undefined
   /** The enemies' sheets, as the encounter has them. */
   enemies: readonly Enemy[]
   /** The round being chosen. */
@@ -179,6 +181,7 @@ export interface FightStep {
 
 export interface FightStart {
   encounter: { id: string; name: string }
+  scene?: BattleScene | undefined
   enemies: readonly Enemy[]
   bags: Readonly<Record<string, readonly ItemStack[]>>
   enemyBag: readonly ItemStack[]
@@ -193,6 +196,7 @@ export function openFight(start: FightStart, context: FightContext): Fight {
   return settled(
     {
       encounter: start.encounter,
+      ...(start.scene ? { scene: start.scene } : {}),
       enemies: start.enemies,
       round: engine.round,
       locked: {},
@@ -572,6 +576,8 @@ export type EnemySheet = Omit<Enemy, 'class'>
 
 export interface FightView {
   encounter: { id: string; name: string }
+  /** Where the encounter is fought, when it says. */
+  scene?: BattleScene | undefined
   round: number
   outcome: Outcome | undefined
   /** Everyone on both lines. Players see everything of the enemies (decision 17). */
@@ -619,6 +625,7 @@ export function tableView(fight: Fight, context: FightContext): TableView {
   const { timer } = fight
   return {
     encounter: fight.encounter,
+    ...(fight.scene ? { scene: fight.scene } : {}),
     round: fight.round,
     outcome: fight.outcome,
     combatants,
@@ -661,6 +668,7 @@ export function partyView(fight: Fight, context: FightContext): FightView {
   const ofParty = <T>(record: Record<string, T>): Record<string, T> => Object.fromEntries(Object.entries(record).filter(([id]) => party.has(id)))
   return {
     encounter: table.encounter,
+    ...(table.scene ? { scene: table.scene } : {}),
     round: table.round,
     outcome: table.outcome,
     combatants: table.combatants,

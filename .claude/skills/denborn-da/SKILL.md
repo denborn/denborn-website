@@ -10,7 +10,7 @@ Denborn looks and feels like Pokémon Black / White and Black 2 / White 2. The r
 ## Before you draw anything
 
 1. **Look for it in the kit.** `src/ui/index.ts` lists every component. A page is one `DualScreen` of two `Screen`s, a top one and a bottom one, each assembled from them.
-2. **If the kit lacks it, look at the games.** Find the piece on a reference sheet (`references/sources.md`), measure it (below), and redraw it in CSS or SVG. Never copy pixels from a sheet, and never commit a sheet.
+2. **If the kit lacks it, look at the games.** Find the piece on a reference sheet (`references/sources.md`). The owner prefers the games' own pixels to a redrawing (decision 255): ask them once for each new set of pieces, then cut it with a script like `scripts/assets/cut-battle-hud.ts` into a picture in `public/`, place it by constants in `src/data/sprites.ts`, credit its ripper in `CREDITS.md`, and take out any word drawn into it, since the app writes every word (decision 256). Where they say to redraw instead, measure the piece (below) and redraw it in CSS or SVG. Never commit a sheet itself.
 3. **If the games have no such thing** (Agony, the GM's console, anything Denborn adds), design it in the same language, mark it "Denborn's own" in the tokens and in `DESIGN.md`, show it on the board, and ask the owner before it ships. The owner decides how things look; a missing reference is not permission to decide.
 
 ## Rules that are easy to break

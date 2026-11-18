@@ -10,7 +10,7 @@
 import { z } from 'zod'
 import { LINE_MAX } from '../../game-rules/party.ts'
 import { dataId, documentId, itemStack, whole } from '../schema/common.ts'
-import { enemy } from '../schema/encounter.ts'
+import { battleScene, enemy } from '../schema/encounter.ts'
 
 /** A Pokémon on the field goes by the id of its character or of its enemy. */
 const combatantId = documentId
@@ -126,6 +126,8 @@ const playedRound = z.object({
 /** The fight as every player of the party is shown it (features/battle/fight.ts, FightView). */
 export const playerFight = z.object({
   encounter: z.object({ id: documentId, name: z.string().min(1).max(60) }),
+  /** Where the encounter is fought, when it says (decision 246). */
+  scene: battleScene.optional(),
   round: whole(1, 100_000),
   /** Set once the fight is over. */
   outcome: z.enum(['players', 'enemies', 'tie']).optional(),

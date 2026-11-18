@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { DURATION, EASE, HudBox, MessageBox, Screen, StatusBadge } from '..'
 import { Note, Phone, Section, useBattleText, useLocale, usePack } from './board'
 
+/** A small square to watch move. */
+const DOT = { display: 'inline-block', width: 'calc(5 * var(--dn-u))', height: 'calc(5 * var(--dn-u))', background: 'var(--dn-agony-pip)' } as const
+
 const SPEEDS = Object.entries(DURATION)
 const CURVES = Object.entries(EASE)
 
@@ -32,7 +35,7 @@ function MotionBoard() {
                 </span>
                 <motion.span
                   key={run}
-                  className="dn-agony__pip"
+                  style={DOT}
                   initial={{ x: 0 }}
                   animate={{ x: run === 0 ? 0 : 'calc(120 * var(--dn-u))' }}
                   transition={{ duration: seconds, ease: EASE.out }}
@@ -44,7 +47,7 @@ function MotionBoard() {
                 <span style={{ width: 'calc(70 * var(--dn-u))' }}>ease-{key}</span>
                 <motion.span
                   key={run}
-                  className="dn-agony__pip"
+                  style={DOT}
                   initial={{ x: 0 }}
                   animate={{ x: run === 0 ? 0 : 'calc(120 * var(--dn-u))' }}
                   transition={{ duration: DURATION.slow, ease: [...curve] }}

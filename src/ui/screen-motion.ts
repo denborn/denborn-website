@@ -38,7 +38,9 @@ export interface Box {
  * What moves piece by piece, in the kit's own layouts: a page's title, its
  * tabs, its rows and its foot's buttons; the main menu's buttons and its
  * notice; the battle's commands, moves, lists and plan. A screen with none of
- * these moves the things it holds whole.
+ * these moves the things it holds whole. The strip across a fight's touch
+ * screen is no piece: it is the same on the screen that goes and on the one
+ * that comes, and stays where it is.
  *
  * A piece that goes out by a side must not be a child of something that
  * scrolls: out by the right, it would make that thing scroll sideways to it
@@ -54,8 +56,10 @@ const PIECES = [
   '.dn-menu__grid > *',
   '.dn-menu__notice',
   '.dn-lineup > *',
-  '.dn-commands > *',
-  '.dn-moves > *',
+  '.dn-commands > :not(.dn-topstrip)',
+  '.dn-moves__grid > *',
+  '.dn-moves__foot',
+  '.dn-moves > .dn-command',
   '.dn-roster__title',
   '.dn-roster__list',
   '.dn-ask > *',
@@ -82,8 +86,8 @@ const TITLE = '.dn-step'
 /** A piece at least this much of the screen's width is a row: it goes by the passage's side, not by its nearest one. */
 const ROW = 0.6
 
-/** No more pieces than this move one after the other: a screen shows no more at once, and the wait would be long. */
-const MOST = 10
+/** No more pieces than this move one after the other: a screen shows no more at once, and the wait would be long. The game master's commands are the most: the strip, three tiles above, the two orders around FIGHT, three tiles below. */
+const MOST = 12
 
 /**
  * How far from its place a piece is while it is out of the screen, in pixels

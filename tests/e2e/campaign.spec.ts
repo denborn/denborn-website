@@ -18,7 +18,7 @@ test('a campaign set by its game master gives a creation link that makes a chara
 test('a changed rule makes the next version once saved, and leaving before that asks first', async ({ page }) => {
   await setCampaign(page, 'Dawn Patrol')
   await page.getByRole('button', { name: /^Starting level/ }).click()
-  await page.getByRole('slider', { name: 'Starting level' }).fill('30')
+  await page.getByRole('spinbutton', { name: 'Starting level' }).fill('30')
   await page.getByRole('button', { name: 'DONE' }).click()
   // The link is of the rules as saved: it gives way while they differ.
   await expect(page.getByText('Changes not saved yet.')).toBeVisible()

@@ -1,12 +1,12 @@
 # Sources
 
-## Reference sheets (in `tmp/`, never committed, never redistributed)
+## Reference sheets (in `tmp/`, never committed whole)
 
 Sprite sheets from The Spriters Resource, supplied by the owner because the site refuses automated access. They are © Nintendo, Creatures Inc., GAME FREAK inc.; each ripper is credited in `CREDITS.md`.
 
 | Sheet (file name ends with) | Game | What it gives |
 |---|---|---|
-| `Black _ White - Miscellaneous - Battle HUD.png` | BW | The touch screen: the great ball (FIGHT), the BAG / RUN / POKéMON tiles, their label colours; the BW HP boxes; the in-battle font; one example of the top screen with its message band. |
+| `Black _ White - Miscellaneous - Battle HUD.png` | BW | The touch screen: the great ball (FIGHT), the BAG / RUN / POKéMON tiles, their label colours; the BW HP boxes; the in-battle font; one example of the top screen with its message band. **A fight's two screens are drawn with pieces cut from this one** (the ball, the three tiles, the two HP bars, the battery marks), kept in `public/` by the owner's ruling (decision 255). |
 | `Black 2 _ White 2 - Miscellaneous - HP Bars.png` | B2W2 | The Black 2 (dark) and White 2 (light) HP boxes, the bar colours, EXP bar, status icons, name font, level numbers, two example boxes with gender marks. **Denborn's HUD follows this one.** |
 | `Black _ White - Miscellaneous - Party Screen.png` | BW | The party slots in every state (normal, selected, fainted, confirmed) and the menu grid behind them. |
 | `Black 2 _ White 2 - Miscellaneous - Options Screen.png` | B2W2 | The black backdrop with plus marks, option buttons selected and not, the "Selected / Unselected" text colours. |

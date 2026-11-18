@@ -1,17 +1,13 @@
-import { type Locator, type Page, devices, expect, test } from '@playwright/test'
+import { type Locator, devices, expect, test } from '@playwright/test'
 import { createPikachu, draftEncounter, setCampaign } from './creating.ts'
+import { openTools, said } from './fighting.ts'
 import { ask, table } from './hosting.ts'
 
-/** The HP a Pokémon's row on the console gives, such as "HP 15/18". */
+/** The HP a Pokémon's row in the game master's TOOLS gives, such as "HP 15/18". */
 async function hpOf(row: Locator): Promise<string> {
   const hp = /HP \d+\/\d+/.exec(await row.innerText())?.[0]
   if (!hp) throw new Error('The row gives no HP')
   return hp
-}
-
-/** The battle's message band says this, once it has typed it out whole. */
-async function said(page: Page, text: string): Promise<void> {
-  await expect(page.locator('.dn-message > [aria-hidden="true"]').first()).toHaveText(text)
 }
 
 test('a player joins a session with its code, is let in, and stays in while the game master’s page reloads', async ({ page: gm }) => {
@@ -138,10 +134,12 @@ test('an encounter is launched from the session, and a round is played between t
   await gm.getByRole('group', { name: 'Volt' }).getByRole('button', { name: 'LET IN' }).click()
   await expect(player.getByText('Volt (you)')).toBeVisible()
 
-  // The launch fetches the battle engine, then the game master's screen is the fight's console and the player's is the fight.
+  // The launch fetches the battle engine, then both have the fight's two screens: the game master plays the enemy, the player their own.
   await gm.getByRole('button', { name: 'LAUNCH' }).click()
-  await expect(gm.getByRole('heading', { name: 'The quarry · Round 1' })).toBeVisible({ timeout: 30_000 })
+  await said(gm, 'What will Pikachu do?', 30_000)
   await said(player, 'What will Volt do?')
+  // TOOLS, the game master's own, says how the encounter stands.
+  await openTools(gm, 'The quarry · Round 1')
   const enemy = gm.getByRole('button', { name: /^A · Pikachu/ })
   await expect(enemy).toContainText('TO CHOOSE')
   const whole = await hpOf(enemy)
@@ -153,30 +151,34 @@ test('an encounter is launched from the session, and a round is played between t
   await said(player, 'Volt is ready. Waiting for the others…')
   await expect(gm.getByText('Thunder Shock on Pikachu')).toBeVisible()
 
-  // The game master gives the enemy its move, aimed on the battlefield above: the last lock plays the round.
+  // The game master picks the enemy in TOOLS and gives it its move, aimed on the battlefield: the last lock plays the round.
   await enemy.click()
+  await gm.getByRole('button', { name: 'FIGHT' }).click()
   await gm.getByRole('button', { name: /^Thunder Shock/ }).click()
   await gm.getByRole('group', { name: 'PARTY' }).getByRole('button').first().click()
-  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
-  // The enemy was hit: its line no longer reads as it did, and the console lists what the round said, in the games' own words.
+  // Both are told the round step by step, in the games' own words, and may pass it to choose again.
+  for (const page of [gm, player]) {
+    await expect(page.getByRole('listitem').filter({ hasText: 'used Thunder Shock!' }).first()).toBeVisible()
+    await page.getByRole('button', { name: 'SKIP' }).click()
+  }
+  await said(player, 'What will Volt do?')
+  // The enemy was hit: its line in TOOLS no longer reads as it did, and the last round is listed there as it was told.
+  await openTools(gm, 'The quarry · Round 2')
   await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).not.toContainText(whole)
   await expect(gm.getByText('Round 1, as it went')).toBeVisible()
   await expect(gm.getByText('Volt used Thunder Shock!')).toBeVisible()
-  // The player is told the round step by step, and may pass it to choose again.
-  await expect(player.getByRole('listitem').filter({ hasText: 'used Thunder Shock!' }).first()).toBeVisible()
-  await player.getByRole('button', { name: 'SKIP' }).click()
-  await said(player, 'What will Volt do?')
 
-  // The session's own screen is one tap away, and leads back to the fight.
+  // The session's own screen is one tap away from TOOLS, and leads back to the fight.
   await gm.getByRole('button', { name: 'THE SESSION' }).click()
   await expect(gm.locator('.dn-join__code')).toHaveText(code)
   await gm.getByRole('button', { name: 'BACK TO THE FIGHT' }).click()
-  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible()
+  await openTools(gm, 'The quarry · Round 2')
 
   // The game master's page reloads: the fight was kept, and is taken up again at the same round with the same HP.
   const hurt = await hpOf(gm.getByRole('button', { name: /^A · Pikachu/ }))
   await gm.reload()
-  await expect(gm.getByRole('heading', { name: 'The quarry · Round 2' })).toBeVisible({ timeout: 30_000 })
+  await said(gm, 'What will Pikachu do?', 30_000)
+  await openTools(gm, 'The quarry · Round 2')
   await expect(gm.getByRole('button', { name: /^A · Pikachu/ })).toContainText(hurt)
   await said(player, 'What will Volt do?')
 
@@ -197,7 +199,7 @@ test('an encounter is launched from the session, and a round is played between t
   await player.getByRole('button', { name: 'OK', exact: true }).click()
   await expect(player.getByText('The quarry is over.')).toBeHidden()
   await expect(player.getByText('Volt (you)')).toBeVisible()
-  // The fight is gone from the game master's device too: a reload shows the session, not a console.
+  // The fight is gone from the game master's device too: a reload shows the session, not a fight.
   await gm.reload()
   await expect(gm.locator('.dn-join__code')).toHaveText(code)
   await expect(gm.getByRole('button', { name: 'END THE ENCOUNTER' })).toBeHidden()

@@ -1,4 +1,5 @@
-import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { BATTLE_TOUCH } from '../data/sprites'
 import { snapScale } from './pixel'
 
 /** Width of a DS screen, in DS pixels. Everything inside a Screen is sized in these. */
@@ -36,7 +37,8 @@ export function usePixelScale(dsScale = 1): number {
 
 export interface ScreenProps {
   /**
-   * `scene`: the top screen of a battle. `touch`: the bottom screen. `menu`: a menu background. `blank`: black, nothing on it.
+   * `scene`: the top screen of a battle. `touch`: the bottom screen, with the two halves of the games' ball over a brown ground, behind what it holds (decisions 255 and 259).
+   * `menu`: a menu background. `blank`: black, nothing on it.
    * `den`: inside the den (decision 244), whose backdrop `DenInside` draws, put first in the screen.
    */
   kind?: 'scene' | 'touch' | 'menu' | 'blank' | 'den'
@@ -44,7 +46,22 @@ export interface ScreenProps {
   label: string
   /** What it holds is a column from its top, scrolled inside the screen when it is longer: a menu, a form, a list (decision 216). */
   scrolls?: boolean
+  /** On a `touch` screen, how the ball stands: `shut`, with FIGHT in its belt, or `open`, its halves apart over what the screen holds (decision 259). Shut when left out. */
+  ball?: 'shut' | 'open'
   children?: ReactNode
+}
+
+/** One half of the games' ball, as wide as the screen: its rows of the picture, on the rows of the screen it takes while the ball is shut. */
+function BallHalf({ half }: { half: 'red' | 'white' }) {
+  const piece = BATTLE_TOUCH[half]
+  const style: CSSProperties = {
+    top: `calc(${piece.screen} * var(--dn-u))`,
+    height: `calc(${piece.height} * var(--dn-u))`,
+    backgroundImage: `url(${BATTLE_TOUCH.url})`,
+    backgroundSize: `100% calc(${BATTLE_TOUCH.height} * var(--dn-u))`,
+    backgroundPosition: `0 calc(${-piece.y} * var(--dn-u))`,
+  }
+  return <span className={`dn-ball__half dn-ball__half--${half}`} style={style} />
 }
 
 /**
@@ -52,7 +69,7 @@ export interface ScreenProps {
  * at any size. Two of them, one over the other, are the DS (`DualScreen`). One
  * that `scrolls` is a DS screen still: only what it holds moves.
  */
-export function Screen({ kind = 'scene', label, scrolls = false, children }: ScreenProps) {
+export function Screen({ kind = 'scene', label, scrolls = false, ball = 'shut', children }: ScreenProps) {
   const ref = useRef<HTMLElement>(null)
   const [metrics, setMetrics] = useState<ScreenMetrics>({ unit: 2, ratio: 1 })
 
@@ -68,6 +85,12 @@ export function Screen({ kind = 'scene', label, scrolls = false, children }: Scr
 
   return (
     <section ref={ref} className={`dn-root dn-screen dn-screen--${kind}${scrolls ? ' dn-screen--scrolls' : ''}`} aria-label={label}>
+      {kind === 'touch' && (
+        <span className={`dn-ball dn-ball--${ball}`} aria-hidden="true">
+          <BallHalf half="red" />
+          <BallHalf half="white" />
+        </span>
+      )}
       <div className="dn-screen__stage">
         <MetricsContext.Provider value={metrics}>{children}</MetricsContext.Provider>
       </div>

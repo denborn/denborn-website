@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { openSheetOf } from './characters.ts'
 import { draftEncounter } from './creating.ts'
+import { openTools, said } from './fighting.ts'
 import { openHome } from './home.ts'
 import { ask, newPlayer, table } from './hosting.ts'
 
@@ -112,7 +113,7 @@ test('a Pokémon downed in a fight stays down after it, its Bag opens to its tea
   await gm.getByRole('button', { name: 'NEW ENCOUNTER' }).click()
   await draftEncounter(gm, 'The ambush')
   await gm.getByRole('button', { name: /^Level/ }).click()
-  await gm.getByRole('slider', { name: 'Level' }).fill('60')
+  await gm.getByRole('spinbutton', { name: 'Level' }).fill('60')
   await gm.getByRole('button', { name: 'DONE' }).click()
   await gm.getByRole('button', { name: 'DONE' }).click()
   await gm.getByRole('button', { name: 'SAVE THE ENCOUNTER' }).click()
@@ -127,12 +128,13 @@ test('a Pokémon downed in a fight stays down after it, its Bag opens to its tea
   // The fight: both players lock, the enemy strikes Volt, and Volt goes down.
   await gm.getByRole('button', { name: /^The ambush/ }).click()
   await gm.getByRole('button', { name: 'LAUNCH' }).click()
-  await expect(gm.getByRole('heading', { name: 'The ambush · Round 1' })).toBeVisible({ timeout: 30_000 })
+  await said(gm, 'What will Pikachu do?', 30_000)
   for (const player of [volt, bolt]) await player.getByRole('button', { name: 'WAIT', exact: true }).click()
-  await gm.getByRole('button', { name: /^A · Pikachu/ }).click()
+  await gm.getByRole('button', { name: 'FIGHT' }).click()
   await gm.getByRole('button', { name: /^Thunder Shock/ }).click()
   await gm.getByRole('group', { name: 'PARTY' }).getByRole('button', { name: /Volt/ }).click()
-  await expect(gm.getByRole('heading', { name: 'The ambush · Round 2' })).toBeVisible()
+  await gm.getByRole('button', { name: 'SKIP' }).click()
+  await openTools(gm, 'The ambush · Round 2')
   await expect(gm.getByText('Volt is down!')).toBeVisible()
 
   // The encounter ends with nothing awarded: everyone is left as the fight left them (decision 136).

@@ -36,6 +36,8 @@ export interface Hosted {
   stale?: { id: string; name: string }
   /** Set when the device could not keep the fight: it then lasts as long as the page. */
   fightNotKept?: true
+  /** How long the relay took to answer the last check of the game master's line, in milliseconds; nothing while that is not known. */
+  latency?: number
 }
 
 interface HostingState {
@@ -112,6 +114,14 @@ export const useHosting = create<HostingState>((set, get) => ({
         const hosted = get().hosted
         if (!fight) fights.forget(campaignId)
         else if (!fights.keep(campaignId, fight) && hosted) set({ hosted: { ...hosted, fightNotKept: true } })
+      },
+      onLatency: (milliseconds) => {
+        const hosted = get().hosted
+        if (hosted?.campaignId !== campaignId) return
+        const next: Hosted = { ...hosted }
+        if (milliseconds === undefined) delete next.latency
+        else next.latency = milliseconds
+        set({ hosted: next })
       },
     })
     run = started

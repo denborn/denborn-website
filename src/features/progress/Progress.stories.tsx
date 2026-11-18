@@ -149,8 +149,8 @@ export const Points: StoryObj<PlayerArgs> = {
       <Player key={`${args.who}-${args.hostAway}`} {...args} />
       <Note>
         PLACE POINTS, from the session screen (decisions 8, 9, 95 and 96). Each kind of point shows while the character has some left: IVs, EVs, and
-        the roleplay points of its levels. A total starts where the sheet has it and cannot go under: the − button stops there, and the slider
-        does not take a lower value. The top screen shows the stats as they would be, or the roleplay attributes while those are being moved.
+        the roleplay points of its levels. A total starts where the sheet has it and cannot go under: the − button stops there, and a lower
+        number that is typed is brought back up to it. The top screen shows the stats as they would be, or the roleplay attributes while those are being moved.
         PLACE asks first, since placed points stay for good; the safe answer is the highlighted one, as everywhere in the app. Braise has all three
         kinds; set <code>who</code> to Volt to see a character with nothing to place. Set <code>hostAway</code> to see what is said while the game
         master’s side cannot be asked.

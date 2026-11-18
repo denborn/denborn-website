@@ -1,9 +1,12 @@
 import { MotionConfig, motion, useAnimate } from 'motion/react'
 import { type Ref, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
+import { battleSpriteUrl } from '../data/sprites'
 import type { SpeciesData } from '../data/types'
-import { useDsUnit } from './Screen'
+import { useDsUnit, usePixelScale } from './Screen'
+import { centreShift } from './footprint'
 import { DURATION, EASE, HOLD } from './motion'
 import { usePrefersReducedMotion } from './reduced-motion'
+import { useSpriteFeet } from './sprite-shadow'
 import { PokemonSprite } from './sprites'
 
 /** `standing`: in the fight. `downed`: agonizing, still on the field. `gone`: out of the fight. */
@@ -42,9 +45,12 @@ export interface BattlerProps {
 }
 
 /**
- * A Pokémon on the field. It slides in from its own side, sinks and greys
- * when downed, and drops out of sight when gone. Motion here only shows what
- * the battle already decided; it never decides anything.
+ * A Pokémon on the field. It stands on the middle of its feet, not of its
+ * picture (decision 257): where it is put is where the middle of its feet
+ * is, so a tail or a wing to one side does not push it off its ground. It
+ * slides in from its own side, sinks and greys when downed, and drops out of
+ * sight when gone. Motion here only shows what the battle already decided;
+ * it never decides anything.
  */
 export function Battler({ species, name, side, female = false, pose = 'standing', scale = 1, enterFrom = 'side', cue, ref }: BattlerProps) {
   const unit = useDsUnit()
@@ -52,6 +58,13 @@ export function Battler({ species, name, side, female = false, pose = 'standing'
   const [body, animate] = useAnimate<HTMLDivElement>()
   const toward = side === 'player' ? 1 : -1
   const entry = enterFrom === 'side' ? -toward : enterFrom === 'left' ? -1 : 1
+  // Where its feet are on its picture, read from the picture itself as the list of characters reads it: until it is read, it stands on the picture's middle.
+  const back = side === 'player'
+  const pixel = usePixelScale(scale)
+  const feet = useSpriteFeet(species, { back, female })
+  // MissingNo., which stands in for a sprite that is not there, is drawn the other way round when seen from behind.
+  const mirrored = back && battleSpriteUrl(species, { back, female }) === undefined
+  const aside = feet ? centreShift(feet.feet, feet.width, mirrored) * pixel : 0
 
   const moves = useMemo<BattlerHandle>(
     () => ({
@@ -102,11 +115,12 @@ export function Battler({ species, name, side, female = false, pose = 'standing'
         <motion.div
           ref={body}
           className="dn-battler__body"
+          style={{ left: aside }}
           initial={false}
           animate={poses[pose]}
           transition={{ duration: pose === 'standing' ? DURATION.move : DURATION.slow, ease: pose === 'standing' ? EASE.snap : EASE.in }}
         >
-          <PokemonSprite species={species} name={name} back={side === 'player'} female={female} scale={scale} frozen={pose !== 'standing'} />
+          <PokemonSprite species={species} name={name} back={back} female={female} scale={scale} frozen={pose !== 'standing'} />
         </motion.div>
       </motion.div>
     </MotionConfig>

@@ -76,6 +76,22 @@ export const EnemyPpUps: StoryObj = {
   ),
 }
 
+/** Where an encounter is fought, and when: its background and its hour. */
+export const Scene: StoryObj = {
+  render: () => (
+    <>
+      <Editor prepared opened={{ at: 'scene' }} />
+      <Note>
+        An encounter’s scene (decisions 246, 268 and 275), a row of its page: an hour of the day, from 0 to 23, and one of fifteen of
+        Showdown’s battle backdrops. The hour only changes the light: a veil over the background for dawn (6 and 7), dusk (17 to 19)
+        and night (20 to 5), none by day; under the number is said which it is. The top screen shows the scene as the fight will draw
+        it, with the first enemy where a foe stands. Denborn’s own, to be approved: the names of the backgrounds in both languages,
+        the veils’ colours and their hours.
+      </Note>
+    </>
+  ),
+}
+
 /** An encounter being prepared for the first time. */
 export const NewEncounter: StoryObj = {
   render: () => (

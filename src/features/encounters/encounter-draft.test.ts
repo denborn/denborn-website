@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testPack, testRules } from '../../domain/test-pack'
 import type { CampaignDocument } from '../../shared/schema/campaign'
+import type { Encounter } from '../../shared/schema/encounter'
 import { type CreationDraft, choose, emptyDraft } from '../creation/draft'
 import { type EncounterDraft, type EnemyDraft, NEW_ENCOUNTER, changedEnemy, draftOfEncounter, draftOfEnemy, encounterOf, encounterState, enemyContext, enemyOf, enemyState, hasChanges, moved, newEnemy, withEncounter, withoutEncounter } from './encounter-draft'
 
@@ -9,7 +10,7 @@ const rules = testRules()
 /** A golem with everything chosen. */
 const golemBuild: CreationDraft = { ...emptyDraft, species: 'stonegolem', gender: 'N', nature: 'bold', ability: 'sturdy', moves: ['tackle'] }
 const golem = (id: string, changes: Partial<EnemyDraft> = {}): EnemyDraft => ({ ...newEnemy(id, rules), build: golemBuild, ...changes })
-const draft = (changes: Partial<EncounterDraft> = {}): EncounterDraft => ({ name: 'The quarry', enemies: [golem('enemy-0001')], bag: [], ...changes })
+const draft = (changes: Partial<EncounterDraft> = {}): EncounterDraft => ({ ...NEW_ENCOUNTER, name: 'The quarry', enemies: [golem('enemy-0001')], ...changes })
 
 describe('an enemy being built', () => {
   it('starts at the level characters start at, a minion that faints, with the rest to choose', () => {
@@ -84,6 +85,20 @@ describe('an encounter being prepared', () => {
     const saved = encounterOf(draft({ enemies: [elder], bag: [{ item: 'potion', quantity: 2 }] }), 'encounter-0001', rules)
     expect(saved).toBeDefined()
     if (saved) expect(encounterOf(draftOfEncounter(saved), 'encounter-0001', rules)).toEqual(saved)
+  })
+
+  it('keeps where it is fought, and gives one saved before there were scenes the scene of a new one (decision 246)', () => {
+    const scene = { background: 'river' } as const
+    const made = encounterOf(draft({ scene }), 'encounter-0001', rules)
+    expect(made?.scene).toEqual(scene)
+    if (!made) return
+
+    // The same encounter, as it was saved before there were scenes.
+    const old: Encounter = { id: made.id, name: made.name, enemies: made.enemies, bag: made.bag }
+    expect(draftOfEncounter(old).scene).toEqual(NEW_ENCOUNTER.scene)
+    // Opened and left alone it holds no change: it is not rewritten for its scene.
+    expect(hasChanges(draftOfEncounter(old), old)).toBe(false)
+    expect(hasChanges({ ...draftOfEncounter(old), scene }, old)).toBe(true)
   })
 
   it('knows changes not saved yet, against one not begun and against the one kept', () => {

@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { DataPack } from '../../data/types'
 import { STAT_IDS } from '../../game-rules/stats'
 import type { Language } from '../../i18n'
@@ -12,6 +12,8 @@ export interface FighterSheetProps {
   language: Language
   messages: Messages
   onBack: () => void
+  /** What else can be done from the sheet, beside the way back. */
+  children?: ReactNode
 }
 
 const signed = (stages: number): string => (stages > 0 ? `+${stages}` : `${stages}`)
@@ -24,7 +26,7 @@ export const statusOf = (status: string): StatusId | undefined => (STATUSES.incl
  * carry, its Ability, what it holds and its moves with their PP. Players see
  * all of it of an enemy too (decision 17).
  */
-export function FighterSheet({ pack, fighter, language, messages, onBack }: FighterSheetProps) {
+export function FighterSheet({ pack, fighter, language, messages, onBack, children }: FighterSheetProps) {
   const battle = messages.battle
   const text = battle.choosing
   const { now, species } = fighter
@@ -94,6 +96,7 @@ export function FighterSheet({ pack, fighter, language, messages, onBack }: Figh
         })}
       </ul>
       <span className="dn-card__back">
+        {children}
         <OptionButton onClick={onBack}>{battle.back}</OptionButton>
       </span>
     </div>

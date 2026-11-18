@@ -25,6 +25,8 @@ export interface GuestRunOptions {
   onChange: (state: GuestState) => void
   /** The game master's side gave back a copy of the character that is not the device's: it is the one that counts. */
   onKeep: (character: CharacterDocument) => void
+  /** How long the relay took to answer the last check of the line, in milliseconds; nothing while that is not known. It is the screen's alone: the session's logic never hears of it. */
+  onLatency?: (milliseconds: number | undefined) => void
   /** Opens the line. The real one by default; a test passes its own. */
   open?: (options: RelayLinkOptions) => RelayLink
   /** Makes the id that tells one intent from every other. */
@@ -86,6 +88,7 @@ export function runGuest(options: GuestRunOptions): GuestRun {
       else if (frame.t === 'msg') apply({ on: 'message', body: frame.body })
     },
     onDown: (code) => apply({ on: 'closed', code }),
+    ...(options.onLatency ? { onLatency: options.onLatency } : {}),
   })
 
   return {
