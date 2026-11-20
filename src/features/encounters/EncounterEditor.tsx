@@ -2,10 +2,11 @@ import { type ReactNode, useEffect, useId, useState } from 'react'
 import { BATTLE_BACKDROPS } from '../../data/battle-backdrops'
 import { sceneArt } from '../../data/battle-scene'
 import type { DataPack } from '../../data/types'
-import { evBudget, ivBudget, spreadTotal } from '../../game-rules/budgets'
+import type { EnemyProblem } from '../../domain/encounter-check'
 import { LINE_MAX } from '../../game-rules/party'
 import { PP_UPS_MAX, maxPp } from '../../game-rules/pp'
 import { MOB_CLASSES, MOB_CLASS_BASE, moneyFor } from '../../game-rules/rewards'
+import { tvBudget, tvPlaced } from '../../game-rules/training'
 import { type Language, useLanguage, useMessages } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import type { Encounter } from '../../shared/schema/encounter'
@@ -14,13 +15,13 @@ import { answers } from '../../shared/text/plain'
 import type { WriteResult } from '../../storage/library'
 import { Battler, DualScreen, ItemIconImage, NumberField, OptionButton, PokemonIcon, PokemonSprite, SceneSpot, SceneWorld, Screen, Slot, StepHeader, TextField, skyAt, spriteScale } from '../../ui'
 import { StacksEditor } from '../campaigns/StacksEditor'
-import { IdentityStep } from '../creation/IdentityStep'
-import { MovesStep } from '../creation/MovesStep'
-import { Preview } from '../creation/Preview'
-import { SpeciesStep } from '../creation/SpeciesStep'
-import { TrainingStep } from '../creation/TrainingStep'
 import { type CreationDraft, type DraftChoice, choose, identityProblems } from '../creation/draft'
 import { ViewFoot } from '../progress/ViewFoot'
+import { BuildPreview } from '../sheet/BuildPreview'
+import { EnemyIdentity } from './EnemyIdentity'
+import { EnemyMoves } from './EnemyMoves'
+import { EnemySpecies } from './EnemySpecies'
+import { EnemyTraining } from './EnemyTraining'
 import { type EncounterDraft, type EnemyDraft, type EnemyState, NEW_ENCOUNTER, changedEnemy, draftOfEncounter, encounterOf, encounterState, enemyContext, hasChanges, moved, newEnemy } from './encounter-draft'
 
 /** What of an enemy can be opened by itself. */
@@ -124,7 +125,7 @@ export function EncounterEditor({ pack, rules, encounter, view, onView, newId, o
             </SceneSpot>
           </SceneWorld>
         ) : opened ? (
-          <Preview pack={pack} draft={opened.build} level={opened.level} view={view.at === 'enemy' && view.field === 'species' ? 'base' : 'stats'} language={language} text={messages.creation} levelText={messages.battle.level} />
+          <BuildPreview pack={pack} draft={opened.build} level={opened.level} view={view.at === 'enemy' && view.field === 'species' ? 'base' : 'stats'} language={language} text={messages.creation} levelText={messages.battle.level} />
         ) : (
           <div className="dn-lineup dn-lineup--party">
             {draft.enemies.length === 0 && <p className="dn-note dn-text-outline">{text.enemiesHint}</p>}
@@ -337,7 +338,7 @@ function EnemyPage({ enemy, state, pack, rules, language, messages, onOpen }: En
   const text = messages.encounters
   const { build } = enemy
   const gaps = state?.gaps ?? []
-  const wrong = (kinds: readonly string[]): boolean => (state?.problems ?? []).some((problem) => kinds.includes(problem.kind))
+  const wrong = (kinds: readonly EnemyProblem['kind'][]): boolean => (state?.problems ?? []).some((problem) => kinds.includes(problem.kind))
   const identityGap = gaps.includes('gender') || gaps.includes('nature') || gaps.includes('ability')
   const species = build.species ? pack.species[build.species] : undefined
   const ppUpsGiven = Object.values(enemy.ppUps).reduce((sum, ups) => sum + ups, 0)
@@ -351,8 +352,8 @@ function EnemyPage({ enemy, state, pack, rules, language, messages, onOpen }: En
     },
     {
       field: 'training',
-      value: wrong(['ivs', 'evs']) ? text.toFix : `${spreadTotal(build.ivs)}/${ivBudget(enemy.level)} · ${spreadTotal(build.evs)}/${evBudget(enemy.level)}`,
-      pending: wrong(['ivs', 'evs']),
+      value: wrong(['training']) ? text.toFix : `${tvPlaced(build)}/${tvBudget(enemy.level)}`,
+      pending: wrong(['training']),
     },
     {
       field: 'moves',
@@ -390,7 +391,7 @@ function EnemyFieldScreen({ field, enemy, pack, rules, language, messages, onCha
 
   switch (field) {
     case 'species':
-      return <SpeciesStep pack={pack} rules={context.rules} draft={build} language={language} text={creation.species} onChoose={(species) => send({ choose: 'species', species })} />
+      return <EnemySpecies pack={pack} rules={context.rules} draft={build} language={language} text={creation.species} onChoose={(species) => send({ choose: 'species', species })} />
     case 'level':
       return (
         <>
@@ -401,12 +402,12 @@ function EnemyFieldScreen({ field, enemy, pack, rules, language, messages, onCha
     case 'identity': {
       // An enemy may go without a name of its own: an empty one is not a problem here.
       const { nickname, ...others } = identityProblems(build, context)
-      return <IdentityStep pack={pack} rules={context.rules} draft={build} problems={build.nickname.trim() === '' ? others : { ...others, ...(nickname ? { nickname } : {}) }} language={language} text={creation.identity} onChoose={send} />
+      return <EnemyIdentity pack={pack} rules={context.rules} draft={build} problems={build.nickname.trim() === '' ? others : { ...others, ...(nickname ? { nickname } : {}) }} language={language} text={creation.identity} onChoose={send} />
     }
     case 'training':
-      return <TrainingStep pack={pack} draft={build} level={enemy.level} language={language} text={creation} onChoose={send} />
+      return <EnemyTraining pack={pack} draft={build} level={enemy.level} language={language} text={creation} onChoose={send} />
     case 'moves':
-      return <MovesStep pack={pack} context={context} draft={build} language={language} text={creation} categoryText={messages.battle.category} onToggle={(move) => send({ choose: 'move', move })} />
+      return <EnemyMoves pack={pack} context={context} draft={build} language={language} text={creation} categoryText={messages.battle.category} onToggle={(move) => send({ choose: 'move', move })} />
     case 'ppUps':
       return (
         <>

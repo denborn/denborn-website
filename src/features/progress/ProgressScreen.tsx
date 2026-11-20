@@ -5,7 +5,7 @@ import { useLanguage, useMessages } from '../../i18n'
 import type { Party, SheetChange } from '../../shared/protocol/session'
 import type { CampaignRules } from '../../shared/schema/rules'
 import { DualScreen, Screen, StepHeader } from '../../ui'
-import { Preview } from '../creation/Preview'
+import { BuildPreview } from '../sheet/BuildPreview'
 import { Portrait } from '../sheet/Portrait'
 import { BagView } from './BagView'
 import { EvolveView } from './EvolveView'
@@ -93,7 +93,7 @@ export function ProgressScreen({ pack, party, view, rules, changed, unreachable,
     <DualScreen>
       <Screen kind="scene" label={mine.nickname}>
         {view === 'points' ? (
-          <Preview
+          <BuildPreview
             pack={pack}
             draft={{ species: mine.species, nickname: mine.nickname, gender: mine.gender, ability: mine.ability, attributes: placing.draft.scores, ivs: placing.draft.ivs, evs: placing.draft.evs, moves: [], ...(nature ? { nature } : {}) }}
             level={mine.level}
@@ -117,7 +117,7 @@ export function ProgressScreen({ pack, party, view, rules, changed, unreachable,
             busy={busy}
             confirming={placing.confirming}
             // The top screen shows what the points being moved change: the stats, or the roleplay attributes.
-            onPoint={(kind, id, value) => setPoints({ ...placing, draft: withPoint(mine, placing.draft, kind, id, value), shown: kind === 'scores' ? 'attributes' : 'stats', confirming: false })}
+            onPoint={(target, value) => setPoints({ ...placing, draft: withPoint(mine, placing.draft, target, value), shown: target.kind === 'scores' ? 'attributes' : 'stats', confirming: false })}
             onConfirming={(confirming) => setPoints({ ...placing, confirming })}
             onPlace={() => {
               ask({ do: 'points', ...placementOf(mine, placing.draft) }, text.points.done)

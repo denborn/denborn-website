@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { testPack, testRules } from '../../domain/test-pack'
 import type { CampaignDocument } from '../../shared/schema/campaign'
-import { type RulesDraft, STARTING_LEVEL_SHOWN, STARTING_MONEY_SHOWN, campaignFrom, draftOf, hasChanges, newDraft, stateOf } from './rules-draft'
+import { type RulesDraft, STARTING_LEVEL_SHOWN, STARTING_MONEY_SHOWN, campaignFrom, draftOf, hasChanges, newDraft, only, stateOf, ticked, unticked } from './rules-draft'
 
 const id = (): string => 'campaign-0001'
 
@@ -79,5 +79,19 @@ describe('changes not saved yet', () => {
     const kept = firstSave()
     expect(hasChanges(draftOf(kept, testPack), kept, testPack)).toBe(false)
     expect(hasChanges({ ...draftOf(kept, testPack), commonMoves: ['shared'] }, kept, testPack)).toBe(true)
+  })
+})
+
+describe('ticking the species shown', () => {
+  it('keeps only the species shown, whatever was ticked before, in Pokédex order (decision 129)', () => {
+    expect(only(['stonegolem', 'sparkmouse'], testPack)).toEqual(['sparkmouse', 'stonegolem'])
+  })
+
+  it('adds to the chosen species without repeating any, in Pokédex order', () => {
+    expect(ticked(['stonegolem'], ['sparkmouse', 'stonegolem'], testPack)).toEqual(['sparkmouse', 'stonegolem'])
+  })
+
+  it('takes the shown species out and leaves the others', () => {
+    expect(unticked(['sparkmouse', 'stonegolem'], ['stonegolem', 'unknown'])).toEqual(['sparkmouse'])
   })
 })

@@ -15,22 +15,22 @@ test('between two fights a character places points, receives what the game maste
   await expect(yours.getByRole('button', { name: /^POKÉMON CENTER/ })).toBeHidden()
 
   // Points: a level-5 character made without placing any has all of them left. Two go to Speed, for good.
-  await expect(yours.getByRole('button', { name: /^PLACE POINTS/ })).toContainText('To place: 9 IV · 25 EV · 4 roleplay')
+  await expect(yours.getByRole('button', { name: /^PLACE POINTS/ })).toContainText('To place: 15 TV · 4 roleplay')
   await yours.getByRole('button', { name: /^PLACE POINTS/ }).click()
   await expect(player.getByRole('heading', { name: 'Volt: points' })).toBeVisible()
-  const ivs = player.getByRole('group', { name: /^IVs/ })
+  const tv = player.getByRole('group', { name: /^TV/ })
   await expect(player.getByRole('button', { name: 'PLACE', exact: true })).toBeDisabled()
-  await ivs.getByRole('button', { name: 'Raise Speed' }).click()
-  await ivs.getByRole('button', { name: 'Raise Speed' }).click()
-  await expect(ivs.getByText('IVs: 7 left to place')).toBeVisible()
+  await tv.getByRole('button', { name: 'Raise Speed' }).click()
+  await tv.getByRole('button', { name: 'Raise Speed' }).click()
+  await expect(tv.getByText('TV: 13 left to place')).toBeVisible()
   await player.getByRole('button', { name: 'PLACE', exact: true }).click()
   await expect(player.getByRole('alert')).toHaveText('Place these 2 points? They can never be moved.')
   await player.getByRole('button', { name: 'PLACE', exact: true }).click()
   await expect(player.getByText('The points are placed.')).toBeVisible()
   // What is placed is now the lowest Speed goes.
-  await expect(ivs.getByRole('button', { name: 'Lower Speed' })).toBeDisabled()
+  await expect(tv.getByRole('button', { name: 'Lower Speed' })).toBeDisabled()
   await player.getByRole('button', { name: 'BACK' }).click()
-  await expect(yours.getByRole('button', { name: /^PLACE POINTS/ })).toContainText('To place: 7 IV · 25 EV · 4 roleplay')
+  await expect(yours.getByRole('button', { name: /^PLACE POINTS/ })).toContainText('To place: 13 TV · 4 roleplay')
 
   // The game master gives EXP, a Thunder Stone and Leftovers by hand; the player is told, and the level follows.
   await gm.getByRole('button', { name: /^Volt/ }).click()

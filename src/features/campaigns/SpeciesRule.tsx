@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import type { DataPack } from '../../data/types'
+import { NO_FILTER, type SpeciesFilter, speciesShown, statTotalOf, statTotalRange } from '../../domain/species-search'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import { NumberField, OptionButton, PokemonIcon, Slot, TextField, TypeLabel } from '../../ui'
-import { NO_FILTER, type SpeciesFilter, only, speciesShown, statTotalOf, statTotalRange, ticked, unticked } from './species-filters'
+import { only, ticked, unticked } from './rules-draft'
 
 export interface SpeciesRuleProps {
   pack: DataPack

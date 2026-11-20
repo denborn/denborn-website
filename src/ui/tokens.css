@@ -222,6 +222,52 @@
   --dn-type-fairy: #ff65d5;
   --dn-type-fairy-shade: #6b3952;
 
+  /* --- The Pokédex of character creation (decisions 287 and 288) ------------- */
+  /*
+   * Denborn's own, after Black and White's Pokédex: its shapes and their sizes were measured on Xtreme1992's rip
+   * ("pokedexbg/example_bottom"), its green is turned to blue, and what is lit is red. Each says what the games have in its place.
+   */
+  --dn-dex-ground: #0860a8; /* a square of the grid; the games' #08b57b. White text reaches 5.8 to 1 on it */
+  --dn-dex-ground-line: #004a8c; /* the grid's lines; the games' #008463 */
+  --dn-dex-ground-deep: #062c52; /* the band across the top of a screen, the ground of what comes over one; the games' #315a10 */
+  --dn-dex-bar: #181818; /* a row at rest (measured) */
+  --dn-dex-bar-lit: #0a3a6b; /* the row in the middle of a wheel, a thing chosen. White text reaches 10 to 1 on it */
+  --dn-dex-bar-line: #8cc8ff; /* the rim of a lit row */
+  --dn-dex-bracket: #1a8cff; /* the brackets round an icon, in three tones; the games' #63b510, #94ef18 and #397b08 */
+  --dn-dex-bracket-light: #8cc8ff;
+  --dn-dex-bracket-dark: #0a4f94;
+  --dn-dex-accent: #ff3921; /* what is lit: the brackets of the row in the middle, a lamp, a trim (measured: the red cross of the games' bar of keys) */
+  --dn-dex-accent-shade: #8c3131; /* its shade (measured: the ball mark's) */
+  --dn-dex-blue: #088cff; /* the rail's thumb (measured: the blue arrow of the bar of keys) */
+  --dn-dex-slab: #52637b; /* the plate behind a sprite, in its two dither colours; the games' #6b6b6b and #636363, cooled */
+  --dn-dex-slab-2: #44546b;
+  /* Keys lit as the way on is, in other colours (decision 298). Denborn's own; white text reaches 4.7 to 1 or more on every part. */
+  --dn-dex-key-blue-light: #0078c0; /* the games' selected party slot, #0088d8, a shade deeper */
+  --dn-dex-key-blue: #003c78;
+  --dn-dex-key-grey-light: #737373; /* the two squares of the checker on the upper half */
+  --dn-dex-key-grey-light-2: #5a5a5a;
+  --dn-dex-key-grey: #393939;
+  --dn-dex-fresh: #0b3a2c; /* the row that makes a new campaign, at rest (decision 299); lit, it takes the ready slot's greens. Denborn's own */
+  --dn-dex-chrome: #292929; /* the bars across the top and the bottom of a screen (measured) */
+  --dn-dex-key: #b5b5b5; /* a key's mark at rest (measured) */
+  --dn-dex-case: #9c0021; /* the Pokédex itself, shut: the great ball's reds, as the menu's red button */
+  --dn-dex-case-light: #b50029;
+  --dn-dex-case-dark: #5a0013;
+  --dn-dex-glass: #062c52; /* its screens before they light up */
+  /* The six roleplay attributes (decision 288), each a type label's fill and shade: red, green, purple, blue, pink, yellow. */
+  --dn-attr-strength: #f75231;
+  --dn-attr-strength-shade: #732108;
+  --dn-attr-dexterity: #7bce52;
+  --dn-attr-dexterity-shade: #426b39;
+  --dn-attr-endurance: #7b63e7;
+  --dn-attr-endurance-shade: #4a3994;
+  --dn-attr-intelligence: #399cff;
+  --dn-attr-intelligence-shade: #425294;
+  --dn-attr-perception: #ff73a5;
+  --dn-attr-perception-shade: #6b3939;
+  --dn-attr-charisma: #ffc631;
+  --dn-attr-charisma-shade: #735218;
+
   /* --- Type ----------------------------------------------------------------- */
   /* VT323, chosen by the owner (decision 82). Loaded by styles.css. */
   --dn-font: 'VT323', ui-monospace, monospace;
@@ -257,6 +303,7 @@
   --dn-strip-hop: 400ms; /* the shown one's icon in a strip to pick from, up and down (decision 241), as in the games' party menu. Denborn's own. */
   --dn-nudge: 1300ms; /* a carousel's arrow nudging the way it points, out and back (decisions 243 and 244: slower). Denborn's own. */
   --dn-fight-nudge: 600ms; /* the arrowheads beside FIGHT, out and back (decision 252). Denborn's own. */
+  --dn-dex-drift: 1600ms; /* the Pokédex's grid sliding by one square, in eight steps (decision 287): the games' slides too. Denborn's own pace. */
   --dn-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --dn-ease-in: cubic-bezier(0.6, 0, 0.9, 0.4);
   --dn-ease-snap: cubic-bezier(0.3, 1.4, 0.5, 1); /* a small overshoot, for arrivals */

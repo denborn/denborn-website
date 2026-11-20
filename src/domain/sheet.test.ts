@@ -17,11 +17,13 @@ describe('the numbers of a character sheet', () => {
   })
 
   it('counts the points still to place', () => {
-    // Level 5: 4 attribute points, 9 IV points, 25 EV points.
+    // Level 5: 4 attribute points and 15 TV.
     const fresh = sheetNumbers(newcomer(), testPack)
-    expect(fresh?.unplaced).toEqual({ attributes: 4, ivs: 9, evs: 25 })
+    expect(fresh?.unplaced).toEqual({ attributes: 4, tv: 15 })
     const spent = sheetNumbers(newcomer({ ivs: { hp: 9, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, evs: { hp: 0, atk: 10, def: 0, spa: 0, spd: 0, spe: 5 } }), testPack)
-    expect(spent?.unplaced).toEqual({ attributes: 4, ivs: 0, evs: 10 })
+    // 9 IVs, and EVs worth 2 and 1: 12 TV, shown stat by stat.
+    expect(spent?.unplaced).toEqual({ attributes: 4, tv: 3 })
+    expect(spent?.tv).toEqual({ hp: 9, atk: 2, def: 0, spa: 0, spd: 0, spe: 1 })
   })
 
   it('says how far into its level the character is', () => {

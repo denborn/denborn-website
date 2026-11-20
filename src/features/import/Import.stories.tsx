@@ -4,7 +4,8 @@ import type { DataPack } from '../../data/types'
 import { sampleCharacter, sampleRules } from '../../domain/samples'
 import { QrCode } from '../../ui'
 import { Note, Phone, usePack } from '../../ui/stories/board'
-import { type CameraProblem, type CameraProps, ImportCharacter } from './ImportCharacter'
+import type { CameraProblem, CameraProps } from '../scan/camera'
+import { ImportCharacter } from './ImportCharacter'
 import type { Incoming, IncomingProblem, Standing } from './incoming'
 
 interface Args {

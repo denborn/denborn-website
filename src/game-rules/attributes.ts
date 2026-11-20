@@ -1,28 +1,32 @@
 /**
- * The six roleplay attributes (spec section 2; decisions 9, 95 and 96).
+ * The six roleplay attributes (spec section 2; decisions 9, 95, 96 and 307).
  *
  * They belong to the tabletop only: a check is a D100 roll at or below the
  * attribute, and nothing here touches a battle.
  *
- * A character has two layers of points. At creation, 300 are shared between
- * the six attributes, 5 to 75 each, all of them placed. Then one point per
- * level above 1 goes on top: those may raise an attribute as far as 95 and
- * may be kept for later. A character created above level 1 has both layers
- * from the start, exactly as if it had levelled.
+ * A character has two layers of points. At creation, 265 are shared between
+ * the six attributes, 5 to 75 each; some may be kept and placed later, still
+ * no higher than 75. Then one point per level above 1 goes on top: those may
+ * raise an attribute as far as 95 and may be kept for later. A character
+ * created above level 1 has both layers from the start, exactly as if it had
+ * levelled. A character made before decision 307 shared 300: it stays as made.
  */
 
 export const ATTRIBUTE_IDS = ['strength', 'dexterity', 'endurance', 'perception', 'charisma', 'intelligence'] as const
 export type AttributeId = (typeof ATTRIBUTE_IDS)[number]
 export type AttributePoints = Record<AttributeId, number>
 
-export const CREATION_POINTS = 300
+/** The points of creation (decision 307). */
+export const CREATION_POINTS = 265
+/** What characters made before decision 307 shared: they stay as made, so a creation layer is allowed up to this. */
+export const CREATION_POINTS_BEFORE = 300
 export const CREATION_MIN = 5
 export const CREATION_MAX = 75
 /** Decision 9: a roll of 96 to 100 is always a critical failure, so no attribute goes above 95. */
 export const ATTRIBUTE_CAP = 95
 
 export interface AttributeSheet {
-  /** The 300 points of creation. */
+  /** The points of creation: 265, some of which may wait (300 for a character made before decision 307). */
   creation: AttributePoints
   /** Points gained with levels and placed since. */
   gained: AttributePoints
@@ -43,9 +47,19 @@ function total(points: AttributePoints): number {
   return ATTRIBUTE_IDS.reduce((sum, attribute) => sum + points[attribute], 0)
 }
 
-/** Gained points not placed yet. Negative when more were placed than the level gives. */
-export function unplacedPoints(sheet: AttributeSheet, level: number): number {
+/** Creation points kept, not placed yet (decision 307): none for a character made before, with more. */
+export function creationLeft(sheet: AttributeSheet): number {
+  return Math.max(0, CREATION_POINTS - total(sheet.creation))
+}
+
+/** Points gained with levels not placed yet. Negative when more were placed than the level gives. */
+function gainedLeft(sheet: AttributeSheet, level: number): number {
   return gainedPoints(level) - total(sheet.gained)
+}
+
+/** Points not placed yet, of creation and of the levels. Negative when more were placed than the level gives. */
+export function unplacedPoints(sheet: AttributeSheet, level: number): number {
+  return creationLeft(sheet) + gainedLeft(sheet, level)
 }
 
 export type AttributeProblem =
@@ -70,17 +84,19 @@ export function checkAttributes(sheet: AttributeSheet, level: number): Attribute
     if (gained < 0) problems.push({ kind: 'gained-below-zero', attribute })
     if (creation + gained > ATTRIBUTE_CAP) problems.push({ kind: 'above-cap', attribute })
   }
+  // Creation's points may wait (decision 307); a character made before shared 300, and stays as made.
   const placed = total(sheet.creation)
-  if (placed !== CREATION_POINTS) problems.push({ kind: 'creation-total', total: placed })
-  const unplaced = unplacedPoints(sheet, level)
-  if (unplaced < 0) problems.push({ kind: 'too-many-gained', by: -unplaced })
+  if (placed > CREATION_POINTS_BEFORE) problems.push({ kind: 'creation-total', total: placed })
+  const left = gainedLeft(sheet, level)
+  if (left < 0) problems.push({ kind: 'too-many-gained', by: -left })
   return problems
 }
 
 /**
  * Where a set of attributes, given as one number each, stands against the
- * two layers of points: how many of the 300 are still to place (an attribute
- * takes at most 75 of them), and how many of the level's extra points it uses.
+ * two layers of points: how many of the 265 are still to place (an attribute
+ * takes at most 75 of them; they may wait), and how many of the level's extra
+ * points it uses.
  */
 export function attributeTally(scores: AttributePoints, level: number): { toPlace: number; extraUsed: number; extraLeft: number } {
   const within = ATTRIBUTE_IDS.reduce((sum, attribute) => sum + Math.min(scores[attribute], CREATION_MAX), 0)
@@ -109,4 +125,36 @@ export function splitAttributes(scores: AttributePoints): AttributeSheet {
   const gained = { ...scores }
   for (const attribute of ATTRIBUTE_IDS) gained[attribute] = scores[attribute] - creation[attribute]
   return { creation, gained }
+}
+
+/**
+ * A sheet's attributes raised to `scores` (decision 307): what each rises by
+ * goes to creation's layer first, while the attribute is under 75 there and
+ * creation's points last, the rest to the levels' layer. Nothing is taken
+ * back: an attribute under its score stays where it was, for a check to
+ * refuse.
+ */
+export function placeScores(sheet: AttributeSheet, scores: AttributePoints): AttributeSheet {
+  const creation = { ...sheet.creation }
+  const gained = { ...sheet.gained }
+  let budget = creationLeft(sheet)
+  for (const attribute of ATTRIBUTE_IDS) {
+    const rise = scores[attribute] - creation[attribute] - gained[attribute]
+    if (rise <= 0) {
+      gained[attribute] += rise
+      continue
+    }
+    const fromCreation = Math.min(rise, budget, Math.max(0, CREATION_MAX - creation[attribute]))
+    creation[attribute] += fromCreation
+    budget -= fromCreation
+    gained[attribute] += rise - fromCreation
+  }
+  return { creation, gained }
+}
+
+/** The highest an attribute can be raised to from `scores`, the others as they are: by creation's points kept, under 75, and the level's, up to 95. */
+export function scoreCeiling(sheet: AttributeSheet, scores: AttributePoints, attribute: AttributeId, level: number): number {
+  let value = scores[attribute]
+  while (value < ATTRIBUTE_CAP && gainedLeft(placeScores(sheet, { ...scores, [attribute]: value + 1 }), level) >= 0) value++
+  return value
 }

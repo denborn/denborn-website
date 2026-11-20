@@ -58,7 +58,7 @@ test('a character changed in the browser’s storage past its rules gets no shee
   await page.goto(`/#${code}`)
   await createPikachu(page, 'Volt')
   await expect(page.getByRole('heading', { name: 'Characters' })).toBeVisible()
-  // Far more IV points than level 5 allows, written straight into what the browser keeps.
+  // Far more TV than level 5 allows, every IV at its highest, written straight into what the browser keeps.
   await page.evaluate(() => {
     for (let index = 0; index < localStorage.length; index++) {
       const key = localStorage.key(index)

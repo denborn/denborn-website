@@ -334,6 +334,30 @@ export function itemIconCell(icon: ItemIcon): SheetCell {
 }
 
 /**
+ * The icons of the steps of character creation (decision 289): each an item of
+ * Showdown's sheet, by the cell its client gives it (the item's `spritenum`
+ * in the engine's data). They are the Mail, a Poké Ball, the Red Card, the
+ * Black Belt, the Macho Brace, a Technical Record, an Oran Berry and the
+ * Scope Lens (decision 302: the Black Belt for the step of combat). Each cell was looked at in the sheet as it is pinned
+ * (data-sources/sprites.lock.json): look again when it is pinned anew.
+ */
+export const STEP_ICONS = {
+  campaign: 403,
+  species: 345,
+  identity: 387,
+  combat: 32,
+  training: 269,
+  moves: 721,
+  items: 319,
+  review: 429,
+} as const satisfies Record<string, number>
+
+/** A cell of Showdown's item sheet, for an icon that is no item of the data pack. */
+export function itemSheetIcon(index: number): ItemIcon {
+  return { from: 'showdown', index }
+}
+
+/**
  * Showdown's move-category label, 32×14: a symbol in the middle of a coloured
  * band. `compact` keeps the middle 16 pixels, the symbol alone, for tight rows.
  */

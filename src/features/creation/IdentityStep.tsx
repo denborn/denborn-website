@@ -1,125 +1,139 @@
-import type { DataPack, StatId } from '../../data/types'
+import { useId, useState } from 'react'
+import type { DataPack, Gender } from '../../data/types'
+import { ATTRIBUTE_CAP, CREATION_MIN, CREATION_POINTS, attributeTally, gainedPoints } from '../../game-rules/attributes'
+import { tidyNickname } from '../../game-rules/nickname'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
-import { tidyNickname } from '../../game-rules/nickname'
 import type { CampaignRules } from '../../shared/schema/rules'
-import { OptionButton, Slot, TextField } from '../../ui'
-import type { CreationDraft, DraftChoice, IdentityProblems } from './draft'
+import { GenderMark } from '../../ui/battle'
+import { DexKey, DexPage, StepperBox, Tray } from '../../ui/dex'
+import type { StepChrome } from './Creation'
+import { ATTRIBUTE_ORDER } from './RecapScreen'
+import { BIG_STEP } from './big-step'
+import { type CreationDraft, type DraftChoice, attributeCeiling, identityProblems } from './draft'
 
 export interface IdentityStepProps {
   pack: DataPack
+  language: Language
+  messages: Messages
+  chrome: StepChrome
   rules: CampaignRules
   draft: CreationDraft
-  problems: IdentityProblems
-  language: Language
-  text: Messages['creation']['identity']
   onChoose: (choice: DraftChoice) => void
 }
 
-/** The five stats a nature can raise or lower, in the games' order. */
-const NATURE_STATS: StatId[] = ['atk', 'def', 'spa', 'spd', 'spe']
-/** Where the games' table puts each nature that changes nothing: on the diagonal, one per stat. */
-const NEUTRAL_AT: Partial<Record<StatId, string>> = { atk: 'hardy', def: 'docile', spa: 'bashful', spd: 'quirky', spe: 'serious' }
+/** The sexes a player chooses between: a species of one sex, or of none, leaves nothing to choose. */
+const SEXES: readonly Exclude<Gender, 'N'>[] = ['M', 'F']
 
-/** The name, the gender, the nature and the Ability of the Pokémon chosen. */
-export function IdentityStep({ pack, rules, draft, problems, language, text, onChoose }: IdentityStepProps) {
+/**
+ * Who the Pokémon is (decisions 291 and 302): its name; its sex, as two
+ * buttons, where its species has both; its six roleplay attributes, each a
+ * number in a box of its own colour, starting at 5. What they are for is
+ * behind the (i): the game master says it at the table.
+ */
+export function IdentityStep({ pack, language, messages, chrome, rules, draft, onChoose }: IdentityStepProps) {
+  const text = messages.creation
+  const words = text.identity
+  const nameId = useId()
+  const [about, setAbout] = useState(false)
   const species = draft.species ? pack.species[draft.species] : undefined
   if (!species) return null
+
+  const level = rules.startingLevel
   // Nothing is called wrong before the player has typed anything.
-  const nameProblem = draft.nickname === '' ? undefined : problems.nickname
-  const natures = Object.values(pack.natures)
-  const short = (stat: StatId): string => pack.statNames[stat][language]
+  const nameProblem = draft.nickname === '' ? undefined : identityProblems(draft, { pack, rules }).nickname
+  const sexes = species.genders.length > 1
+  const tally = attributeTally(draft.attributes, level)
+  const extra = gainedPoints(level)
+  const placed = ATTRIBUTE_ORDER.reduce((sum, attribute) => sum + draft.attributes[attribute], 0)
+  // Every point of creation must be placed; the level's extra ones may wait. The count turns once creation's are all placed.
+  const state = tally.toPlace > 0 ? '' : ' dn-dex-count--spent'
+
   return (
-    <div className="dn-stack">
-      <TextField
-        label={text.nickname}
-        value={draft.nickname}
-        onChange={(nickname) => onChoose({ choose: 'nickname', nickname })}
-        onBlur={() => onChoose({ choose: 'nickname', nickname: tidyNickname(draft.nickname) })}
-        placeholder={species.name[language]}
-        hint={nameProblem ? text.nicknameProblem[nameProblem] : text.nicknameHint}
-        invalid={nameProblem !== undefined}
-        autoComplete="off"
-        autoCapitalize="words"
-        enterKeyHint="done"
-      />
-
-      <div role="group" aria-label={text.gender} className="dn-entry">
-        <span className="dn-label">{text.gender}</span>
-        <div className="dn-row">
-          {species.genders.map((gender) => (
-            <OptionButton key={gender} selected={draft.gender === gender} onClick={() => onChoose({ choose: 'gender', gender })}>
-              {text.genders[gender]}
-              {species.genderRatio && gender !== 'N' && ` ${text.share(Math.round(species.genderRatio[gender] * 1000) / 10)}`}
-            </OptionButton>
-          ))}
-        </div>
-      </div>
-
-      <div role="group" aria-label={text.nature} className="dn-entry">
-        <span className="dn-label">{text.nature}</span>
-        {rules.natures === 'neutral' ? (
-          <p className="dn-note">{text.natureNeutral}</p>
-        ) : (
+    <>
+      <DexPage
+        title={words.title}
+        steps={chrome.steps}
+        covered={about}
+        foot={
           <>
-            <p className="dn-note">{text.natureHint}</p>
-            <div className="dn-table dn-table--natures">
-              <span className="dn-table__head" aria-hidden="true">
-                {text.raises} ↓
-                <br />
-                {text.lowers} →
-              </span>
-              {NATURE_STATS.map((stat) => (
-                <span key={`lowers-${stat}`} className="dn-table__head" aria-hidden="true">
-                  {short(stat)}
-                </span>
-              ))}
-              {NATURE_STATS.map((raised) => [
-                <span key={`raises-${raised}`} className="dn-table__head" aria-hidden="true">
-                  {short(raised)}
-                </span>,
-                ...NATURE_STATS.map((lowered) => {
-                  // On the diagonal a nature raises and lowers nothing.
-                  const nature = raised === lowered ? pack.natures[NEUTRAL_AT[raised] ?? ''] : natures.find((entry) => entry.plus === raised && entry.minus === lowered)
-                  if (!nature) return <span key={`${raised}-${lowered}`} />
-                  const label = raised === lowered ? text.natureLabelNeutral(nature.name[language]) : text.natureLabel(nature.name[language], short(raised), short(lowered))
-                  return (
-                    <button
-                      key={`${raised}-${lowered}`}
-                      type="button"
-                      className="dn-cell"
-                      aria-pressed={draft.nature === nature.id}
-                      aria-label={label}
-                      onClick={() => onChoose({ choose: 'nature', nature: nature.id })}
-                    >
-                      {nature.name[language]}
-                    </button>
-                  )
-                }),
-              ])}
-            </div>
+            <DexKey shape="square" aria-label={text.dex.about} onClick={() => setAbout(true)}>
+              {text.dex.aboutKey}
+            </DexKey>
+            {/* What is wrong with the name, while something is; else the count, said again when it changes without taking the focus. */}
+            {nameProblem ? (
+              <p className="dn-dex-foot__said dn-dex-foot__said--problem" role="status">
+                {words.nicknameProblem[nameProblem]}
+              </p>
+            ) : (
+              <p className={`dn-dex-count${state}`} role="status" aria-label={tally.toPlace > 0 ? text.attributes.toPlace(tally.toPlace) : text.attributes.placed}>
+                {text.dex.count(placed, CREATION_POINTS + extra)}
+              </p>
+            )}
+            {chrome.next}
           </>
-        )}
-      </div>
+        }
+      >
+        <div className="dn-dex-identity dn-dex-split">
+          <div className="dn-dex-identity__top">
+            <div className="dn-dex-field">
+              <label className="dn-dex-field__label" htmlFor={nameId}>
+                {words.nickname}
+              </label>
+              <input
+                id={nameId}
+                className="dn-dex-field__input"
+                type="text"
+                value={draft.nickname}
+                placeholder={species.name[language]}
+                aria-invalid={nameProblem !== undefined}
+                autoComplete="off"
+                autoCapitalize="words"
+                enterKeyHint="done"
+                onChange={(event) => onChoose({ choose: 'nickname', nickname: event.target.value })}
+                onBlur={() => onChoose({ choose: 'nickname', nickname: tidyNickname(draft.nickname) })}
+              />
+            </div>
+            {sexes && (
+              <div className="dn-dex-sexes" role="group" aria-label={words.gender}>
+                {SEXES.filter((sex) => species.genders.includes(sex)).map((sex) => (
+                  <button key={sex} type="button" className={`dn-dex-sex dn-dex-sex--${sex.toLowerCase()}`} aria-pressed={draft.gender === sex} onClick={() => onChoose({ choose: 'gender', gender: sex })}>
+                    <GenderMark gender={sex} label={words.genders[sex]} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-      <div role="group" aria-label={text.ability} className="dn-entry">
-        <span className="dn-label">{text.ability}</span>
-        {species.abilities.map((id) => {
-          const ability = pack.abilities[id]
-          if (!ability) return null
-          return (
-            <Slot key={id} selected={draft.ability === id} onClick={() => onChoose({ choose: 'ability', ability: id })}>
-              <span className="dn-slot__text">
-                <span className="dn-text-shadow">
-                  {ability.name[language]}
-                  {species.hiddenAbility === id && <span className="dn-slot__tag"> {text.hidden}</span>}
-                </span>
-                <span className="dn-note">{ability.description[language]}</span>
-              </span>
-            </Slot>
-          )
-        })}
-      </div>
-    </div>
+          <div className="dn-dex-box-row">
+            {ATTRIBUTE_ORDER.map((attribute) => {
+              const name = text.attributes.names[attribute]
+              return (
+                <StepperBox
+                  key={attribute}
+                  short={text.dex.attributes.short[attribute]}
+                  name={name}
+                  tone={{ fill: `var(--dn-attr-${attribute})`, shade: `var(--dn-attr-${attribute}-shade)` }}
+                  value={draft.attributes[attribute]}
+                  min={CREATION_MIN}
+                  max={ATTRIBUTE_CAP}
+                  ceiling={attributeCeiling(draft.attributes, attribute, level)}
+                  onChange={(value) => onChoose({ choose: 'attribute', attribute, value })}
+                  raiseLabel={text.raise(name)}
+                  lowerLabel={text.lower(name)}
+                  ends={{ most: text.dex.most, least: text.dex.least }}
+                  bigStep={BIG_STEP === undefined ? undefined : { by: BIG_STEP, raiseLabel: text.raiseBy(name, BIG_STEP), lowerLabel: text.lowerBy(name, BIG_STEP) }}
+                />
+              )
+            })}
+          </div>
+        </div>
+      </DexPage>
+
+      <Tray open={about} title={text.dex.stepNames.identity} closeLabel={text.dex.close} onClose={() => setAbout(false)}>
+        <p className="dn-tray__text">{text.attributes.intro}</p>
+        {extra > 0 && <p className="dn-tray__text">{text.attributes.extra(Math.max(0, tally.extraLeft), extra)}</p>}
+      </Tray>
+    </>
   )
 }

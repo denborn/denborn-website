@@ -52,6 +52,11 @@ export const SCREEN = {
   stripe: 0.012,
 } as const
 
+/** The Pokédex's grid sliding by one square (decision 287), in seconds. */
+export const DEX = {
+  drift: 1.6,
+} as const
+
 type Bezier = readonly [number, number, number, number]
 
 export const EASE = {

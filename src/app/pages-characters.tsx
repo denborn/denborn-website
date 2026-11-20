@@ -2,29 +2,30 @@
  * A player's pages for their characters: the list, creation, the sheet,
  * importing and removing. Fetched when one of them is first opened.
  */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 import { usePack } from '../data/use-pack'
 import { CharacterList } from '../features/characters/CharacterList'
-import { type LinkProblem, NewCharacter } from '../features/characters/NewCharacter'
-import { CreationFlow } from '../features/creation/CreationFlow'
+import { Creation } from '../features/creation/Creation'
+import { type CampaignLinkProblem, type CampaignLinkRead, readCampaignLink } from '../features/creation/campaign-link'
 import { DEN, DenScreen } from '../features/home/DenScreen'
 import { ImportCharacter } from '../features/import/ImportCharacter'
-import { QrCamera } from '../features/import/QrCamera'
 import { type Device, readIncomingCode, readIncomingFile } from '../features/import/incoming'
+import { QrCamera } from '../features/scan/QrCamera'
 import { CharacterSheet } from '../features/sheet/CharacterSheet'
 import { PaperSheet } from '../features/sheet/PaperSheet'
 import { RemoveCharacter } from '../features/sheet/RemoveCharacter'
 import { SheetUnavailable } from '../features/sheet/SheetUnavailable'
 import { sheetToShow } from '../features/sheet/open-sheet'
 import { useLanguage, useMessages } from '../i18n'
-import { decodeCreationCode } from '../shared/codec/codes'
+import type { Invitation } from '../shared/codec/codes'
 import type { CharacterDocument } from '../shared/schema/character'
 import { saveToDevice, textOfPickedFile } from '../storage/browser'
 import { characterFile, storedCharacterFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import type { WriteResult } from '../storage/library'
 import { DualScreen, OptionButton, Panel, Screen, StepHeader } from '../ui'
+import { NEW_CAMPAIGN_FOR_CHARACTER } from './campaign-for-character'
 import { useLibrary } from './library-store'
 import { useShownCharacter } from './shown-character'
 import { sessionKeys } from './session-keys'
@@ -159,33 +160,6 @@ export function RemoveCharacterPage() {
   )
 }
 
-export function NewCharacterPage() {
-  const navigate = useNavigate()
-  const pack = usePack()
-  const library = useLibrary()
-  // A link opened from outside that could not be read sends the visitor here with the reason.
-  const arrivedWith = (useLocation().state as { problem?: LinkProblem } | null)?.problem
-  usePageTitle(useMessages().newCharacter.title)
-
-  const open = (text: string): LinkProblem | undefined => {
-    const decoded = decodeCreationCode(text, pack.species)
-    if (!decoded.ok) return decoded.reason
-    library.saveInvitation(decoded.value, pack.species)
-    void navigate(`/characters/new/${decoded.value.campaign.id}`, { state: { invitation: decoded.value } })
-    return undefined
-  }
-
-  return (
-    <NewCharacter
-      invitations={library.invitations(pack.species)}
-      problem={arrivedWith}
-      onBack={() => void navigate('/characters')}
-      onCampaign={(campaignId) => void navigate(`/characters/new/${campaignId}`)}
-      onLink={open}
-    />
-  )
-}
-
 export function CreateCharacterPage() {
   const navigate = useNavigate()
   const pack = usePack()
@@ -194,30 +168,20 @@ export function CreateCharacterPage() {
   const messages = useMessages()
   const { campaignId } = useParams()
   const [unsaved, setUnsaved] = useState<{ character: CharacterDocument; reason: Extract<WriteResult, { ok: false }>['reason'] }>()
+  // A campaign read here that the device could not keep: creation goes on with it all the same, for as long as the page is open.
+  const [lent, setLent] = useState<Invitation>()
   usePageTitle(messages.creation.title)
-  const invitation = library.invitations(pack.species).find((entry) => entry.campaign.id === campaignId)
-  // Set when creation was started from a session's join screen (decision 128): the code of the session to come back to.
-  const session = (useLocation().state as { session?: string } | null)?.session
-
-  if (!invitation) {
-    return (
-      <DualScreen>
-        <DenScreen key={DEN} label={messages.creation.title} />
-        <Screen kind="menu" label={messages.creation.title} scrolls>
-          <StepHeader title={messages.creation.title} />
-          <div className="dn-stack">
-            <p className="dn-note dn-note--error">{messages.newCharacter.unknownCampaign}</p>
-          </div>
-          <div className="dn-foot">
-            <OptionButton onClick={() => void navigate('/characters/new')}>{messages.nav.back}</OptionButton>
-          </div>
-        </Screen>
-      </DualScreen>
-    )
-  }
+  // Reading them inflates every code kept: done again only when the device has written something.
+  const kept = useMemo(() => library.invitations(pack.species), [library, pack])
+  const invitations = lent && !kept.some((one) => one.campaign.id === lent.campaign.id) ? [...kept, lent] : kept
+  const invitation = invitations.find((entry) => entry.campaign.id === campaignId)
+  // `session`: creation was started from a session's join screen (decision 128), and this is the code of the session to come back
+  // to. `problem`: a link opened from outside could not be read, and this is why.
+  const arrival = useLocation().state as { session?: string; problem?: CampaignLinkProblem } | null
+  const session = arrival?.session
 
   // The device could not keep the new character: its file is offered before anything else.
-  if (unsaved) {
+  if (unsaved && invitation) {
     return (
       <DualScreen>
         <DenScreen key={DEN} label={messages.creation.title} />
@@ -244,6 +208,7 @@ export function CreateCharacterPage() {
   }
 
   const keep = (character: CharacterDocument): void => {
+    if (!invitation) return
     // Kept with the rules it was made under, like its file: the entry alone is enough to check it later.
     const saved = library.saveCharacter({ ...character, rules: invitation.rules })
     if (!saved.ok) {
@@ -261,7 +226,33 @@ export function CreateCharacterPage() {
     void navigate(`/session/${session}`, { replace: true })
   }
 
-  // Leaving before the character is made goes back where creation was started from.
-  const leave = (): void => void navigate(session === undefined ? '/characters/new' : `/session/${session}`)
-  return <CreationFlow invitation={invitation} pack={pack} newId={newId} onLeave={leave} onCreate={keep} />
+  /** Reads a pasted or scanned text; the campaign it names is kept here, like one whose link was opened from outside. */
+  const read = (text: string): CampaignLinkRead => {
+    const result = readCampaignLink(text, pack.species)
+    if (result.ok) {
+      library.saveInvitation(result.invitation, pack.species)
+      setLent(result.invitation)
+    }
+    return result
+  }
+
+  return (
+    <Creation
+      pack={pack}
+      invitations={invitations}
+      campaignId={campaignId}
+      campaignLocked={session !== undefined}
+      arrivedWith={arrival?.problem}
+      newId={newId}
+      camera={(props) => <QrCamera {...props} />}
+      onLink={read}
+      // The session a creation was started from goes with it from step to step.
+      onCampaign={(id) => void navigate(id === undefined ? '/characters/new' : `/characters/new/${id}`, { state: session === undefined ? null : { session } })}
+      // The new campaign's page brings the player back here once it is saved (decision 299).
+      onNewCampaign={() => void navigate(NEW_CAMPAIGN_FOR_CHARACTER)}
+      // Leaving before the character is made goes back where creation was started from.
+      onLeave={() => void navigate(session === undefined ? '/characters' : `/session/${session}`)}
+      onCreate={keep}
+    />
+  )
 }

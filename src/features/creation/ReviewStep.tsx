@@ -1,76 +1,88 @@
 import type { DataPack } from '../../data/types'
-import type { CreationProblem } from '../../domain/character-check'
-import { ATTRIBUTE_IDS } from '../../game-rules/attributes'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import type { CampaignRules } from '../../shared/schema/rules'
-import { Panel } from '../../ui'
-import type { CreationDraft } from './draft'
+import { ItemIconImage, TypeLabel } from '../../ui'
+import { DexKey, DexPage } from '../../ui/dex'
+import type { StepChrome } from './Creation'
+import { type CreationDraft, MOVES_MAX, startingBag } from './draft'
 
 export interface ReviewStepProps {
   pack: DataPack
+  language: Language
+  messages: Messages
+  chrome: StepChrome
   rules: CampaignRules
   draft: CreationDraft
-  /** What the rules still find wrong; nothing to show when the list is empty. */
-  problems: CreationProblem[] | undefined
-  language: Language
-  text: Messages['creation']
+  /** The character can be made: every rule of creation is passed. */
+  ready: boolean
+  onCreate: () => void
 }
 
-/** Everything chosen, on one page, before the character is made. Its stats are on the screen above. */
-export function ReviewStep({ pack, rules, draft, problems, language, text }: ReviewStepProps) {
-  const species = draft.species ? pack.species[draft.species] : undefined
+/** How many stacks of the Bag show before the rest is a count. */
+const SHOWN = 7
+
+/**
+ * A last look (decision 295): what the top screen does not show, the moves
+ * and what it starts with, before the character is made.
+ */
+export function ReviewStep({ pack, language, messages, chrome, rules, draft, ready, onCreate }: ReviewStepProps) {
+  const text = messages.creation
   const itemPack = draft.pack === undefined ? undefined : rules.itemPacks[draft.pack]
-  if (!species) return null
-  const nature = rules.natures === 'chosen' && draft.nature ? pack.natures[draft.nature]?.name[language] : text.review.neutral
-  const held = draft.heldItem ? pack.items[draft.heldItem]?.name[language] : text.items.none
-  const bag = (itemPack?.items ?? [])
-    .map((stack) => ({ ...stack, quantity: stack.item === draft.heldItem ? stack.quantity - 1 : stack.quantity }))
-    .filter((stack) => stack.quantity > 0)
-    .map((stack) => text.items.stack(pack.items[stack.item]?.name[language] ?? stack.item, stack.quantity))
+  const bag = itemPack ? startingBag(itemPack, draft.heldItem) : []
   return (
-    <div className="dn-stack">
-      {(problems === undefined || problems.length > 0) && (
-        <Panel>
-          <p className="dn-note dn-note--error" role="alert">
-            {text.review.notReady}
+    <DexPage
+      title={text.review.title}
+      steps={chrome.steps}
+      foot={
+        <>
+          <p className={`dn-dex-foot__said${ready ? '' : ' dn-dex-foot__said--problem'}`} role={ready ? undefined : 'alert'}>
+            {ready ? '' : text.review.notReady}
           </p>
-          {/* For whoever has to find out why: the rules' own names for what is wrong. */}
-          {problems && <p className="dn-note">{problems.map((problem) => problem.kind).join(', ')}</p>}
-        </Panel>
-      )}
-      <dl className="dn-facts">
-        <dt>{text.identity.nickname}</dt>
-        <dd>{draft.nickname.trim()}</dd>
-        <dt>{text.review.species}</dt>
-        <dd>{species.name[language]}</dd>
-        <dt>{text.identity.gender}</dt>
-        <dd>{draft.gender ? text.identity.genders[draft.gender] : ''}</dd>
-        <dt>{text.review.nature}</dt>
-        <dd>{nature}</dd>
-        <dt>{text.identity.ability}</dt>
-        <dd>{draft.ability ? pack.abilities[draft.ability]?.name[language] : ''}</dd>
-      </dl>
-      <span className="dn-label">{text.attributes.title}</span>
-      <dl className="dn-facts">
-        {ATTRIBUTE_IDS.flatMap((attribute) => [<dt key={`${attribute}-name`}>{text.attributes.names[attribute]}</dt>, <dd key={attribute}>{draft.attributes[attribute]}</dd>])}
-      </dl>
-      <span className="dn-label">{text.review.moves}</span>
-      <dl className="dn-facts">
-        {draft.moves.flatMap((id) => {
-          const move = pack.moves[id]
-          return move ? [<dt key={`${id}-name`}>{move.name[language]}</dt>, <dd key={id}>{text.moves.pp(move.pp)}</dd>] : []
-        })}
-      </dl>
-      <span className="dn-label">{itemPack?.name}</span>
-      <dl className="dn-facts">
-        <dt>{text.review.holds}</dt>
-        <dd>{held}</dd>
-        <dt>{text.review.bag}</dt>
-        <dd>{bag.length > 0 ? bag.join(', ') : text.items.nothing}</dd>
-        <dt />
-        <dd>{text.review.money(rules.startingMoney)}</dd>
-      </dl>
-    </div>
+          <DexKey shape="go" disabled={!ready} onClick={onCreate}>
+            {text.review.create}
+          </DexKey>
+        </>
+      }
+    >
+      <div className="dn-dex-review">
+        <h3 className="dn-dex-review__title">{text.review.moves}</h3>
+        <ol className="dn-dex-review__moves">
+          {Array.from({ length: MOVES_MAX }, (_, place) => {
+            const move = pack.moves[draft.moves[place] ?? '']
+            return (
+              <li key={place} className={`dn-dex-bar${move ? '' : ' dn-dex-bar--empty'}`}>
+                {move ? (
+                  <>
+                    <TypeLabel type={move.type} text={pack.types[move.type.toLowerCase()]?.name[language] ?? move.type} />
+                    <span className="dn-dex-bar__name">{move.name[language]}</span>
+                    <span className="dn-dex-bar__end">{text.moves.pp(move.pp)}</span>
+                  </>
+                ) : (
+                  <span className="dn-dex-bar__name">{text.dex.none}</span>
+                )}
+              </li>
+            )
+          })}
+        </ol>
+        <h3 className="dn-dex-review__title">
+          {itemPack?.name ?? text.items.title} · {text.review.money(rules.startingMoney)}
+        </h3>
+        <ul className="dn-dex-pack__items dn-dex-review__bag">
+          {bag.length === 0 && <li>{text.items.nothing}</li>}
+          {bag.slice(0, SHOWN).map((stack) => {
+            const item = pack.items[stack.item]
+            return (
+              <li key={stack.item}>
+                {item && <ItemIconImage icon={item.icon} scale={0.5} />}
+                <span className="dn-dex-pack__name">{item?.name[language] ?? stack.item}</span>
+                <span>×{stack.quantity}</span>
+              </li>
+            )
+          })}
+          {bag.length > SHOWN && <li>{text.dex.items.more(bag.length - SHOWN)}</li>}
+        </ul>
+      </div>
+    </DexPage>
   )
 }

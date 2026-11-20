@@ -1,5 +1,6 @@
-import { type CSSProperties, type ReactNode, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, createContext, useContext, useLayoutEffect, useRef, useState } from 'react'
 import { BATTLE_TOUCH } from '../data/sprites'
+import { DEX } from './motion'
 import { snapScale } from './pixel'
 
 /** Width of a DS screen, in DS pixels. Everything inside a Screen is sized in these. */
@@ -40,8 +41,9 @@ export interface ScreenProps {
    * `scene`: the top screen of a battle. `touch`: the bottom screen, with the two halves of the games' ball over a brown ground, behind what it holds (decisions 255 and 259).
    * `menu`: a menu background. `blank`: black, nothing on it.
    * `den`: inside the den (decision 244), whose backdrop `DenInside` draws, put first in the screen.
+   * `dex`: a screen of the Pokédex (decision 287): its blue grid, sliding.
    */
-  kind?: 'scene' | 'touch' | 'menu' | 'blank' | 'den'
+  kind?: 'scene' | 'touch' | 'menu' | 'blank' | 'den' | 'dex'
   /** What the screen is, for assistive technology. */
   label: string
   /** What it holds is a column from its top, scrolled inside the screen when it is longer: a menu, a form, a list (decision 216). */
@@ -72,10 +74,18 @@ function BallHalf({ half }: { half: 'red' | 'white' }) {
 export function Screen({ kind = 'scene', label, scrolls = false, ball = 'shut', children }: ScreenProps) {
   const ref = useRef<HTMLElement>(null)
   const [metrics, setMetrics] = useState<ScreenMetrics>({ unit: 2, ratio: 1 })
+  // How far into its slide the Pokédex's grid is, by the clock: every screen of the Pokédex counts from the same moment, so the
+  // grid of the screen that comes carries on where the grid of the one that went was.
+  const [slidFor] = useState(() => (kind === 'dex' ? Date.now() % (DEX.drift * 1000) : undefined))
 
-  useEffect(() => {
+  // Measured before the screen is first painted: a screen drawn with a guessed DS pixel would show its pictures at the wrong
+  // size for a moment, every time it comes (the bar of steps of creation did, at each step). Then measured again as it changes.
+  useLayoutEffect(() => {
     const element = ref.current
     if (!element) return
+    const style = getComputedStyle(element)
+    const width = element.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+    if (width > 0) setMetrics({ unit: width / DS_WIDTH, ratio: window.devicePixelRatio })
     const observer = new ResizeObserver(([entry]) => {
       if (entry) setMetrics({ unit: entry.contentRect.width / DS_WIDTH, ratio: window.devicePixelRatio })
     })
@@ -84,7 +94,12 @@ export function Screen({ kind = 'scene', label, scrolls = false, ball = 'shut', 
   }, [])
 
   return (
-    <section ref={ref} className={`dn-root dn-screen dn-screen--${kind}${scrolls ? ' dn-screen--scrolls' : ''}`} aria-label={label}>
+    <section
+      ref={ref}
+      className={`dn-root dn-screen dn-screen--${kind}${scrolls ? ' dn-screen--scrolls' : ''}`}
+      aria-label={label}
+      style={slidFor === undefined ? undefined : ({ '--dn-dex-since': `${-slidFor}ms` } as CSSProperties)}
+    >
       {kind === 'touch' && (
         <span className={`dn-ball dn-ball--${ball}`} aria-hidden="true">
           <BallHalf half="red" />

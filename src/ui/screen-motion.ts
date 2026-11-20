@@ -12,6 +12,11 @@
  * close over the screen, and sweep on off the next one: the stripes before a
  * fight.
  *
+ * Into the Pokédex and out of it (decision 287), the Pokédex itself comes in
+ * the stripes' place. Shut, it rises onto the bottom screen; its lid rises
+ * onto the top one; then its two shutters part on both, and the Pokédex is
+ * open. Going out, the shutters close and the Pokédex goes back down.
+ *
  * Denborn's own timings; only `translate` moves, so that a piece's own
  * transform, if it has one, is left alone.
  */
@@ -24,6 +29,18 @@ export interface Passage {
   direction: 1 | -1
   /** The backdrop changes: the stripes, in place of the pieces. */
   wipe: boolean
+  /** The backdrop changes to the Pokédex's, or from it: the Pokédex opens, or shuts, in place of the stripes. */
+  dex?: 'open' | 'shut'
+}
+
+/** Which of the two screens a layer is on: the Pokédex comes onto the bottom one first. */
+export type ScreenPlace = 'top' | 'bottom'
+
+/** The same change of screen the other way round: what a screen called back before it was out comes in by. */
+export function reversed(passage: Passage): Passage {
+  const back: Passage = { direction: passage.direction === 1 ? -1 : 1, wipe: passage.wipe }
+  if (passage.dex) back.dex = passage.dex === 'open' ? 'shut' : 'open'
+  return back
 }
 
 /** A box on the page, as the browser measures it. */
@@ -75,6 +92,9 @@ const PIECES = [
   '.dn-scene__box',
   '.dn-scene__message',
   '.dn-foot > *',
+  '.dn-dex-body > *',
+  '.dn-dex-foot > *',
+  '.dn-tray',
   '.dn-roster__foot > *',
   '.dn-field__foot > *',
   '.dn-effects__back',
@@ -150,6 +170,65 @@ async function sweep(layer: HTMLElement, closing: boolean): Promise<void> {
   if (!closing) for (const stripe of stripes) stripe.style.removeProperty('translate')
 }
 
+/** The Pokédex over a layer: the box that rises and goes down, and its two shutters. */
+function dexOf(layer: HTMLElement): { box: HTMLElement; shutters: HTMLElement[] } | undefined {
+  const box = layer.querySelector<HTMLElement>('.dn-dual__dex')
+  return box ? { box, shutters: [...box.querySelectorAll<HTMLElement>('.dn-dual__shutter')] } : undefined
+}
+
+const SHUT = '0% 0%'
+/** Out of the screen, under its bottom edge: where the Pokédex comes from and goes back to. */
+const UNDER = '0% 101%'
+
+/** The shutters, both at once: the left one out by the left and the right one by the right, or back. */
+function shutters(parts: readonly HTMLElement[], parting: boolean, delay: number): Promise<unknown>[] {
+  return parts.map((part, index) => {
+    const away = `${index === 0 ? -101 : 101}% 0%`
+    return animate(part, { translate: parting ? [SHUT, away] : [away, SHUT] }, { duration: DURATION.quick, delay, ease: parting ? EASE.in : EASE.out }).finished
+  })
+}
+
+/**
+ * The screen that goes out as the Pokédex opens, or as it shuts. Opening: the
+ * Pokédex, shut, rises over it; over the top screen it is the lid, which
+ * rises once the Pokédex is up on the bottom one. Shutting: its shutters
+ * close over it.
+ */
+async function dexCovers(layer: HTMLElement, dex: 'open' | 'shut', place: ScreenPlace): Promise<void> {
+  const pokedex = dexOf(layer)
+  if (!pokedex) return
+  if (dex === 'open') {
+    const wait = place === 'top' ? DURATION.move : 0
+    const length = place === 'top' ? DURATION.quick : DURATION.move
+    await ended([animate(pokedex.box, { translate: [UNDER, SHUT] }, { duration: length, delay: wait, ease: EASE.out }).finished], wait + length)
+    return
+  }
+  pokedex.box.style.translate = SHUT
+  await ended(shutters(pokedex.shutters, false, 0), DURATION.quick)
+}
+
+/**
+ * The screen that comes as the Pokédex opens, or as it shuts. Opening: it is
+ * behind the shutters, which part on both screens at the same moment; the
+ * bottom one waits for the lid to be up. Shutting: the Pokédex, shut over it,
+ * goes back down. Then the Pokédex is put back out of sight, where its own
+ * style keeps it.
+ */
+async function dexUncovers(layer: HTMLElement, dex: 'open' | 'shut', place: ScreenPlace): Promise<void> {
+  const pokedex = dexOf(layer)
+  if (!pokedex) return
+  pokedex.box.style.translate = SHUT
+  if (dex === 'open') {
+    const wait = place === 'bottom' ? DURATION.quick : 0
+    await ended(shutters(pokedex.shutters, true, wait), wait + DURATION.quick)
+  } else {
+    const length = place === 'bottom' ? DURATION.move : DURATION.quick
+    await ended([animate(pokedex.box, { translate: [SHUT, UNDER] }, { duration: length, ease: EASE.in }).finished], length)
+  }
+  pokedex.box.style.removeProperty('translate')
+  for (const shutter of pokedex.shutters) shutter.style.removeProperty('translate')
+}
+
 /** Marks a screen as moving for as long as `move` lasts: a test waits for it before it judges the screen. */
 async function moving(layer: HTMLElement, move: Promise<void>): Promise<void> {
   layer.dataset.moving = ''
@@ -161,11 +240,13 @@ async function moving(layer: HTMLElement, move: Promise<void>): Promise<void> {
 }
 
 /** A screen comes in. Call it before the screen is first painted. */
-export function arrive(layer: HTMLElement, passage: Passage): Promise<void> {
+export function arrive(layer: HTMLElement, passage: Passage, place: ScreenPlace): Promise<void> {
+  if (passage.dex) return moving(layer, dexUncovers(layer, passage.dex, place))
   return moving(layer, passage.wipe ? sweep(layer, false) : fly(layer, passage.direction, true))
 }
 
 /** A screen goes out. It resolves when nothing of it shows any more. */
-export function leave(layer: HTMLElement, passage: Passage): Promise<void> {
+export function leave(layer: HTMLElement, passage: Passage, place: ScreenPlace): Promise<void> {
+  if (passage.dex) return moving(layer, dexCovers(layer, passage.dex, place))
   return moving(layer, passage.wipe ? sweep(layer, true) : fly(layer, passage.direction === 1 ? -1 : 1, false))
 }

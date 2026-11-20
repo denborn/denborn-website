@@ -1,14 +1,14 @@
 /**
  * Checks a Pokémon's build against a campaign's rules and the game data:
- * its species, gender, Ability, nature, IVs and EVs, moves and held item.
+ * its species, gender, Ability, nature, training, moves and held item.
  * Characters and the enemies of an encounter are built under the same rules
  * (kickoff prompt: "enemies use the same budgets and move rules"), so both
  * are checked here.
  */
 import type { DataPack, Gender } from '../data/types.ts'
-import { type SpreadProblem, checkEvs, checkIvs } from '../game-rules/budgets.ts'
 import { eligibleMoves } from '../game-rules/eligibility.ts'
 import type { StatSpread } from '../game-rules/stats.ts'
+import { type TrainingProblem, checkTraining } from '../game-rules/training.ts'
 import type { CampaignRules } from '../shared/schema/rules.ts'
 import { repeated } from './repeated.ts'
 
@@ -32,8 +32,7 @@ export type BuildProblem =
   | { kind: 'nature-missing' }
   | { kind: 'nature-not-allowed' }
   | { kind: 'unknown-nature' }
-  | { kind: 'ivs'; problem: SpreadProblem }
-  | { kind: 'evs'; problem: SpreadProblem }
+  | { kind: 'training'; problem: TrainingProblem }
   | { kind: 'unknown-move'; move: string }
   | { kind: 'repeated-move'; move: string }
   | { kind: 'move-not-eligible'; move: string }
@@ -47,8 +46,7 @@ export function checkBuild(build: Build, rules: CampaignRules, pack: DataPack): 
   } else if (build.nature === undefined) problems.push({ kind: 'nature-missing' })
   else if (!(build.nature in pack.natures)) problems.push({ kind: 'unknown-nature' })
 
-  for (const problem of checkIvs(build.ivs, build.level)) problems.push({ kind: 'ivs', problem })
-  for (const problem of checkEvs(build.evs, build.level)) problems.push({ kind: 'evs', problem })
+  for (const problem of checkTraining(build, build.level)) problems.push({ kind: 'training', problem })
   if (build.heldItem !== undefined && !pack.items[build.heldItem]?.holdable) problems.push({ kind: 'held-item' })
 
   // Everything below needs the species.

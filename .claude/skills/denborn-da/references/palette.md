@@ -75,3 +75,24 @@ Four measured colours fell short of 4.5 to 1 with the text they carry, and were 
 
 A row's arrows (`…-band`, `…-tail`) are brighter than its middle and are not moved: text keeps clear of them instead. Before adding a text colour or a ground, work out their contrast; axe cannot see a ground painted by `::before` or `::after`.
 
+## The Pokédex (decision 287)
+
+Measured on Xtreme1992's rip of Black and White's Pokédex (`tmp/DS _ DSi - Pokemon Black _ White - Miscellaneous - Pokedex.zip`, `pokedexbg/example_bottom.png`, drawn at twice its size). The shapes are kept; the green is turned to blue and what is lit is red, as the owner asked.
+
+| What | Measured | Denborn's |
+|---|---|---|
+| A square of the grid, 8 pixels; its lines, 1 pixel | `#08b57b`, `#008463` | `--dn-dex-ground` `#0860a8`, `--dn-dex-ground-line` `#004a8c` |
+| The dark band across the top | `#315a10` | `--dn-dex-ground-deep` `#062c52` |
+| A row: 21 tall on a pitch of 24, a point of 4 at its left end, a slant of 7 at its right one (a pixel in every three rows) | `#181818` | `--dn-dex-bar`, the same; lit, `--dn-dex-bar-lit` `#0a3a6b` in a rim `--dn-dex-bar-line` `#8cc8ff`, Denborn's own |
+| The brackets round an icon: 3 wide, 4 deep, 19 tall, in three greens | `#397b08`, `#94ef18`, `#63b510` | `--dn-dex-bracket-dark` `#0a4f94`, `--dn-dex-bracket-light` `#8cc8ff`, `--dn-dex-bracket` `#1a8cff`; red (`--dn-dex-accent`) on a lit row |
+| The plate behind the sprite: a checker of two greys between two bright lines | `#6b6b6b`, `#636363`, dots `#848484` | `--dn-dex-slab` `#52637b`, `--dn-dex-slab-2` `#44546b` |
+| The rail: 5 pixels, dark, light, dark | `#007352`, `#292929`, `#08b57b` | the grid's line, `--dn-dex-chrome`, `--dn-dex-bracket` |
+| The bar of keys, under a black line; a key's mark | `#292929`, `#b5b5b5` | `--dn-dex-chrome`, `--dn-dex-key`, the same |
+| Keys lit as the way on is, in other colours (decision 298): a lighter upper half, a darker lower one | blue: the selected party slot's `#0088d8`; the games have no grey key | `--dn-dex-key-blue-light` `#0078c0` (a shade deeper, for 4.5 to 1), `--dn-dex-key-blue` `#003c78`, rim `--dn-dex-bar-line`; grey: a checker of `--dn-dex-key-grey-light` `#737373` and `--dn-dex-key-grey-light-2` `#5a5a5a` over `--dn-dex-key-grey` `#393939`, rim `--dn-menu-grey-line`. Denborn's own |
+| The row that makes a new campaign (decision 299) | the selected slot's greens, `#088068` measured, rim `#10d8b0` | lit: `--dn-slot-ok` `#087a63`, rim `--dn-slot-ok-band`; at rest `--dn-dex-fresh` `#0b3a2c` in a rim `--dn-slot-ok`, Denborn's own |
+| The bar's red cross and blue arrow | `#ff3921`, `#088cff` | `--dn-dex-accent`, `--dn-dex-blue`, the same |
+| The Poké Ball mark of a row | `#e73131`, shade `#8c3131` | not drawn: a lamp in its place, `--dn-dex-accent` once lit, shade `--dn-dex-accent-shade` |
+| Text on a row and its shadow | `#dedede`, `#848484` | the kit's `--dn-text` |
+
+Contrast of white text (`--dn-text`): 5.8 to 1 on the grid, 16 on a row, 10.3 on a lit row, 12.7 on the deep blue, 13.1 on the bar of keys. The quiet text (`--dn-text-muted`) reaches 4.5 only on the dark ones (7.6 on a row, 6.0 on the deep blue), not on the grid (2.8): words on the grid stand on a dark plate. The Pokédex's case is the great ball's reds (`--dn-ball-red`), as the menu's red button. The six roleplay colours (`--dn-attr-*`) are six type labels' fills and shades (Fire, Grass, Dragon, Water, Psychic, Electric), lettered as a type label is.
+

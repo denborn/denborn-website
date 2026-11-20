@@ -20,8 +20,17 @@ import { intent, intentRefusal, playerFight } from './battle.ts'
  * 3: a character's progress during a session (milestone 7), and a Bag action
  * that names the Bag it draws from. A device that speaks an older version
  * would not hear what it is asked, so the two are told to update.
+ *
+ * 4: the messages are the same, but the rules both sides judge a character by
+ * are not: its IVs and EVs are counted as TV (decision 286). A device still on
+ * the rules before would refuse what the other allows, so it is told to
+ * update too.
+ *
+ * 5: creation shares 265 roleplay points and may keep some for later (decision
+ * 307): a character may come with fewer placed, and points placed later may
+ * go to creation's layer, which the placement now carries.
  */
-export const SESSION_VERSION = 3
+export const SESSION_VERSION = 5
 
 /**
  * What a member asks to change of a sheet outside a fight (milestone 7):
@@ -30,7 +39,7 @@ export const SESSION_VERSION = 3
  */
 export const sheetChange = z.discriminatedUnion('do', [
   /** Places points a level brought: where every total then stands (decision 8: none is ever lowered). */
-  z.object({ do: z.literal('points'), ivs: statSpread(31), evs: statSpread(252), gained: attributePoints }),
+  z.object({ do: z.literal('points'), ivs: statSpread(31), evs: statSpread(252), creation: attributePoints, gained: attributePoints }),
   z.object({ do: z.literal('evolve'), to: dataId }),
   /** The Ability and the moves chosen during a rest at a Pokémon Center. */
   z.object({ do: z.literal('reselect'), ability: dataId, moves: z.array(dataId).min(1).max(6) }),

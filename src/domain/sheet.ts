@@ -6,15 +6,17 @@
  */
 import type { DataPack } from '../data/types.ts'
 import { type AttributePoints, attributeScores, unplacedPoints } from '../game-rules/attributes.ts'
-import { evBudget, ivBudget, spreadTotal } from '../game-rules/budgets.ts'
 import { MAX_LEVEL, expForLevel } from '../game-rules/exp.ts'
 import { maxPp } from '../game-rules/pp.ts'
 import { type StatSpread, computeStats } from '../game-rules/stats.ts'
+import { tvLeft, tvOf } from '../game-rules/training.ts'
 import type { CharacterDocument } from '../shared/schema/character.ts'
 
 export interface SheetNumbers {
   /** The six stats at its level, with its points and its nature. `hp` is its maximum HP. */
   stats: StatSpread
+  /** The TV placed in each stat. */
+  tv: StatSpread
   /** The roleplay attributes as one number each. */
   attributes: AttributePoints
   /** Maximum PP of each of its moves, by move id. */
@@ -26,7 +28,7 @@ export interface SheetNumbers {
     progress: number
   }
   /** Points it may still place. */
-  unplaced: { attributes: number; ivs: number; evs: number }
+  unplaced: { attributes: number; tv: number }
 }
 
 /** Nothing when the character names a species or a nature this app's data does not have. */
@@ -39,6 +41,7 @@ export function sheetNumbers(character: CharacterDocument, pack: DataPack): Shee
   const next = level < MAX_LEVEL ? expForLevel(level + 1) : undefined
   return {
     stats: computeStats({ baseStats: species.baseStats, ivs: character.ivs, evs: character.evs, level, nature }),
+    tv: tvOf(character),
     attributes: attributeScores(character.attributes),
     maxPp: Object.fromEntries(
       character.moves.map((slot) => {
@@ -49,8 +52,7 @@ export function sheetNumbers(character: CharacterDocument, pack: DataPack): Shee
     exp: { next, progress: next === undefined ? 1 : Math.min(1, Math.max(0, (character.exp - start) / (next - start))) },
     unplaced: {
       attributes: Math.max(0, unplacedPoints(character.attributes, level)),
-      ivs: Math.max(0, ivBudget(level) - spreadTotal(character.ivs)),
-      evs: Math.max(0, evBudget(level) - spreadTotal(character.evs)),
+      tv: Math.max(0, tvLeft(character, level)),
     },
   }
 }

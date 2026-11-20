@@ -1,17 +1,19 @@
 /**
- * The picture Chromium's pretend camera shows during the scanning test: a
- * short video file of one QR code, black on white. The QR code is the link of
- * a character of the tests' campaign, as its sheet would show it.
+ * The pictures Chromium's pretend camera shows during the scanning tests:
+ * each a short video file of one QR code, black on white. One is the link of
+ * a character of the tests' campaign, as its sheet would show it; the other
+ * the creation link of that campaign, as its game master's page shows it.
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { generate } from 'lean-qr'
 import { encodeCharacterCode, qrForm } from '../../src/shared/codec/codes.ts'
-import { pikachu } from './creating.ts'
+import { code, pikachu } from './creating.ts'
 
-/** Where the video file is written: a cache folder that is never committed. */
+/** Where the video files are written: a cache folder that is never committed. */
 export const CAMERA_PICTURE = fileURLToPath(new URL('../../node_modules/.cache/denborn/e2e-camera.y4m', import.meta.url))
+export const CAMPAIGN_CAMERA_PICTURE = fileURLToPath(new URL('../../node_modules/.cache/denborn/e2e-camera-campaign.y4m', import.meta.url))
 
 /** The character the camera sees. */
 export const SCANNED_NICKNAME = 'Scanette'
@@ -46,4 +48,5 @@ export function writeCameraPicture(): void {
   const link = qrForm(encodeCharacterCode(pikachu(SCANNED_NICKNAME, 'e2eScanned000001')), 'https://denborn.example')
   mkdirSync(dirname(CAMERA_PICTURE), { recursive: true })
   writeFileSync(CAMERA_PICTURE, qrVideo(link, 720, 3))
+  writeFileSync(CAMPAIGN_CAMERA_PICTURE, qrVideo(qrForm(code, 'https://denborn.example'), 720, 3))
 }

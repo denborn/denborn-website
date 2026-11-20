@@ -54,7 +54,7 @@ describe('an enemy being built', () => {
 
   it('says what its build breaks once its level was lowered under what it spent', () => {
     const spent = golem('enemy-0001', { level: 5, build: { ...golemBuild, ivs: { hp: 20, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } } })
-    expect(enemyState(spent, rules, testPack).problems).toEqual([{ kind: 'ivs', problem: { kind: 'over-budget', by: 11 } }])
+    expect(enemyState(spent, rules, testPack).problems).toEqual([{ kind: 'training', problem: { kind: 'over-budget', by: 5 } }])
   })
 })
 

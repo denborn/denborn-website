@@ -1,7 +1,7 @@
 import { AnimatePresence, usePresence, usePresenceData } from 'motion/react'
 import { type ReactElement, type ReactNode, createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { usePrefersReducedMotion } from './reduced-motion'
-import { type Passage, arrive, leave } from './screen-motion'
+import { type Passage, type ScreenPlace, arrive, leave, reversed } from './screen-motion'
 
 export interface DualScreenProps {
   /**
@@ -105,6 +105,17 @@ function lookOf(screen: ReactElement): string {
 
 const NO_MOVE: Passage = { direction: 1, wipe: false }
 
+/** The Pokédex's backdrop (decision 287): a screen that changes to it or from it is not swept by the stripes. */
+const DEX_LOOK = 'dex'
+
+/** How one screen changes: its pieces fly where the backdrop stays, the Pokédex opens or shuts where the backdrop is its own, and the stripes sweep for any other change of backdrop. */
+function passageOf(direction: 1 | -1, from: string | undefined, to: string): Passage {
+  if (from === undefined || from === to) return { direction, wipe: false }
+  if (to === DEX_LOOK) return { direction, wipe: false, dex: 'open' }
+  if (from === DEX_LOOK) return { direction, wipe: false, dex: 'shut' }
+  return { direction, wipe: true }
+}
+
 /** For this long after a press or a key, in milliseconds, the focus follows a screen that changes. */
 const FOCUS_FOLLOWS_FOR = 5000
 
@@ -117,7 +128,8 @@ const OFFERED = 'button:not(:disabled), a[href], [tabindex="0"]'
  * to another. Each screen changes on its own. One that is the same on the next
  * page carries on untouched, whatever moves on it still moving. One that is
  * not goes out and the next comes in, by the moves of `screen-motion.ts`: the
- * pieces fly where the backdrop stays, the stripes sweep where it changes.
+ * pieces fly where the backdrop stays, the stripes sweep where it changes, and
+ * the Pokédex opens or shuts where the backdrop is its own.
  * What goes out can no longer be pressed or read; what comes in can be
  * pressed as soon as it is there. With reduced motion a screen is replaced at
  * once.
@@ -156,8 +168,8 @@ export function DualScreenFrame({ route = '', depth = 0, returning = false, chil
         from: now,
         // The screens a visit opens on are put there: nothing was there for them to move in after.
         opening: from === undefined,
-        top: { direction, wipe: from !== undefined && from.topLook !== now.topLook },
-        bottom: { direction, wipe: from !== undefined && from.bottomLook !== now.bottomLook },
+        top: passageOf(direction, from?.topLook, now.topLook),
+        bottom: passageOf(direction, from?.bottomLook, now.bottomLook),
       })
     }
   }
@@ -193,10 +205,10 @@ export function DualScreenFrame({ route = '', depth = 0, returning = false, chil
   return (
     <FrameContext value={frame}>
       <div ref={box} className="dn-dual" onClickCapture={focus.acted} onKeyDownCapture={focus.acted}>
-        <Slot name={shown && nameOf(shown.top, shown.page)} passage={way.top} still={still || way.opening} onArrive={focus.arrived}>
+        <Slot place="top" name={shown && nameOf(shown.top, shown.page)} passage={way.top} still={still || way.opening} onArrive={focus.arrived}>
           {shown?.top}
         </Slot>
-        <Slot name={shown && nameOf(shown.bottom, shown.page)} passage={way.bottom} still={still || way.opening} onArrive={focus.arrived}>
+        <Slot place="bottom" name={shown && nameOf(shown.bottom, shown.page)} passage={way.bottom} still={still || way.opening} onArrive={focus.arrived}>
           {shown?.bottom}
         </Slot>
       </div>
@@ -206,6 +218,8 @@ export function DualScreenFrame({ route = '', depth = 0, returning = false, chil
 }
 
 interface SlotProps {
+  /** Which of the two screens it is. */
+  place: ScreenPlace
   /** What tells the screen shown apart from the one before it. */
   name: string | undefined
   /** How the screen before it goes and this one comes. */
@@ -218,13 +232,13 @@ interface SlotProps {
 }
 
 /** One of the frame's two screens: a 4:3 box that is always there, black while nothing is on it. */
-function Slot({ name, passage, still, onArrive, children }: SlotProps) {
+function Slot({ place, name, passage, still, onArrive, children }: SlotProps) {
   return (
     <div className="dn-dual__slot">
       {/* One screen at a time: the next comes once the one before it is out. The one going out is told the way by `custom`. */}
       <AnimatePresence initial={false} mode="wait" custom={passage}>
         {children && (
-          <Layer key={name} passage={passage} still={still} onArrive={onArrive}>
+          <Layer key={name} place={place} passage={passage} still={still} onArrive={onArrive}>
             {children}
           </Layer>
         )}
@@ -237,14 +251,15 @@ function Slot({ name, passage, still, onArrive, children }: SlotProps) {
 const STRIPES = [0, 1, 2, 3, 4, 5, 6, 7] as const
 
 interface LayerProps {
+  place: ScreenPlace
   passage: Passage
   still: boolean
   onArrive: (layer: HTMLElement) => void
   children: ReactElement
 }
 
-/** One screen in its box, with the stripes that sweep over it when the backdrop changes. */
-function Layer({ passage, still, onArrive, children }: LayerProps) {
+/** One screen in its box, with what covers it when the backdrop changes: the stripes that sweep over it, and the Pokédex that rises over it. */
+function Layer({ place, passage, still, onArrive, children }: LayerProps) {
   const layer = useRef<HTMLDivElement>(null)
   const [here, gone] = usePresence()
   // The way out is the one the frame gives now, not the one this screen came in by. The library hands on what the frame gave it
@@ -255,8 +270,8 @@ function Layer({ passage, still, onArrive, children }: LayerProps) {
 
   // Before the first paint: a piece must not show in its place, then jump out to fly in.
   useLayoutEffect(() => {
-    if (came.moves && layer.current) void arrive(layer.current, came.passage)
-  }, [came])
+    if (came.moves && layer.current) void arrive(layer.current, came.passage, place)
+  }, [came, place])
   useEffect(() => {
     if (layer.current) onArrive(layer.current)
   }, [onArrive])
@@ -267,7 +282,7 @@ function Layer({ passage, still, onArrive, children }: LayerProps) {
   useEffect(() => {
     const box = layer.current
     if (here) {
-      if (leaving.current && box && !still) void arrive(box, { direction: out?.direction === 1 ? -1 : 1, wipe: out?.wipe ?? false })
+      if (leaving.current && box && !still) void arrive(box, reversed(out ?? came.passage), place)
       leaving.current = false
       return
     }
@@ -275,8 +290,8 @@ function Layer({ passage, still, onArrive, children }: LayerProps) {
     leaving.current = true
     if (still || !box) gone()
     // Out whatever became of its moves: a screen that could not be moved must still make room for the next.
-    else void leave(box, out ?? came.passage).finally(gone)
-  }, [here, gone, still, out, came])
+    else void leave(box, out ?? came.passage, place).finally(gone)
+  }, [here, gone, still, out, came, place])
 
   return (
     // What goes out is out of reach at once, for a finger, a keyboard and a screen reader: only its picture is left to move.
@@ -286,6 +301,10 @@ function Layer({ passage, still, onArrive, children }: LayerProps) {
         {STRIPES.map((stripe) => (
           <span key={stripe} className="dn-dual__stripe" />
         ))}
+      </div>
+      <div className={`dn-dual__dex dn-dual__dex--${place}`} aria-hidden="true">
+        <span className="dn-dual__shutter" />
+        <span className="dn-dual__shutter" />
       </div>
     </div>
   )

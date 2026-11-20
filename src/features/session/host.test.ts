@@ -208,7 +208,7 @@ describe('a session taken up again (decision 122)', () => {
 
 describe('a change asked of a sheet (milestone 7)', () => {
   const change = (id: string, change: Extract<GuestMessage, { t: 'change' }>['change']): unknown => encodeMessage({ t: 'change', id, change })
-  const raise = { do: 'points', ivs: { hp: 1, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, evs: hero('x').evs, gained: hero('x').attributes.gained } as const
+  const raise = { do: 'points', ivs: { hp: 1, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, evs: hero('x').evs, creation: hero('x').attributes.creation, gained: hero('x').attributes.gained } as const
 
   it('is a member\'s to ask: anyone else is not answered', () => {
     const step = hostStep(withParty('ann'), from('zed', change('change-0001', raise)), progressPack)

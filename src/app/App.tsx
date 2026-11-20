@@ -30,13 +30,17 @@ const characters = () => import('./pages-characters')
 const campaigns = () => import('./pages-campaigns')
 const session = () => import('./pages-session')
 
+// A visit that opens on a link's code starts fetching the page it opens at once, while the game data loads, not after.
+const arriving = incomingKind(window.location.hash.slice(1))
+if (arriving === 'creation' || arriving === 'character') void characters()
+if (arriving === 'join') void session()
+
 /** One page of a part of the app that is fetched when first opened. */
 function onDemand<Part>(part: () => Promise<Part>, name: keyof Part) {
   return lazy(async () => ({ default: (await part())[name] as ComponentType }))
 }
 
 const CharactersPage = onDemand(characters, 'CharactersPage')
-const NewCharacterPage = onDemand(characters, 'NewCharacterPage')
 const CreateCharacterPage = onDemand(characters, 'CreateCharacterPage')
 const ImportCharacterPage = onDemand(characters, 'ImportCharacterPage')
 const CharacterPage = onDemand(characters, 'CharacterPage')
@@ -149,6 +153,9 @@ function Shell() {
   // Which way the screens move when the address changes: back for a move back through the visit's history, or to an address less far in.
   const depth = location.pathname.split('/').filter(Boolean).length
   const returning = useNavigationType() === NavigationType.Pop
+  // While the address still carries a link's code, the page it names is not open yet: the loading screen shows, never the page under
+  // the code. React then keeps that screen, not the home, until the page's code has come (the router moves in a transition).
+  const linking = incomingKind(location.hash.slice(1)) !== undefined
   return (
     <OfflineProvider>
       <TitleGateContext value={titleGate}>
@@ -159,7 +166,7 @@ function Shell() {
               <Suspense fallback={<LoadingScreen />}>
                 <IncomingLink />
                 <TitleEndsOffHome />
-                <Outlet />
+                {linking ? <LoadingScreen /> : <Outlet />}
               </Suspense>
             </DualScreenFrame>
           </LoadBoundary>
@@ -189,8 +196,8 @@ const router = createBrowserRouter([
       { path: 'session', element: <JoinSessionPage /> },
       { path: 'session/:code', element: <JoinSessionPage /> },
       { path: 'characters', element: <CharactersPage /> },
-      { path: 'characters/new', element: <NewCharacterPage /> },
-      { path: 'characters/new/:campaignId', element: <CreateCharacterPage /> },
+      // One page for the whole of a creation, the campaign in the address or not: what is chosen stays as the address changes.
+      { path: 'characters/new/:campaignId?', element: <CreateCharacterPage /> },
       { path: 'characters/import', element: <ImportCharacterPage /> },
       { path: 'characters/:id', element: <CharacterPage /> },
       { path: 'characters/:id/remove', element: <RemoveCharacterPage /> },

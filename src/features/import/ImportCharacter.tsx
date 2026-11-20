@@ -5,17 +5,9 @@ import { type Language, useLanguage, useMessages } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import type { WriteResult } from '../../storage/library'
 import { DualScreen, OptionButton, Screen, StepHeader, TextField } from '../../ui'
+import type { CameraProblem, CameraProps } from '../scan/camera'
 import { Portrait } from '../sheet/Portrait'
 import type { Incoming, IncomingCharacter, IncomingProblem } from './incoming'
-
-/** Why the camera cannot be used: refused by the user or the browser, absent, or no way to read a QR code here. */
-export type CameraProblem = 'denied' | 'none' | 'unsupported'
-
-export interface CameraProps {
-  /** What a QR code in the picture says. */
-  onText: (text: string) => void
-  onProblem: (problem: CameraProblem) => void
-}
 
 export interface ImportCharacterProps {
   pack: DataPack

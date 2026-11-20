@@ -65,8 +65,9 @@ Sprite sheets from [The Spriters Resource](https://www.spriters-resource.com/) (
 | Save Menu | Black 2 / White 2 | Ikard |
 | VS Backgrounds | Black 2 / White 2 | redblueyellow |
 | Game Icons | Black / White | lavistardust |
+| Pokedex (a set of the Pokédex's screens and pieces) | Black / White | Xtreme1992 |
 
-The art direction (milestone 3) was measured on four of them: Battle HUD, HP Bars, Party Screen and the Black 2 / White 2 Options Screen. The ground of the app's icon was measured on a fifth, Game Icons (the Pokémon Black icon: black, with a chequer of small blocks that fades downwards) and redrawn; its ball is not used. The other sheets in the folder were not used.
+The art direction (milestone 3) was measured on four of them: Battle HUD, HP Bars, Party Screen and the Black 2 / White 2 Options Screen. The Pokédex of character creation (`DECISIONS.md` 287) was measured on the Pokedex set, ripped by Xtreme1992 ("the__end" on PokéCommunity; the set's own note says "Feel free to use. Credits appreciated"): the sizes of its grid, rows, brackets, rail and bar of keys, and some of its colours; the app draws them itself, in blue and red, and none of the set's pixels is in the app. The ground of the app's icon was measured on a fifth, Game Icons (the Pokémon Black icon: black, with a chequer of small blocks that fades downwards) and redrawn; its ball is not used. The other sheets in the folder were not used.
 
 Other references, consulted and not redistributed: the official Pokémon White and White 2 instruction manuals (Nintendo), and screenshots published by [Serebii.net](https://www.serebii.net/).
 

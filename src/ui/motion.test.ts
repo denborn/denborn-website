@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { DURATION, EASE, TITLE } from './motion'
+import { DEX, DURATION, EASE, TITLE } from './motion'
 
 const tokens = readFileSync(new URL('./tokens.css', import.meta.url), 'utf8')
 
@@ -18,6 +18,10 @@ describe('motion tokens', () => {
 
   it.each(Object.entries(TITLE))('title screen timing "%s" is the same in script and in CSS', (name, seconds) => {
     expect(token(`title-${name}`)).toBe(`${Math.round(seconds * 1000)}ms`)
+  })
+
+  it.each(Object.entries(DEX))('Pokédex timing "%s" is the same in script and in CSS', (name, seconds) => {
+    expect(token(`dex-${name}`)).toBe(`${Math.round(seconds * 1000)}ms`)
   })
 
   it.each(Object.entries(EASE))('easing "%s" is the same in script and in CSS', (name, curve) => {

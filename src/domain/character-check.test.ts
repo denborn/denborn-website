@@ -41,9 +41,9 @@ describe('a character at any time', () => {
   })
 
   it('reports each broken budget with its detail', () => {
-    const problems = checkCharacter(newcomer({ ivs: { hp: 10, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } }), testRules(), testPack)
-    // At level 5 there are 9 IV points.
-    expect(problems).toEqual([{ kind: 'ivs', problem: { kind: 'over-budget', by: 1 } }])
+    const problems = checkCharacter(newcomer({ ivs: { hp: 16, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 } }), testRules(), testPack)
+    // At level 5 there are 15 TV.
+    expect(problems).toEqual([{ kind: 'training', problem: { kind: 'over-budget', by: 1 } }])
   })
 
   it('reports each broken attribute rule with its detail', () => {

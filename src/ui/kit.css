@@ -180,6 +180,81 @@
 }
 
 /*
+ * The Pokédex, shut, over a screen (decision 287): out of sight under the screen until one changes to the Pokédex's
+ * backdrop or from it. It is two shutters side by side, red as the Pokédex is, which part to open it. On the bottom
+ * screen it is the Pokédex's face, with its lens and its three lamps; on the top one, its lid, with the hinge along its
+ * bottom edge. Denborn's own drawing.
+ */
+.dn-dual__dex {
+  --dn-u: calc(100cqw / 256);
+  position: absolute;
+  inset: 0;
+  container-type: inline-size;
+  display: flex;
+  pointer-events: none;
+  translate: 0 101%;
+}
+
+.dn-dual__shutter {
+  position: relative;
+  flex: 1;
+  background: linear-gradient(var(--dn-dex-case-light) 0 45%, var(--dn-dex-case) 45% 100%);
+  box-shadow:
+    inset 0 calc(3 * var(--dn-u)) 0 var(--dn-menu-red-line),
+    inset 0 calc(-4 * var(--dn-u)) 0 var(--dn-dex-case-dark);
+}
+
+/* Where the two meet: a dark line down the middle of the Pokédex. */
+.dn-dual__shutter:first-child {
+  border-right: calc(1 * var(--dn-u)) solid var(--dn-dex-case-dark);
+}
+
+.dn-dual__shutter:last-child {
+  border-left: calc(1 * var(--dn-u)) solid var(--dn-dex-case-dark);
+}
+
+/* The face's lens, on the left shutter: a blue glass in a white ring. */
+.dn-dual__dex--bottom .dn-dual__shutter:first-child::before {
+  content: '';
+  position: absolute;
+  left: calc(14 * var(--dn-u));
+  top: calc(14 * var(--dn-u));
+  width: calc(34 * var(--dn-u));
+  height: calc(34 * var(--dn-u));
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, var(--dn-dex-bracket-light) 0 18%, var(--dn-dex-blue) 19% 62%, var(--dn-dex-bracket-dark) 63%);
+  box-shadow:
+    0 0 0 calc(3 * var(--dn-u)) var(--dn-text),
+    0 0 0 calc(5 * var(--dn-u)) var(--dn-ink);
+}
+
+/* Its three lamps, beside the lens: red, yellow, green. */
+.dn-dual__dex--bottom .dn-dual__shutter:first-child::after {
+  content: '';
+  position: absolute;
+  left: calc(62 * var(--dn-u));
+  top: calc(14 * var(--dn-u));
+  width: calc(8 * var(--dn-u));
+  height: calc(8 * var(--dn-u));
+  border-radius: 50%;
+  background: var(--dn-hp-low);
+  box-shadow:
+    0 0 0 calc(1 * var(--dn-u)) var(--dn-ink),
+    calc(14 * var(--dn-u)) 0 0 var(--dn-hp-mid),
+    calc(14 * var(--dn-u)) 0 0 calc(1 * var(--dn-u)) var(--dn-ink),
+    calc(28 * var(--dn-u)) 0 0 var(--dn-hp-high),
+    calc(28 * var(--dn-u)) 0 0 calc(1 * var(--dn-u)) var(--dn-ink);
+}
+
+/* The lid's hinge, along the bottom of the top screen. */
+.dn-dual__dex--top .dn-dual__shutter {
+  box-shadow:
+    inset 0 calc(3 * var(--dn-u)) 0 var(--dn-menu-red-line),
+    inset 0 calc(-10 * var(--dn-u)) 0 var(--dn-dex-case-dark),
+    inset 0 calc(-12 * var(--dn-u)) 0 var(--dn-ink);
+}
+
+/*
  * The window the DS is shown in. The DS is as large as fits in it with both
  * screens whole, the backdrop's black around it (decision 215), and no wider
  * than 30rem. It is never narrower than 20rem, the narrowest phone the kit is
@@ -293,6 +368,42 @@
   background-color: var(--dn-backdrop);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M11 15h10v2H11zM15 11h2v10h-2z' fill='%23183931'/%3E%3C/svg%3E");
   background-size: calc(32 * var(--dn-u)) calc(32 * var(--dn-u));
+}
+
+/*
+ * A screen of the Pokédex (decision 287): the games' grid, eight pixels a square, in blue. It slides down and to the
+ * right by one square, a pixel at a time, as the games' does; a square further on it looks the same, so it goes round.
+ * The grid is a layer of its own, a square larger than the screen, moved by `translate` alone. Its squares are whole
+ * pixels of the device where the browser can round, or the lines would blur.
+ */
+.dn-screen--dex {
+  --dn-dex-square: calc(8 * (100cqw / 256));
+  --dn-dex-square: round(calc(8 * (100cqw / 256)), 1px);
+  background-color: var(--dn-dex-ground);
+}
+
+.dn-screen--dex::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--dn-dex-square)) 0 0 calc(-1 * var(--dn-dex-square));
+  background-image:
+    linear-gradient(to right, var(--dn-dex-ground-line) calc(var(--dn-dex-square) / 8), transparent 0),
+    linear-gradient(to bottom, var(--dn-dex-ground-line) calc(var(--dn-dex-square) / 8), transparent 0);
+  background-size: var(--dn-dex-square) var(--dn-dex-square);
+  /* Every screen of the Pokédex counts from the same moment, so the grid goes on unbroken from one to the next. */
+  animation: dn-dex-drift var(--dn-dex-drift) steps(8) var(--dn-dex-since, 0ms) infinite;
+}
+
+@keyframes dn-dex-drift {
+  to {
+    translate: var(--dn-dex-square) var(--dn-dex-square);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dn-screen--dex::before {
+    animation: none;
+  }
 }
 
 /* Inside the den (decision 244): black under the cave that `DenInside` draws, for the moment before it is there. */
@@ -3458,6 +3569,38 @@
   75%,
   100% {
     translate: var(--dn-scroll-by) 0;
+  }
+}
+
+/* A text in a box too short for it, read as it goes down (decision 301). The box's size is its caller's. */
+.dn-read {
+  overflow: hidden;
+}
+
+.dn-read__text {
+  margin: 0;
+}
+
+.dn-read--moving .dn-read__page {
+  animation: dn-read var(--dn-read-time) linear infinite;
+}
+
+/* Held still: the box scrolls under a finger, so that nothing of the text is lost. Above a caller's own overflow. */
+.dn-read.dn-read--scrolls {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* It rests at its top long enough to read what shows, goes down, rests at its end, and starts again. */
+@keyframes dn-read {
+  0%,
+  35% {
+    translate: 0 0;
+  }
+
+  85%,
+  100% {
+    translate: 0 var(--dn-read-by);
   }
 }
 

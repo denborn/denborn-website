@@ -3,22 +3,23 @@
  * step still needs, and the character it becomes. Pure: the screens only show
  * it and send choices.
  *
- * A choice that cannot be is not taken: a stat cannot be raised past its
- * budget, a seventh move cannot be added. What can only be judged on the
- * whole (all 300 points placed, at least one move) is told by the step's
+ * A choice that cannot be is not taken: a stat cannot be raised past the
+ * level's TV, a seventh move cannot be added. What can only be judged on the
+ * whole (at least one move) is told by the step's
  * check. `checkCreation` has the last word on the finished character.
  */
 import type { DataPack, Gender } from '../../data/types.ts'
 import { type CreationProblem, checkCreation, maxHpOf } from '../../domain/character-check.ts'
 import { ATTRIBUTE_CAP, type AttributeId, type AttributePoints, CREATION_MIN, attributeTally, splitAttributes } from '../../game-rules/attributes.ts'
-import { EV_MAX, IV_MAX, evBudget, ivBudget, spreadTotal } from '../../game-rules/budgets.ts'
 import { eligibleMoves } from '../../game-rules/eligibility.ts'
 import { expForLevel } from '../../game-rules/exp.ts'
 import { type NicknameProblem, checkNickname, tidyNickname } from '../../game-rules/nickname.ts'
 import type { StatId, StatSpread } from '../../game-rules/stats.ts'
+import { checkTraining, tvCeiling, withTv } from '../../game-rules/training.ts'
 import type { Invitation } from '../../shared/codec/codes.ts'
 import type { CharacterDocument } from '../../shared/schema/character.ts'
-import type { CampaignRules } from '../../shared/schema/rules.ts'
+import type { ItemStack } from '../../shared/schema/common.ts'
+import type { CampaignRules, ItemPack } from '../../shared/schema/rules.ts'
 
 export const MOVES_MAX = 6
 
@@ -31,6 +32,7 @@ export interface CreationDraft {
   ability?: string
   /** The six roleplay attributes as the player sees them: one number each. */
   attributes: AttributePoints
+  /** Its TV, as the IVs and EVs it is kept as. */
   ivs: StatSpread
   evs: StatSpread
   /** In the order chosen. */
@@ -42,10 +44,10 @@ export interface CreationDraft {
 
 const NO_POINTS: StatSpread = { hp: 0, atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }
 
-/** Nothing chosen yet. The attributes start even, at 50 each: the 300 points placed, ready to be moved around. */
+/** Nothing chosen yet. The attributes start at their least, 5 each (decision 302): the player places the rest as they please. */
 export const emptyDraft: CreationDraft = {
   nickname: '',
-  attributes: { strength: 50, dexterity: 50, endurance: 50, perception: 50, charisma: 50, intelligence: 50 },
+  attributes: { strength: CREATION_MIN, dexterity: CREATION_MIN, endurance: CREATION_MIN, perception: CREATION_MIN, charisma: CREATION_MIN, intelligence: CREATION_MIN },
   ivs: NO_POINTS,
   evs: NO_POINTS,
   moves: [],
@@ -58,10 +60,11 @@ export type DraftChoice =
   | { choose: 'nature'; nature: string }
   | { choose: 'ability'; ability: string }
   | { choose: 'attribute'; attribute: AttributeId; value: number }
-  | { choose: 'iv'; stat: StatId; value: number }
-  | { choose: 'ev'; stat: StatId; value: number }
+  | { choose: 'tv'; stat: StatId; value: number }
   /** Adds the move, or takes it back out. */
   | { choose: 'move'; move: string }
+  /** Puts a move in one of the six places, in the place of the one there; with no move, empties the place. */
+  | { choose: 'slot'; slot: number; move: string | undefined }
   | { choose: 'pack'; pack: number }
   | { choose: 'held'; item: string | undefined }
 
@@ -78,11 +81,6 @@ export function attributeCeiling(attributes: AttributePoints, attribute: Attribu
   let value = ATTRIBUTE_CAP
   while (value > attributes[attribute] && attributeTally({ ...attributes, [attribute]: value }, level).extraLeft < 0) value--
   return value
-}
-
-/** The highest a stat's IVs or EVs can go with the other stats as they are. */
-export function spreadCeiling(spread: StatSpread, stat: StatId, max: number, budget: number): number {
-  return Math.min(max, spread[stat] + Math.max(0, budget - spreadTotal(spread)))
 }
 
 /** The moves the Pokémon may choose from, under the campaign's rules, at its starting level. */
@@ -106,7 +104,8 @@ export function choose(draft: CreationDraft, choice: DraftChoice, context: Creat
       const gender = onlyGender ?? (draft.gender && species.genders.includes(draft.gender) ? draft.gender : undefined)
       if (gender) next.gender = gender
       else delete next.gender
-      const ability = species.abilities.length === 1 ? species.abilities[0] : draft.ability && species.abilities.includes(draft.ability) ? draft.ability : undefined
+      // The Ability chosen before, where the species can have it; else the species' first (decision 304).
+      const ability = draft.ability && species.abilities.includes(draft.ability) ? draft.ability : species.abilities[0]
       if (ability) next.ability = ability
       else delete next.ability
       return next
@@ -123,14 +122,21 @@ export function choose(draft: CreationDraft, choice: DraftChoice, context: Creat
       const value = clamp(choice.value, CREATION_MIN, attributeCeiling(draft.attributes, choice.attribute, level))
       return { ...draft, attributes: { ...draft.attributes, [choice.attribute]: value } }
     }
-    case 'iv':
-      return { ...draft, ivs: { ...draft.ivs, [choice.stat]: clamp(choice.value, 0, spreadCeiling(draft.ivs, choice.stat, IV_MAX, ivBudget(level))) } }
-    case 'ev':
-      return { ...draft, evs: { ...draft.evs, [choice.stat]: clamp(choice.value, 0, spreadCeiling(draft.evs, choice.stat, EV_MAX, evBudget(level))) } }
+    case 'tv':
+      return { ...draft, ...withTv(draft, choice.stat, clamp(choice.value, 0, tvCeiling(draft, choice.stat, level))) }
     case 'move': {
       if (draft.moves.includes(choice.move)) return { ...draft, moves: draft.moves.filter((move) => move !== choice.move) }
       if (draft.moves.length >= MOVES_MAX || !movesOffered(draft, context).includes(choice.move)) return draft
       return { ...draft, moves: [...draft.moves, choice.move] }
+    }
+    case 'slot': {
+      const known = draft.moves[choice.slot]
+      if (choice.move === undefined) return known === undefined ? draft : { ...draft, moves: draft.moves.filter((move) => move !== known) }
+      // A move is known once: one that has a place already is not given another.
+      if (draft.moves.includes(choice.move) || !movesOffered(draft, context).includes(choice.move)) return draft
+      if (known !== undefined) return { ...draft, moves: draft.moves.map((move) => (move === known ? (choice.move ?? move) : move)) }
+      // The places fill from the first: a move put in a place further on takes the first one free.
+      return draft.moves.length >= MOVES_MAX ? draft : { ...draft, moves: [...draft.moves, choice.move] }
     }
     case 'pack': {
       const itemPack = rules.itemPacks[choice.pack]
@@ -169,7 +175,7 @@ export interface IdentityProblems {
   ability?: true
 }
 
-/** What the identity step still needs. An empty object means the step is done. */
+/** What is still needed to say who the Pokémon is: its name and sex, its nature and Ability. An empty object means nothing is. Creation asks for them over two steps, an enemy's editor on one. */
 export function identityProblems(draft: CreationDraft, { pack, rules }: CreationContext): IdentityProblems {
   const problems: IdentityProblems = {}
   const species = draft.species ? pack.species[draft.species] : undefined
@@ -182,8 +188,8 @@ export function identityProblems(draft: CreationDraft, { pack, rules }: Creation
   return problems
 }
 
-/** The steps of creation, in the order the owner set (decision 101). */
-export const STEPS = ['species', 'identity', 'attributes', 'training', 'moves', 'items', 'review'] as const
+/** The steps of creation, in the order the owner set (decisions 101 and 302). */
+export const STEPS = ['species', 'identity', 'combat', 'training', 'moves', 'items', 'review'] as const
 export type StepId = (typeof STEPS)[number]
 
 /** Whether a step has what it needs for the player to go on. */
@@ -191,19 +197,28 @@ export function isStepDone(step: StepId, draft: CreationDraft, context: Creation
   switch (step) {
     case 'species':
       return speciesProblem(draft, context.rules) === undefined
-    case 'identity':
-      return Object.keys(identityProblems(draft, context)).length === 0
-    case 'attributes': {
-      const tally = attributeTally(draft.attributes, context.rules.startingLevel)
-      return tally.toPlace === 0 && tally.extraLeft >= 0
+    case 'identity': {
+      // Its name and its sex (decision 302). Its roleplay points may wait (decision 307), but none beyond what its level gives.
+      const { nickname, gender } = identityProblems(draft, context)
+      return !nickname && !gender && attributeTally(draft.attributes, context.rules.startingLevel).extraLeft >= 0
     }
+    case 'combat':
+      // Its Ability (decisions 302 and 306).
+      return !identityProblems(draft, context).ability
     case 'training':
-      // IV and EV points may wait, and a choice past the budget is never taken.
-      return true
-    case 'moves':
-      return draft.moves.length >= 1 && draft.moves.length <= MOVES_MAX
-    case 'items':
-      return draft.pack !== undefined && context.rules.itemPacks[draft.pack] !== undefined
+      // Its nature (decision 306), and TV that may wait. A choice past the budget is never taken, but a draft may come from elsewhere.
+      return !identityProblems(draft, context).nature && checkTraining(draft, context.rules.startingLevel).length === 0
+    case 'moves': {
+      // One at least (decision 293), six at most, each still offered: another species has other moves.
+      const offered = movesOffered(draft, context)
+      return draft.moves.length >= 1 && draft.moves.length <= MOVES_MAX && draft.moves.every((move) => offered.includes(move))
+    }
+    case 'items': {
+      const itemPack = draft.pack === undefined ? undefined : context.rules.itemPacks[draft.pack]
+      if (!itemPack) return false
+      // The item held is one of the pack's, and one a Pokémon can hold.
+      return draft.heldItem === undefined || (context.pack.items[draft.heldItem]?.holdable === true && itemPack.items.some((stack) => stack.item === draft.heldItem))
+    }
     case 'review':
       return true
   }
@@ -212,6 +227,11 @@ export function isStepDone(step: StepId, draft: CreationDraft, context: Creation
 // ---------------------------------------------------------------------------
 // The character it becomes
 // ---------------------------------------------------------------------------
+
+/** What a pack leaves in the Bag once one of its items is held: the held item is one taken out of it. */
+export function startingBag(itemPack: ItemPack, heldItem: string | undefined): ItemStack[] {
+  return itemPack.items.map((stack) => (stack.item === heldItem ? { ...stack, quantity: stack.quantity - 1 } : stack)).filter((stack) => stack.quantity > 0)
+}
 
 /**
  * The character a finished draft makes: at the campaign's starting level and
@@ -225,10 +245,6 @@ export function toCharacter(draft: CreationDraft, invitation: Invitation, pack: 
   const itemPack = draft.pack === undefined ? undefined : rules.itemPacks[draft.pack]
   if (!draft.species || !draft.gender || !draft.ability || !itemPack) return undefined
   const level = rules.startingLevel
-  // The held item is one taken out of the bag.
-  const bag = itemPack.items
-    .map((stack) => (stack.item === draft.heldItem ? { ...stack, quantity: stack.quantity - 1 } : stack))
-    .filter((stack) => stack.quantity > 0)
   const character: CharacterDocument = {
     kind: 'denborn.character',
     schemaVersion: 1,
@@ -248,7 +264,7 @@ export function toCharacter(draft: CreationDraft, invitation: Invitation, pack: 
     evs: draft.evs,
     moves: draft.moves.map((move) => ({ id: move, ppUps: 0, pp: pack.moves[move]?.pp ?? 0 })),
     ...(draft.heldItem ? { heldItem: draft.heldItem } : {}),
-    bag,
+    bag: startingBag(itemPack, draft.heldItem),
     money: rules.startingMoney,
     hp: 0,
     condition: { state: 'standing' },

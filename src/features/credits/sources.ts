@@ -41,4 +41,4 @@ export const CREDIT_LINKS: Readonly<Record<CreditId, readonly CreditLink[]>> = {
 }
 
 /** Who ripped the sprite sheets the look was studied on, as each sheet credits them. */
-export const SHEET_RIPPERS = ['Ploaj', 'Floofy Panthar', 'MarioSMentor', 'DeepBlue PacificWaves', 'GameMaster12', 'PikachuMazzinga', 'Ikard', 'redblueyellow', 'lavistardust'] as const
+export const SHEET_RIPPERS = ['Ploaj', 'Floofy Panthar', 'MarioSMentor', 'DeepBlue PacificWaves', 'GameMaster12', 'PikachuMazzinga', 'Ikard', 'redblueyellow', 'lavistardust', 'Xtreme1992'] as const

@@ -33,7 +33,7 @@
 
 The **D100 is exclusively for roleplay**, never for calculating in-app combat. Six independent roleplay attributes: **Strength, Dexterity, Endurance, Perception, Charisma, Intelligence**.
 
-- At the stated **“level 0” creation baseline**, assign **300 total points** across the six attributes; minimum **5**, maximum **75** per attribute.
+- At the stated **“level 0” creation baseline**, assign **300 total points** across the six attributes; minimum **5**, maximum **75** per attribute. *(Changed by the owner on 2026-11-20, decision 307 in `DECISIONS.md`: 265 points, which may be kept and placed later up to 75; characters made with 300 stay as made.)*
 - Gain **one roleplay attribute point per gained level**; allocation is player-controlled.
 - For narrative checks, roll **D100 at or below the relevant attribute** (the previously agreed roll-under interpretation). Criticals, opposed rolls, and difficulty modifiers are **TBD**; do not add an unapproved critical table.
 - Players roleplay as their chosen Pokémon; moves and innate type capabilities are freely available narratively outside combat, with **no PP consumption outside combat**. E.g., Fire-types can produce fire, Flying-types can fly when appropriate. GM adjudicates narrative limits.
@@ -54,6 +54,8 @@ The **D100 is exclusively for roleplay**, never for calculating in-app combat. S
 9. Players allocate their own IV/EV-equivalent points each level instead of random IVs or battle-earned EVs; the same scheme applies to GM-controlled Pokémon.
 
 ### IV/EV allocation — agreed fallback, with arithmetic stated explicitly
+
+> Since decision 286 (2026-11-18) a player places neither by name: both are counted and placed as Training Value (1 TV = 1 IV = 4 EVs, 0 to 94 per stat), and a level's TV is its IV budget below plus a quarter of its EV budget. The two budgets are no longer checked apart. See `DECISIONS.md`.
 
 Use Gen 9 stat formulas but a **level-scaled allocation budget**. For a Pokémon at level `L` (0–100, subject to legal-combat-level TBD):
 

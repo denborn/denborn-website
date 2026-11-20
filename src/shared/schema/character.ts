@@ -57,7 +57,7 @@ export const characterDocument = z.object({
   nature: dataId.optional(),
   ability: dataId,
 
-  /** The roleplay attributes: the 300 points of creation, and the points gained with levels and placed since. */
+  /** The roleplay attributes: the points of creation (265; 300 for a character made before decision 307), and the points gained with levels and placed since. */
   attributes: z.object({ creation: attributePoints, gained: attributePoints }),
   ivs: statSpread(31),
   evs: statSpread(252),

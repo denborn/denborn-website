@@ -36,7 +36,8 @@ describe('an enemy', () => {
   it('is built under the same rules as a character', () => {
     expect(checkEnemy(golem(), testRules(), testPack)).toEqual([])
     expect(checkEnemy(golem({ ability: 'zap' }), testRules(), testPack)).toEqual([{ kind: 'ability' }])
-    expect(checkEnemy(golem({ ivs: { hp: 31, atk: 31, def: 0, spa: 0, spd: 0, spe: 0 } }), testRules(), testPack)).toEqual([{ kind: 'ivs', problem: { kind: 'over-budget', by: 25 } }])
+    // Level 20 gives 62 TV.
+    expect(checkEnemy(golem({ ivs: { hp: 31, atk: 31, def: 1, spa: 0, spd: 0, spe: 0 } }), testRules(), testPack)).toEqual([{ kind: 'training', problem: { kind: 'over-budget', by: 1 } }])
     expect(checkEnemy(golem({ moves: [{ id: 'spark', ppUps: 0 }] }), testRules(), testPack)).toEqual([{ kind: 'move-not-eligible', move: 'spark' }])
     expect(checkEnemy(golem({ nature: undefined }), testRules({ natures: 'neutral' }), testPack)).toEqual([])
   })

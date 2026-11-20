@@ -224,7 +224,7 @@ function Yours({ pack, character, resting, onOpen }: YoursProps) {
       <span className="dn-label">{text.yours}</span>
       {resting && row('rest', text.open.rest, text.open.restHint(character.nickname))}
       {/* A dead character places no points and does not evolve until it is brought back. */}
-      {!dead && (left.ivs > 0 || left.evs > 0 || left.attributes > 0) && row('points', text.open.points, text.open.pointsHint(Math.max(0, left.ivs), Math.max(0, left.evs), Math.max(0, left.attributes)))}
+      {!dead && (left.tv > 0 || left.attributes > 0) && row('points', text.open.points, text.open.pointsHint(Math.max(0, left.tv), Math.max(0, left.attributes)))}
       {!dead && offers.length > 0 && row('evolve', text.open.evolve, ready ? text.open.evolveReady(pack.species[ready.to]?.name[language] ?? ready.to) : text.open.evolveNotYet)}
       {row('bag', text.open.bag, text.open.bagHint(character.bag.length, character.money))}
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useRef } from 'react'
-import type { CameraProblem, CameraProps } from './ImportCharacter'
+import type { CameraProblem, CameraProps } from './camera'
 import { type QrReader, loadQrReader } from './qr-reader'
 
 /** Time between two looks at the picture, in milliseconds: quick enough to feel instant, slow enough to spare the battery. */

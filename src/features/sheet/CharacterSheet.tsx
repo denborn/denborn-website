@@ -136,7 +136,7 @@ function InfoPart({ pack, character, numbers, language, messages }: SheetView) {
   )
 }
 
-/** Its six stats, with the IVs and EVs behind each and the two its nature moves. */
+/** Its six stats, with the TV behind each and the two its nature moves. */
 function StatsPart({ pack, character, numbers, language, messages }: SheetView) {
   const text = messages.sheet
   const nature = character.nature ? pack.natures[character.nature] : undefined
@@ -146,8 +146,7 @@ function StatsPart({ pack, character, numbers, language, messages }: SheetView) 
         <thead>
           <tr>
             <th scope="col">{text.stat}</th>
-            <th scope="col">{text.ivs}</th>
-            <th scope="col">{text.evs}</th>
+            <th scope="col">{text.tv}</th>
             <th scope="col">{text.value}</th>
           </tr>
         </thead>
@@ -164,16 +163,14 @@ function StatsPart({ pack, character, numbers, language, messages }: SheetView) 
                     </span>
                   )}
                 </th>
-                <td>{character.ivs[stat]}</td>
-                <td>{character.evs[stat]}</td>
+                <td>{numbers.tv[stat]}</td>
                 <td>{numbers.stats[stat]}</td>
               </tr>
             )
           })}
         </tbody>
       </table>
-      {numbers.unplaced.ivs > 0 && <p className="dn-note">{text.ivsLeft(numbers.unplaced.ivs)}</p>}
-      {numbers.unplaced.evs > 0 && <p className="dn-note">{text.evsLeft(numbers.unplaced.evs)}</p>}
+      {numbers.unplaced.tv > 0 && <p className="dn-note">{text.tvLeft(numbers.unplaced.tv)}</p>}
     </>
   )
 }

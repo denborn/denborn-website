@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest'
 import {
   type AttributePoints,
   type AttributeSheet,
+  CREATION_POINTS,
   attributeScores,
   attributeTally,
   checkAttributes,
+  creationLeft,
   gainedPoints,
+  placeScores,
+  scoreCeiling,
   splitAttributes,
   unplacedPoints,
 } from './attributes'
@@ -19,18 +23,33 @@ const points = (values: Partial<AttributePoints>, rest = 0): AttributePoints => 
   intelligence: rest,
   ...values,
 })
-/** 300 points, 50 in each attribute. */
+/** 300 points, 50 in each attribute: a character made before decision 307. */
 const even = points({}, 50)
+/** All 265 points of creation placed: 45 in strength, 44 in each of the others. */
+const full = points({ strength: 45 }, 44)
+/** 180 of the 265 placed, 30 each: 85 kept for later. */
+const kept = points({}, 30)
 const sheet = (creation: AttributePoints, gained: Partial<AttributePoints> = {}): AttributeSheet => ({ creation, gained: points(gained) })
 
 describe('roleplay attributes at creation', () => {
-  it('accepts 300 points shared between 5 and 75', () => {
-    expect(checkAttributes(sheet(even), 1)).toEqual([])
-    expect(checkAttributes(sheet(points({ strength: 75, dexterity: 75, endurance: 75, perception: 65, charisma: 5, intelligence: 5 })), 1)).toEqual([])
+  it('accepts the 265 points shared between 5 and 75', () => {
+    expect(total(full)).toBe(CREATION_POINTS)
+    expect(checkAttributes(sheet(full), 1)).toEqual([])
+    expect(checkAttributes(sheet(points({ strength: 75, dexterity: 75, endurance: 75, perception: 30, charisma: 5, intelligence: 5 })), 1)).toEqual([])
   })
 
-  it('refuses a total that is not exactly 300', () => {
-    expect(checkAttributes(sheet(points({ strength: 49 }, 50)), 1)).toEqual([{ kind: 'creation-total', total: 299 }])
+  it('lets some of the 265 wait, counted with the points to place (decision 307)', () => {
+    expect(checkAttributes(sheet(kept), 1)).toEqual([])
+    expect(creationLeft(sheet(kept))).toBe(CREATION_POINTS - total(kept))
+    expect(unplacedPoints(sheet(kept), 5)).toBe(CREATION_POINTS - total(kept) + 4)
+  })
+
+  it('keeps a character made with 300 as it was, with nothing of creation left to place', () => {
+    expect(checkAttributes(sheet(even), 1)).toEqual([])
+    expect(unplacedPoints(sheet(even), 1)).toBe(0)
+  })
+
+  it('refuses more than the 300 a character made before could have', () => {
     expect(checkAttributes(sheet(points({ strength: 51 }, 50)), 1)).toEqual([{ kind: 'creation-total', total: 301 }])
   })
 
@@ -80,37 +99,67 @@ describe('points gained with levels', () => {
 })
 
 describe('attributes given as one number each', () => {
-  it('are all placed at 50 each, with the level’s extra points untouched', () => {
-    expect(attributeTally(even, 1)).toEqual({ toPlace: 0, extraUsed: 0, extraLeft: 0 })
-    expect(attributeTally(even, 30)).toEqual({ toPlace: 0, extraUsed: 0, extraLeft: 29 })
+  it('leave points of the 265 to place, which may wait', () => {
+    expect(attributeTally(full, 1)).toEqual({ toPlace: 0, extraUsed: 0, extraLeft: 0 })
+    expect(attributeTally(kept, 1)).toEqual({ toPlace: CREATION_POINTS - total(kept), extraUsed: 0, extraLeft: 0 })
   })
 
-  it('leave points of the 300 to place when one is lowered', () => {
-    expect(attributeTally(points({ strength: 40 }, 50), 30)).toEqual({ toPlace: 10, extraUsed: 0, extraLeft: 29 })
+  it('use extra points for what goes over 265', () => {
+    const over = { ...full, strength: full.strength + 10 }
+    expect(attributeTally(over, 30)).toEqual({ toPlace: 0, extraUsed: 10, extraLeft: 19 })
+    expect(attributeTally(over, 5).extraLeft).toBe(-6)
   })
 
-  it('use extra points for what goes over 300', () => {
-    expect(attributeTally(points({ strength: 60 }, 50), 30)).toEqual({ toPlace: 0, extraUsed: 10, extraLeft: 19 })
-    expect(attributeTally(points({ strength: 60 }, 50), 5).extraLeft).toBe(-6)
-  })
-
-  it('count what an attribute has above 75 as extra, even while some of the 300 remain to place', () => {
-    // 95 in one attribute: 75 from the 300 and 20 extra. The other five hold 205, so 20 of the 300 are still to place.
-    expect(attributeTally(points({ strength: 95 }, 41), 30)).toEqual({ toPlace: 20, extraUsed: 20, extraLeft: 9 })
+  it('count what an attribute has above 75 as extra, even while some of the 265 remain to place', () => {
+    // 95 in one attribute: 75 from the 265 and 20 extra. The other five hold 150, so 40 of the 265 are still to place.
+    expect(attributeTally(points({ strength: 95 }, 30), 30)).toEqual({ toPlace: 40, extraUsed: 20, extraLeft: 9 })
   })
 
   it.each([
-    ['all at 50', even, 1],
-    ['uneven, at the limits', points({ strength: 75, dexterity: 75, endurance: 75, perception: 65, charisma: 5, intelligence: 5 }), 1],
-    ['extra points spread around', points({ strength: 60, charisma: 55 }, 50), 30],
-    ['one attribute at the cap', points({ strength: 95 }, 45), 30],
-    ['every extra point of level 100 used', points({ strength: 95, dexterity: 95, endurance: 59 }, 50), 100],
+    ['all placed', full, 1],
+    ['some kept for later', kept, 1],
+    ['uneven, at the limits', points({ strength: 75, dexterity: 75, endurance: 75, perception: 30, charisma: 5, intelligence: 5 }), 1],
+    ['extra points spread around', { ...full, strength: 60, charisma: 55 }, 30],
+    ['one attribute at the cap', points({ strength: 95 }, 39), 30],
+    ['every extra point of level 100 used', points({ strength: 95, dexterity: 95, endurance: 75 }, 33), 100],
   ])('split into two layers that the rules accept: %s', (_, scores, level) => {
     const tally = attributeTally(scores, level)
-    expect(tally.toPlace).toBe(0)
     expect(tally.extraLeft).toBeGreaterThanOrEqual(0)
     const split = splitAttributes(scores)
     expect(checkAttributes(split, level)).toEqual([])
     expect(attributeScores(split)).toEqual(scores)
+    expect(unplacedPoints(split, level)).toBe(tally.toPlace + tally.extraLeft)
   })
 })
+
+describe('points placed after creation (decision 307)', () => {
+  it('take creation’s kept points first, up to 75, then the level’s', () => {
+    const placed = placeScores(sheet(kept), { ...kept, strength: 80 })
+    expect(placed.creation.strength).toBe(75)
+    expect(placed.gained.strength).toBe(5)
+    expect(checkAttributes(placed, 10)).toEqual([])
+    expect(checkAttributes(placed, 5)).toEqual([{ kind: 'too-many-gained', by: 1 }])
+  })
+
+  it('stop at 75 with creation’s points alone, and go past it with the level’s', () => {
+    expect(scoreCeiling(sheet(kept), kept, 'strength', 1)).toBe(75)
+    expect(scoreCeiling(sheet(kept), kept, 'strength', 11)).toBe(85)
+  })
+
+  it('share creation’s kept points between attributes: what one takes, another cannot', () => {
+    const one = { ...kept, strength: 75 }
+    // 45 of the 85 kept went to strength: 40 are left for dexterity, at level 1.
+    expect(scoreCeiling(sheet(kept), one, 'dexterity', 1)).toBe(70)
+  })
+
+  it('go on top of a character made with 300 by the level’s points only', () => {
+    expect(scoreCeiling(sheet(even), even, 'strength', 30)).toBe(79)
+    const placed = placeScores(sheet(even), { ...even, strength: 60 })
+    expect(placed.creation).toEqual(even)
+    expect(placed.gained.strength).toBe(10)
+  })
+})
+
+function total(scores: AttributePoints): number {
+  return Object.values(scores).reduce((sum, value) => sum + value, 0)
+}

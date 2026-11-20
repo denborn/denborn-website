@@ -1,0 +1,2177 @@
+/*
+ * Denborn DA — the Pokédex of character creation (decisions 287 to 296).
+ *
+ * Denborn's own, after Black and White's Pokédex. The shapes are the games':
+ * rows 21 pixels tall with a point at one end and a slant of 7 at the other,
+ * brackets round an icon, a rail 5 pixels wide, a bar of keys along the
+ * bottom. They were measured on Xtreme1992's rip, and are drawn here as every
+ * shape of the kit is: by ::before and ::after, in DS pixels, in the tokens'
+ * colours.
+ *
+ * This file is imported by the pieces it styles (src/ui/dex/index.ts), not by
+ * styles.css: only the screens of the Pokédex carry it, and the app's first
+ * load does not. The grid behind a screen is the frame's, in kit.css.
+ */
+
+/* --- A bottom screen of the Pokédex: the steps across the top, what the step holds, the keys along the bottom ---------- */
+.dn-dex-page {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: calc(24 * var(--dn-u)) minmax(0, 1fr) calc(26 * var(--dn-u));
+}
+
+.dn-dex-body {
+  position: relative;
+  min-height: 0;
+}
+
+/* The games' bar of keys: dark under one black line. It stays while its keys come and go. */
+.dn-dex-foot {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--dn-u));
+  padding: calc(1 * var(--dn-u)) calc(4 * var(--dn-u)) 0;
+  background: var(--dn-dex-chrome);
+  border-top: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+/* What is said along the keys: a count, a word on what the screen waits for. It takes the room the keys leave. */
+.dn-dex-foot__said {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dn-dex-foot__said--problem {
+  color: var(--dn-stat-up-on-panel);
+}
+
+/* A count of what is placed against what there is to place: the figures large, as a meter's. */
+.dn-dex-count {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-size: calc(16 * var(--dn-t));
+  line-height: calc(20 * var(--dn-u));
+  color: var(--dn-label-gold);
+  white-space: nowrap;
+}
+
+.dn-dex-count--spent {
+  color: var(--dn-text);
+}
+
+.dn-dex-count--over {
+  color: var(--dn-stat-up-on-panel);
+}
+
+.dn-dex-count small {
+  font-size: calc(9 * var(--dn-t));
+  color: var(--dn-text-muted);
+}
+
+/* A key pushed to the far end of the bar: the way on. */
+.dn-dex-foot__end {
+  margin-left: auto;
+}
+
+/* --- A key of the bar: a box with a point at its left end, as the games' START and SELECT ------------------------------ */
+.dn-dex-key {
+  --dn-dex-key-fill: var(--dn-dex-chrome);
+  --dn-dex-key-line: var(--dn-dex-key);
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: calc(3 * var(--dn-u));
+  height: calc(22 * var(--dn-u));
+  min-width: calc(28 * var(--dn-u));
+  padding: 0 calc(5 * var(--dn-u)) 0 calc(8 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+  line-height: 1;
+  color: var(--dn-text);
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-key::before,
+.dn-dex-key::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(var(--dn-cut) 0, 100% 0, 100% 100%, var(--dn-cut) 100%, 0 50%);
+}
+
+.dn-dex-key::before {
+  --dn-cut: calc(5 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-dex-key-line);
+}
+
+.dn-dex-key::after {
+  --dn-cut: calc(4.4 * var(--dn-u));
+  inset: calc(1 * var(--dn-u));
+  background: var(--dn-dex-key-fill);
+}
+
+/* The way on: red, its point at the far end, the way it leads. A key of another shape may be lit red too. */
+.dn-dex-key--go,
+.dn-dex-key--red {
+  --dn-dex-key-fill: linear-gradient(var(--dn-dex-case-light) 0 45%, var(--dn-dex-case) 45% 100%);
+  --dn-dex-key-line: var(--dn-menu-red-line);
+}
+
+.dn-dex-key--go {
+  padding: 0 calc(8 * var(--dn-u)) 0 calc(5 * var(--dn-u));
+}
+
+.dn-dex-key--go::before,
+.dn-dex-key--go::after {
+  clip-path: polygon(0 0, calc(100% - var(--dn-cut)) 0, 100% 50%, calc(100% - var(--dn-cut)) 100%, 0 100%);
+}
+
+/* The last key of a bar that is not the way on: dark, its point at its right end (decision 303). Only a bar's two end keys have points. */
+.dn-dex-key--end {
+  padding: 0 calc(8 * var(--dn-u)) 0 calc(5 * var(--dn-u));
+}
+
+.dn-dex-key--end::before,
+.dn-dex-key--end::after {
+  clip-path: polygon(0 0, calc(100% - var(--dn-cut)) 0, 100% 50%, calc(100% - var(--dn-cut)) 100%, 0 100%);
+}
+
+/* A key with no point: a plain rectangle. A mark alone is written as it is given. */
+.dn-dex-key--square {
+  padding: 0 calc(4 * var(--dn-u));
+  text-transform: none;
+}
+
+.dn-dex-key--square::before,
+.dn-dex-key--square::after {
+  clip-path: none;
+}
+
+/* Lit as the way on is, in another colour (decision 298): a lighter upper half, a dark lower one, a light rim. */
+.dn-dex-key--blue {
+  --dn-dex-key-fill: linear-gradient(var(--dn-dex-key-blue-light) 0 45%, var(--dn-dex-key-blue) 45% 100%);
+  --dn-dex-key-line: var(--dn-dex-bar-line);
+}
+
+.dn-dex-key--grey {
+  --dn-dex-key-line: var(--dn-menu-grey-line);
+}
+
+/* Grey: its upper half a checker in squares of 4, as a QR code is; the lower half hides the checker there, as the menu's plates do. */
+.dn-dex-key--grey::after {
+  background-color: var(--dn-dex-key-grey-light-2);
+  background-image:
+    linear-gradient(transparent 0 45%, var(--dn-dex-key-grey) 45% 100%),
+    conic-gradient(var(--dn-dex-key-grey-light) 25%, transparent 0 50%, var(--dn-dex-key-grey-light) 0 75%, transparent 0);
+  background-size: 100% 100%, calc(8 * var(--dn-u)) calc(8 * var(--dn-u));
+  background-size: 100% 100%, round(up, calc(8 * var(--dn-u)), 2px) round(up, calc(8 * var(--dn-u)), 2px);
+}
+
+/* A key that is on: something it opens is in force. */
+.dn-dex-key[aria-pressed='true'] {
+  --dn-dex-key-fill: var(--dn-dex-bar-lit);
+  --dn-dex-key-line: var(--dn-dex-bar-line);
+}
+
+.dn-dex-key:active:not(:disabled) {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+.dn-dex-key:disabled {
+  color: var(--dn-text-muted);
+  filter: grayscale(1) brightness(0.6);
+}
+
+@media (hover: hover) {
+  .dn-dex-key:hover:not(:disabled) {
+    filter: brightness(1.2);
+  }
+}
+
+/* A large key in the body of a screen. No bar of keys frames it, so it is whole by itself: a point at each end (decision 297). */
+.dn-dex-key--large {
+  height: 100%;
+  width: 100%;
+  padding: 0 calc(10 * var(--dn-u));
+  font-size: calc(12 * var(--dn-t));
+}
+
+.dn-dex-key--large::before,
+.dn-dex-key--large::after {
+  clip-path: polygon(var(--dn-cut) 0, calc(100% - var(--dn-cut)) 0, 100% 50%, calc(100% - var(--dn-cut)) 100%, var(--dn-cut) 100%, 0 50%);
+}
+
+.dn-dex-key--large::before {
+  --dn-cut: calc(8 * var(--dn-u));
+}
+
+/* The rim keeps one width along the points: the fill's own are as steep as the line's. */
+.dn-dex-key--large::after {
+  --dn-cut: calc(7.5 * var(--dn-u));
+}
+
+/* --- A row: the games' dark bar, a point at its left end and a slant at its right ------------------------------------- */
+.dn-dex-bar {
+  --dn-dex-row-fill: var(--dn-dex-bar);
+  --dn-dex-row-line: var(--dn-dex-bar);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  gap: calc(3 * var(--dn-u));
+  min-width: 0;
+  padding: 0 calc(9 * var(--dn-u)) 0 calc(5 * var(--dn-u));
+  color: var(--dn-text);
+  font-size: calc(10 * var(--dn-t));
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.dn-dex-bar::before,
+.dn-dex-bar::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  clip-path: polygon(var(--dn-cut) 0, 100% 0, calc(100% - var(--dn-slant)) 100%, var(--dn-cut) 100%, 0 50%);
+}
+
+.dn-dex-bar::before {
+  --dn-cut: calc(4 * var(--dn-u));
+  --dn-slant: calc(7 * var(--dn-u));
+  inset: 0;
+  background: var(--dn-dex-row-line);
+}
+
+.dn-dex-bar::after {
+  --dn-cut: calc(3.4 * var(--dn-u));
+  --dn-slant: calc(6.6 * var(--dn-u));
+  inset: calc(1 * var(--dn-u)) calc(1.6 * var(--dn-u)) calc(1 * var(--dn-u)) calc(1 * var(--dn-u));
+  background: var(--dn-dex-row-fill);
+}
+
+/* Lit: the row in the middle of a wheel, a thing chosen. A rim as well as a colour. */
+.dn-dex-bar--lit,
+.dn-dex-bar[aria-pressed='true'],
+.dn-dex-bar[aria-checked='true'] {
+  --dn-dex-row-fill: var(--dn-dex-bar-lit);
+  --dn-dex-row-line: var(--dn-dex-bar-line);
+}
+
+/* A row that is a button of its own, out of a wheel. */
+button.dn-dex-bar {
+  width: 100%;
+  height: calc(22 * var(--dn-u));
+  text-align: left;
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+button.dn-dex-bar:active:not(:disabled) {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+button.dn-dex-bar:disabled {
+  color: var(--dn-text-muted);
+}
+
+.dn-dex-bar__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dn-dex-bar__number {
+  flex: none;
+  color: var(--dn-text-muted);
+}
+
+.dn-dex-bar__end {
+  flex: none;
+  color: var(--dn-text-muted);
+  font-size: calc(9 * var(--dn-t));
+}
+
+/* A campaign's level, before its name (decision 299): as wide for every level, up to Lv. 100, so that the names start on one line. */
+.dn-dex-bar__level {
+  flex: none;
+  width: calc(36 * var(--dn-u));
+  color: var(--dn-text-muted);
+  font-size: calc(9 * var(--dn-t));
+}
+
+/* The + of the row that makes a new campaign, in the place of a level. */
+.dn-dex-bar__plus {
+  color: var(--dn-text);
+  font-size: calc(14 * var(--dn-t));
+}
+
+/* The row that makes a new campaign (decision 299): green, the colour of a slot that is ready. */
+.dn-dex-bar--fresh {
+  --dn-dex-row-fill: var(--dn-dex-fresh);
+  --dn-dex-row-line: var(--dn-slot-ok);
+}
+
+.dn-dex-bar--fresh.dn-dex-bar--lit {
+  --dn-dex-row-fill: var(--dn-slot-ok);
+  --dn-dex-row-line: var(--dn-slot-ok-band);
+}
+
+/* No campaign is chosen by it: its lamp's place is kept, empty, so that its + stands under the levels. */
+.dn-dex-bar--fresh .dn-dex-lamp {
+  visibility: hidden;
+}
+
+/* The lamp of a row, where the games have a Poké Ball: hollow, or red once what the row names is the one chosen. */
+.dn-dex-lamp {
+  flex: none;
+  width: calc(5 * var(--dn-u));
+  height: calc(5 * var(--dn-u));
+  border: calc(1 * var(--dn-u)) solid var(--dn-dex-key);
+}
+
+.dn-dex-lamp--on {
+  background: var(--dn-dex-accent);
+  border-color: var(--dn-dex-accent-shade);
+  box-shadow: 0 0 0 calc(1 * var(--dn-u)) var(--dn-text);
+}
+
+/* The brackets round an icon: two arrowheads facing out, a light line down the middle of each. Red on a lit row. */
+.dn-dex-icon {
+  --dn-dex-bracket-tone: var(--dn-dex-bracket);
+  --dn-dex-bracket-line: var(--dn-dex-bracket-light);
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(32 * var(--dn-u));
+  height: calc(19 * var(--dn-u));
+}
+
+.dn-dex-bar--lit .dn-dex-icon,
+.dn-dex-icon--lit {
+  --dn-dex-bracket-tone: var(--dn-dex-accent);
+  --dn-dex-bracket-line: var(--dn-menu-red-line);
+}
+
+.dn-dex-icon::before,
+.dn-dex-icon::after,
+.dn-dex-icon__art::before,
+.dn-dex-icon__art::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: calc(7 * var(--dn-u));
+  height: 100%;
+}
+
+.dn-dex-icon::before,
+.dn-dex-icon::after {
+  background: var(--dn-dex-bracket-tone);
+  clip-path: polygon(calc(4 * var(--dn-u)) 0, 100% 0, calc(3 * var(--dn-u)) 50%, 100% 100%, calc(4 * var(--dn-u)) 100%, 0 50%);
+}
+
+.dn-dex-icon__art::before,
+.dn-dex-icon__art::after {
+  background: var(--dn-dex-bracket-line);
+  clip-path: polygon(calc(5 * var(--dn-u)) 0, calc(6 * var(--dn-u)) 0, calc(2 * var(--dn-u)) 50%, calc(6 * var(--dn-u)) 100%, calc(5 * var(--dn-u)) 100%, calc(1 * var(--dn-u)) 50%);
+}
+
+.dn-dex-icon::before,
+.dn-dex-icon__art::before {
+  left: 0;
+}
+
+.dn-dex-icon::after,
+.dn-dex-icon__art::after {
+  right: 0;
+  scale: -1 1;
+}
+
+/* The icon itself, over the brackets as the games draw it: it may be wider than the room between them. */
+.dn-dex-icon__art {
+  position: static;
+  display: grid;
+  place-items: center;
+}
+
+.dn-dex-icon__art > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- The plate behind a sprite: the games' dotted grey slab between two bright lines ---------------------------------- */
+.dn-dex-slab {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  background-image: conic-gradient(var(--dn-dex-slab) 25%, var(--dn-dex-slab-2) 0 50%, var(--dn-dex-slab) 0 75%, var(--dn-dex-slab-2) 0);
+  background-size: calc(2 * var(--dn-u)) calc(2 * var(--dn-u));
+  background-size: round(up, calc(2 * var(--dn-u)), 2px) round(up, calc(2 * var(--dn-u)), 2px);
+  border-top: calc(1 * var(--dn-u)) solid var(--dn-dex-bracket-light);
+  border-bottom: calc(1 * var(--dn-u)) solid var(--dn-dex-bracket-light);
+  box-shadow:
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-ink),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-ink);
+}
+
+/* --- A wheel (decision 290) -------------------------------------------------------------------------------------------- */
+/* The list: its rows, and over them the clear surface that scrolls. It is the list that takes the focus and the keys. */
+.dn-wheel {
+  position: relative;
+  height: calc(var(--dn-wheel-height) * var(--dn-u));
+}
+
+/* The ring is drawn inside: a wheel goes to the edge of its screen, which would cut one drawn outside. */
+.dn-root .dn-wheel:focus-visible {
+  outline-offset: calc(-2 * var(--dn-u));
+  box-shadow: inset 0 0 0 calc(4 * var(--dn-u)) var(--dn-ink);
+}
+
+.dn-wheel__stage,
+.dn-wheel__turn {
+  position: absolute;
+  inset: 0;
+}
+
+/* A rail takes the wheel's right end: neither the rows nor the surface go under it. */
+.dn-wheel--railed .dn-wheel__stage,
+.dn-wheel--railed .dn-wheel__turn {
+  right: calc(13 * var(--dn-u));
+}
+
+/* Where the rows are drawn. A finger goes through them to the surface over them. */
+.dn-wheel__stage {
+  overflow: clip;
+  pointer-events: none;
+}
+
+/* What scrolls: nothing but the stops. Its own scrollbar is not shown; the rail is. */
+.dn-wheel__turn {
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  cursor: pointer;
+  /* Never ringed: the focus is the list's, and a press on the surface gives it back. */
+  outline: none;
+}
+
+.dn-wheel__turn::-webkit-scrollbar {
+  display: none;
+}
+
+/* Under the mouse the wheel goes where the mouse does, between two stops too. */
+.dn-wheel__turn--loose {
+  scroll-snap-type: none;
+  cursor: grabbing;
+}
+
+/* One empty stop a row, each the wheel can rest on; room above the first and under the last for them to reach the middle. */
+.dn-wheel__stops {
+  padding-block: calc((var(--dn-wheel-height) * var(--dn-u) - var(--dn-wheel-pitch)) / 2);
+}
+
+.dn-wheel__stops > i {
+  display: block;
+  height: var(--dn-wheel-pitch);
+  scroll-snap-align: center;
+}
+
+/* A row: a bar, in the middle of the stage until the wheel's turn puts it elsewhere. Its far end is the one that draws in. */
+.dn-wheel__row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: calc((var(--dn-wheel-row) - 3) * var(--dn-u));
+  margin-top: calc((var(--dn-wheel-row) - 3) / -2 * var(--dn-u));
+  transform-origin: 100% 50%;
+  /* A wheel is turned, not read letter by letter: its words are not for selecting. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Nothing to show: a line where the wheel would be. */
+.dn-wheel--empty {
+  display: grid;
+  place-items: center;
+  padding: 0 calc(8 * var(--dn-u));
+  text-align: center;
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+/* --- The rail at a wheel's side: the games' five lines, and a thumb -------------------------------------------------- */
+.dn-rail {
+  position: absolute;
+  top: calc(3 * var(--dn-u));
+  bottom: calc(3 * var(--dn-u));
+  right: 0;
+  /* Wider than what is drawn: a finger does not aim at five pixels. */
+  width: calc(12 * var(--dn-u));
+  touch-action: none;
+  cursor: pointer;
+}
+
+.dn-rail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(4 * var(--dn-u));
+  width: calc(5 * var(--dn-u));
+  background: linear-gradient(to right, var(--dn-dex-ground-line) 20%, var(--dn-dex-chrome) 0 40%, var(--dn-dex-bracket) 0 60%, var(--dn-dex-chrome) 0 80%, var(--dn-dex-ground-line) 0);
+}
+
+.dn-rail__thumb {
+  position: absolute;
+  left: calc(3 * var(--dn-u));
+  width: calc(7 * var(--dn-u));
+  background: var(--dn-dex-blue);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-dex-bracket-light);
+}
+
+/* --- The steps, across the top of a bottom screen (decision 289) ----------------------------------------------------- */
+.dn-dex-steps {
+  display: flex;
+  align-items: center;
+  padding: 0 calc(2 * var(--dn-u)) calc(1 * var(--dn-u));
+  background: var(--dn-dex-chrome);
+  border-bottom: calc(1 * var(--dn-u)) solid var(--dn-dex-bracket-light);
+  box-shadow: 0 calc(1 * var(--dn-u)) 0 var(--dn-ink);
+}
+
+.dn-dex-steps__list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The way out: the games' arrow that turns back, blue as theirs. */
+.dn-dex-back {
+  position: relative;
+  flex: none;
+  width: calc(28 * var(--dn-u));
+  height: calc(22 * var(--dn-u));
+  transition: translate var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-back::before,
+.dn-dex-back::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  clip-path: polygon(0 50%, 45% 0, 45% 30%, 100% 30%, 100% 70%, 45% 70%, 45% 100%);
+}
+
+.dn-dex-back::before {
+  width: calc(18 * var(--dn-u));
+  height: calc(16 * var(--dn-u));
+  margin: calc(-8 * var(--dn-u)) 0 0 calc(-9 * var(--dn-u));
+  background: var(--dn-ink);
+}
+
+.dn-dex-back::after {
+  width: calc(14 * var(--dn-u));
+  height: calc(11 * var(--dn-u));
+  margin: calc(-5.5 * var(--dn-u)) 0 0 calc(-6.6 * var(--dn-u));
+  background: var(--dn-dex-blue);
+}
+
+.dn-dex-back:active {
+  translate: calc(-2 * var(--dn-u)) 0;
+}
+
+/* One step: its icon over a lamp. The one being done is lit, in a rim; one that is not open yet is grey. */
+.dn-dex-step {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(28 * var(--dn-u));
+  height: calc(22 * var(--dn-u));
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-step::before {
+  content: '';
+  position: absolute;
+  inset: calc(1 * var(--dn-u));
+  z-index: 0;
+  border: calc(1 * var(--dn-u)) solid transparent;
+}
+
+.dn-dex-step[aria-current='step']::before {
+  background: var(--dn-dex-bar-lit);
+  border-color: var(--dn-dex-bar-line);
+}
+
+/* The lamp: hollow, then on once the step has what it needs. */
+.dn-dex-step::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: calc(2 * var(--dn-u));
+  width: calc(8 * var(--dn-u));
+  height: calc(2 * var(--dn-u));
+  margin-left: calc(-4 * var(--dn-u));
+  background: var(--dn-ink);
+}
+
+.dn-dex-step--done::after {
+  background: var(--dn-slot-ok-band);
+  box-shadow: 0 0 0 calc(0.5 * var(--dn-u)) var(--dn-ink);
+}
+
+.dn-dex-step__icon {
+  position: relative;
+  z-index: 1;
+  display: block;
+  margin-top: calc(-3 * var(--dn-u));
+}
+
+/* The step being done hops, as the shown one of a strip does. */
+.dn-dex-step[aria-current='step'] .dn-dex-step__icon {
+  animation: dn-dex-step-hop var(--dn-strip-hop) steps(2, jump-none) infinite;
+}
+
+@keyframes dn-dex-step-hop {
+  50% {
+    translate: 0 calc(-1 * var(--dn-u));
+  }
+}
+
+.dn-dex-step:active:not(:disabled) {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+.dn-dex-step:disabled .dn-dex-step__icon {
+  filter: grayscale(1) brightness(0.55);
+}
+
+/* --- What comes over a bottom screen: a tray, slid up from under its edge ---------------------------------------------- */
+/* A dialog as the browser gives it is a small box of its own in the middle; this one is the whole screen. */
+.dn-tray {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: calc(22 * var(--dn-u)) minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--dn-text);
+  background: var(--dn-dex-ground-deep);
+}
+
+.dn-tray__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: calc(6 * var(--dn-u));
+  background: var(--dn-dex-chrome);
+  border-bottom: calc(1 * var(--dn-u)) solid var(--dn-dex-bracket-light);
+}
+
+.dn-tray__title {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(11 * var(--dn-t));
+  font-weight: normal;
+  line-height: calc(14 * var(--dn-u));
+  text-transform: uppercase;
+}
+
+/* The games' red cross. */
+.dn-tray__close {
+  position: relative;
+  flex: none;
+  width: calc(28 * var(--dn-u));
+  height: calc(21 * var(--dn-u));
+  transition: scale var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-tray__close::before,
+.dn-tray__close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(16 * var(--dn-u));
+  height: calc(4 * var(--dn-u));
+  margin: calc(-2 * var(--dn-u)) 0 0 calc(-8 * var(--dn-u));
+  background: var(--dn-dex-accent);
+  box-shadow: 0 0 0 calc(1 * var(--dn-u)) var(--dn-ink);
+  rotate: 45deg;
+}
+
+.dn-tray__close::after {
+  rotate: -45deg;
+  box-shadow: none;
+}
+
+.dn-tray__close:active {
+  scale: 0.85;
+}
+
+.dn-tray__body {
+  position: relative;
+  min-height: 0;
+}
+
+/* Words in a tray: what it explains, what went wrong. */
+.dn-tray__text {
+  margin: 0;
+  padding: calc(6 * var(--dn-u)) calc(8 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  color: var(--dn-text);
+}
+
+.dn-tray__text--problem {
+  color: var(--dn-stat-up-on-panel);
+}
+
+/* --- A number in a box: plus above, minus below (decision 292) ------------------------------------------------------- */
+.dn-stepper {
+  --dn-stepper-fill: var(--dn-dex-blue);
+  --dn-stepper-shade: var(--dn-dex-bracket-dark);
+  display: grid;
+  grid-template-rows: calc(21 * var(--dn-u)) calc(10 * var(--dn-u)) calc(15 * var(--dn-u)) calc(21 * var(--dn-u));
+  width: calc(80 * var(--dn-u));
+  height: calc(67 * var(--dn-u));
+  background: var(--dn-dex-bar);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+}
+
+/* Its name, on its colour, lettered as a type label is: white inside the colour's shade. */
+.dn-stepper__name {
+  display: block;
+  text-align: center;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  text-transform: uppercase;
+  color: #ffffff;
+  background: var(--dn-stepper-fill);
+  text-shadow:
+    calc(1 * var(--dn-u)) 0 0 var(--dn-stepper-shade),
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-stepper-shade),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-stepper-shade),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-stepper-shade),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-stepper-shade),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-stepper-shade),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-stepper-shade),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-stepper-shade);
+}
+
+.dn-stepper__value {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  font-size: calc(14 * var(--dn-t));
+  line-height: 1;
+  text-align: center;
+  color: var(--dn-label-gold);
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+/* The ring inside the box: the boxes stand side by side. */
+.dn-root .dn-stepper__value:focus-visible {
+  outline-offset: calc(-2 * var(--dn-u));
+  box-shadow: none;
+}
+
+/* Plus and minus: a key as wide as the box, an arrowhead on it pointing the way the number goes. */
+.dn-stepper__step {
+  position: relative;
+  background: var(--dn-dex-chrome);
+  /* Held down, it repeats: a long press must not select it or open a menu on it. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-stepper__step::before,
+.dn-stepper__step::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.dn-stepper__step::before {
+  width: calc(20 * var(--dn-u));
+  height: calc(13 * var(--dn-u));
+  margin: calc(-6.5 * var(--dn-u)) 0 0 calc(-10 * var(--dn-u));
+  background: var(--dn-ink);
+}
+
+.dn-stepper__step::after {
+  width: calc(14 * var(--dn-u));
+  height: calc(8.5 * var(--dn-u));
+  margin: calc(-3.6 * var(--dn-u)) 0 0 calc(-7 * var(--dn-u));
+  background: var(--dn-text);
+}
+
+.dn-stepper__step--lower::before,
+.dn-stepper__step--lower::after {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.dn-stepper__step--lower::after {
+  margin-top: calc(-4.9 * var(--dn-u));
+}
+
+.dn-stepper__step:active:not(:disabled) {
+  filter: brightness(1.6);
+}
+
+.dn-stepper__step--raise:active:not(:disabled)::before,
+.dn-stepper__step--raise:active:not(:disabled)::after {
+  translate: 0 calc(1 * var(--dn-u));
+}
+
+.dn-stepper__step--lower:active:not(:disabled)::before,
+.dn-stepper__step--lower:active:not(:disabled)::after {
+  translate: 0 calc(-1 * var(--dn-u));
+}
+
+.dn-stepper__step:disabled::after {
+  background: var(--dn-dex-key);
+  opacity: 0.35;
+}
+
+/* A trial (decision 304): two keys side by side in the place of the plus, and of the minus, each saying how far it moves the number. */
+.dn-stepper__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(1 * var(--dn-u));
+  background: var(--dn-ink);
+}
+
+.dn-stepper__step--figure {
+  font-size: calc(9 * var(--dn-t));
+  line-height: 1;
+  color: var(--dn-text);
+}
+
+.dn-stepper__step--figure::before,
+.dn-stepper__step--figure::after {
+  content: none;
+}
+
+.dn-stepper__step--figure:disabled {
+  color: var(--dn-text-muted);
+}
+
+/* MAX over the plus and MIN under the minus (decision 303): the number at once to the highest or the lowest it can be. */
+.dn-stepper__end {
+  font-size: calc(8 * var(--dn-t));
+  line-height: 1;
+  color: var(--dn-text);
+  background: var(--dn-dex-bar-lit);
+  border-block: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition: filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-stepper__end:active:not(:disabled) {
+  filter: brightness(1.4);
+}
+
+.dn-stepper__end:disabled {
+  color: var(--dn-text-muted);
+  background: var(--dn-dex-chrome);
+}
+
+/* --- Something that turns as it changes -------------------------------------------------------------------------------- */
+.dn-flap {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.dn-flap--block {
+  display: block;
+}
+
+/* --- An arrow for what a nature does to a stat: up and red, down and blue ---------------------------------------------- */
+.dn-trend {
+  display: inline-block;
+  width: calc(5 * var(--dn-u));
+  height: calc(5 * var(--dn-u));
+  margin-left: calc(1 * var(--dn-u));
+  vertical-align: baseline;
+  background: currentcolor;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.dn-trend--down {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* --- The profile graph (decision 288) --------------------------------------------------------------------------------- */
+.dn-profile {
+  position: relative;
+  width: calc(var(--dn-profile-radius) * 2 * var(--dn-u));
+  height: calc(var(--dn-profile-radius) * 2 * var(--dn-u));
+}
+
+.dn-profile__drawing {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dn-profile__ring {
+  fill: none;
+  stroke: var(--dn-dex-bracket-dark);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The rim: the plate the shapes are read on. */
+.dn-profile__ring--rim {
+  fill: var(--dn-dex-ground-deep);
+  stroke: var(--dn-dex-bracket-light);
+}
+
+.dn-profile__spoke {
+  stroke: var(--dn-dex-bracket-dark);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The species' own shape, filled; what training makes of it, an outline in the Pokédex's red. */
+.dn-profile__base {
+  fill: var(--dn-dex-bracket-light);
+  fill-opacity: 0.8;
+  stroke: var(--dn-text);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.dn-profile__trained {
+  fill: none;
+  stroke: var(--dn-dex-accent);
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+}
+
+.dn-profile__words {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+
+/* A corner's words, standing out from the corner on its own side: over the top one, under the bottom one, beside the others. */
+.dn-profile__corner {
+  position: absolute;
+  left: calc(50% + var(--dn-profile-x) * var(--dn-profile-radius) * var(--dn-u));
+  top: calc(50% + var(--dn-profile-y) * var(--dn-profile-radius) * var(--dn-u));
+  padding: 0 calc(2 * var(--dn-u));
+  white-space: nowrap;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  /* On a dark plate of their own, as a row's words are: the grid behind is too bright for a quiet colour. */
+  background: var(--dn-dex-bar);
+}
+
+.dn-profile__corner dt {
+  color: var(--dn-text-muted);
+}
+
+.dn-profile__corner dd {
+  margin: 0;
+  color: var(--dn-text);
+}
+
+/* Above and below, the name and the figure on one line; at the sides, one over the other. */
+.dn-profile__corner--top,
+.dn-profile__corner--bottom {
+  display: flex;
+  gap: calc(3 * var(--dn-u));
+}
+
+.dn-profile__corner--top {
+  translate: -50% calc(-100% - 2 * var(--dn-u));
+}
+
+.dn-profile__corner--bottom {
+  translate: -50% calc(2 * var(--dn-u));
+}
+
+.dn-profile__corner--right {
+  translate: calc(3 * var(--dn-u)) -50%;
+}
+
+.dn-profile__corner--left {
+  translate: calc(-100% - 3 * var(--dn-u)) -50%;
+  text-align: right;
+}
+
+.dn-profile__corner[data-trend='up'] dt {
+  color: var(--dn-stat-up-on-panel);
+}
+
+.dn-profile__corner[data-trend='down'] dt {
+  color: var(--dn-exp);
+}
+
+/* === The screens of character creation =================================================================================== */
+/* Places are in DS pixels from the top left of what holds them; the body of a bottom screen starts 24 down the screen. */
+
+/* A wheel's row: a bar as tall as the wheel gives it. */
+.dn-dex-row {
+  width: 100%;
+  height: 100%;
+}
+
+/* A small choice among a few: a stat, a type, a category. Dark, and lit in a rim once chosen. */
+.dn-dex-chip {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  height: calc(22 * var(--dn-u));
+  padding: 0 calc(2 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-chip[aria-pressed='true'] {
+  background: var(--dn-dex-bar-lit);
+  border-color: var(--dn-dex-bar-line);
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-dex-bar-line);
+}
+
+.dn-dex-chip:active {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+/* --- The top screen: the character as far as it is made (decision 288) -------------------------------------------------- */
+.dn-recap {
+  position: absolute;
+  inset: 0;
+}
+
+.dn-recap__who,
+.dn-recap__facts {
+  position: absolute;
+  top: calc(4 * var(--dn-u));
+  bottom: calc(4 * var(--dn-u));
+}
+
+.dn-recap__who {
+  left: calc(4 * var(--dn-u));
+  width: calc(98 * var(--dn-u));
+}
+
+.dn-recap__facts {
+  left: calc(106 * var(--dn-u));
+  width: calc(146 * var(--dn-u));
+}
+
+.dn-recap p,
+.dn-recap dl,
+.dn-recap dd {
+  margin: 0;
+}
+
+/* Words on the grid stand on a dark plate, as a row's do. */
+.dn-recap__name,
+.dn-recap__line,
+.dn-recap__row,
+.dn-recap__nature {
+  padding: 0 calc(2 * var(--dn-u));
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+}
+
+.dn-recap__name {
+  height: calc(13 * var(--dn-u));
+  font-size: calc(10 * var(--dn-t));
+  line-height: calc(13 * var(--dn-u));
+  text-align: center;
+}
+
+.dn-recap__stage {
+  height: calc(112 * var(--dn-u));
+  margin-top: calc(2 * var(--dn-u));
+  padding-bottom: calc(8 * var(--dn-u));
+  overflow: clip;
+}
+
+.dn-recap__sprite,
+.dn-dex-showcase__sprite {
+  display: block;
+  line-height: 0;
+}
+
+.dn-recap__unknown {
+  align-self: center;
+  font-size: calc(14 * var(--dn-t));
+  color: var(--dn-text);
+}
+
+.dn-recap__line {
+  height: calc(11 * var(--dn-u));
+  margin-top: calc(3 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  text-align: center;
+}
+
+.dn-recap__types {
+  display: block;
+  height: calc(14 * var(--dn-u));
+  margin-top: calc(3 * var(--dn-u));
+  text-align: center;
+  line-height: 0;
+}
+
+.dn-recap__types .dn-type {
+  width: calc(47 * var(--dn-u));
+  min-width: 0;
+  padding: 0;
+}
+
+.dn-recap__types .dn-type + .dn-type {
+  margin-left: calc(2 * var(--dn-u));
+}
+
+/* A type not known yet: the label's shape, in the colours of nothing. */
+.dn-recap__type {
+  --dn-type-fill: var(--dn-dex-slab);
+  --dn-type-shade: var(--dn-ink);
+}
+
+.dn-recap__campaign {
+  height: calc(13 * var(--dn-u));
+  margin-top: calc(3 * var(--dn-u));
+}
+
+.dn-recap__plate {
+  display: block;
+}
+
+/* Its Ability, what it holds, its EXP: a name in a quiet colour, then what it is. */
+.dn-recap__rows {
+  display: grid;
+  gap: calc(1 * var(--dn-u));
+}
+
+.dn-recap__row {
+  display: flex;
+  gap: calc(4 * var(--dn-u));
+  height: calc(12 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+}
+
+.dn-recap__row dt {
+  flex: none;
+  color: var(--dn-text-muted);
+}
+
+.dn-recap__row dd {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+/* What it holds: its icon, then its name, which goes by when it is too long for the row. */
+.dn-recap__held {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(2 * var(--dn-u));
+}
+
+.dn-recap__held .dn-scroll {
+  min-width: 0;
+}
+
+/* The six roleplay attributes: each a number under its name, in its own colour. */
+.dn-recap__attributes {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: calc(1.6 * var(--dn-u));
+  margin-top: calc(2 * var(--dn-u)) !important;
+}
+
+.dn-recap__attribute {
+  height: calc(23 * var(--dn-u));
+  text-align: center;
+  background: var(--dn-dex-bar);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  overflow: clip;
+}
+
+.dn-recap__attribute dt {
+  font-size: calc(7 * var(--dn-t));
+  line-height: calc(8 * var(--dn-u));
+  color: #ffffff;
+  background: var(--dn-recap-fill);
+  text-shadow:
+    calc(1 * var(--dn-u)) 0 0 var(--dn-recap-shade),
+    calc(-1 * var(--dn-u)) 0 0 var(--dn-recap-shade),
+    0 calc(1 * var(--dn-u)) 0 var(--dn-recap-shade),
+    0 calc(-1 * var(--dn-u)) 0 var(--dn-recap-shade),
+    calc(1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-recap-shade),
+    calc(-1 * var(--dn-u)) calc(1 * var(--dn-u)) 0 var(--dn-recap-shade),
+    calc(1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-recap-shade),
+    calc(-1 * var(--dn-u)) calc(-1 * var(--dn-u)) 0 var(--dn-recap-shade);
+}
+
+.dn-recap__attribute dd {
+  font-size: calc(11 * var(--dn-t));
+  line-height: calc(13 * var(--dn-u));
+  color: var(--dn-label-gold);
+  /* A number drawn anew hops: one that changed. */
+  animation: dn-dex-figure var(--dn-quick) steps(2, jump-none) backwards;
+}
+
+@keyframes dn-dex-figure {
+  from {
+    translate: 0 calc(-3 * var(--dn-u));
+  }
+}
+
+/* The graph, in the middle of what is left between the attributes and the nature. */
+.dn-recap__profile {
+  position: absolute;
+  left: 50%;
+  top: calc(75 * var(--dn-u));
+  translate: -50% 0;
+}
+
+.dn-recap__nature {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(12 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  text-align: center;
+}
+
+.dn-recap__nature-name {
+  color: var(--dn-text-muted);
+}
+
+.dn-recap__up {
+  color: var(--dn-stat-up-on-panel);
+}
+
+.dn-recap__down {
+  color: var(--dn-exp);
+}
+
+/* --- Step 0: the campaign (decisions 289 and 297) ------------------------------------------------------------------------ */
+/* Its wheel is where the Pokémon's is, on the right: the same place for the same gesture. */
+.dn-dex-campaigns {
+  position: absolute;
+  left: calc(110 * var(--dn-u));
+  top: 0;
+  width: calc(142 * var(--dn-u));
+}
+
+/* Its keys down the left, a row each. The one in the middle is level with the wheel's middle row. */
+.dn-dex-campaign-keys {
+  position: absolute;
+  left: calc(4 * var(--dn-u));
+  top: calc(12 * var(--dn-u));
+  width: calc(102 * var(--dn-u));
+  display: grid;
+  grid-auto-rows: calc(34 * var(--dn-u));
+  gap: calc(8 * var(--dn-u));
+}
+
+/* A field and its key, in a tray: at its top, where a phone's keyboard leaves it in sight. */
+.dn-tray__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: calc(6 * var(--dn-u));
+  padding: calc(6 * var(--dn-u)) calc(6 * var(--dn-u)) 0;
+}
+
+.dn-tray__form .dn-dex-key {
+  margin-top: calc(13 * var(--dn-u));
+}
+
+/* In a tray the camera's frame is the size the tray leaves it. */
+.dn-camera__frame--tray {
+  width: calc(112 * var(--dn-u));
+}
+
+/* --- Step 1: the Pokémon (decision 290) ---------------------------------------------------------------------------------- */
+.dn-dex-showcase {
+  position: absolute;
+  left: calc(4 * var(--dn-u));
+  top: calc(2 * var(--dn-u));
+  width: calc(102 * var(--dn-u));
+}
+
+.dn-dex-showcase p {
+  margin: 0;
+}
+
+.dn-dex-showcase__name {
+  height: calc(12 * var(--dn-u));
+  padding: 0 calc(3 * var(--dn-u));
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: calc(9 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-showcase__stage {
+  height: calc(104 * var(--dn-u));
+  margin-top: calc(2 * var(--dn-u));
+  padding-bottom: calc(6 * var(--dn-u));
+  overflow: clip;
+}
+
+/* The one looked at hops onto its plate, as the Pokémon of the list of characters do. */
+.dn-dex-showcase__sprite {
+  animation: dn-dex-hop-in var(--dn-move) var(--dn-ease-snap) backwards;
+}
+
+@keyframes dn-dex-hop-in {
+  from {
+    translate: 0 calc(-10 * var(--dn-u));
+  }
+}
+
+.dn-dex-showcase__types {
+  display: flex;
+  justify-content: center;
+  gap: calc(2 * var(--dn-u));
+  height: calc(14 * var(--dn-u));
+  margin-top: calc(3 * var(--dn-u)) !important;
+}
+
+.dn-dex-species {
+  position: absolute;
+  left: calc(110 * var(--dn-u));
+  top: 0;
+  width: calc(146 * var(--dn-u));
+}
+
+/* The filters, in their tray: one row each, saying what it is set to. */
+.dn-dex-filters {
+  display: grid;
+  gap: calc(3 * var(--dn-u));
+  padding: calc(6 * var(--dn-u));
+}
+
+/* A short list to pick one from, and the way to pick none: a generation, a stage of evolution. */
+.dn-dex-picks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: calc(3 * var(--dn-u));
+  padding: calc(6 * var(--dn-u));
+}
+
+/* Every type to pick one from, and the way to pick none. */
+.dn-dex-types {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(3 * var(--dn-u));
+  padding: calc(6 * var(--dn-u));
+}
+
+.dn-dex-types .dn-dex-chip {
+  height: calc(22 * var(--dn-u));
+}
+
+.dn-dex-types .dn-type {
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* A wheel to pick a filter on, and the key that sets it. */
+/* The wheel over the tray's width; under it, what its row in the middle does, beside the key that sets it (decision 301). */
+.dn-dex-filter-wheel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: calc(3 * var(--dn-u));
+  padding: calc(2 * var(--dn-u)) calc(4 * var(--dn-u)) calc(4 * var(--dn-u));
+}
+
+/* With a bar over the wheel: the bar, the wheel, then what its row in the middle does (decision 302). */
+.dn-dex-filter-wheel--barred {
+  grid-template-rows: calc(22 * var(--dn-u)) auto minmax(0, 1fr);
+}
+
+/* The bar over the moves' wheel: a type between two arrows, or a name; SEARCH; CLEAR. */
+.dn-dex-move-look {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: stretch;
+  gap: calc(4 * var(--dn-u));
+}
+
+.dn-dex-type-pick {
+  display: grid;
+  grid-template-columns: calc(20 * var(--dn-u)) minmax(0, 1fr) calc(20 * var(--dn-u));
+  align-items: center;
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-type-pick .dn-arrow {
+  width: calc(20 * var(--dn-u));
+  height: calc(22 * var(--dn-u));
+}
+
+.dn-dex-type-pick__shown {
+  display: grid;
+  place-items: center;
+  font-size: calc(9 * var(--dn-t));
+  color: var(--dn-text);
+}
+
+.dn-dex-move-look__name {
+  height: 100%;
+}
+
+.dn-dex-filter-wheel__foot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: calc(4 * var(--dn-u));
+  min-height: 0;
+}
+
+/* Its keys: small, in the middle of the box's height (decision 301); a column of two where there are two to act on the row (decision 303). */
+.dn-dex-filter-wheel__keys {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--dn-u));
+}
+
+.dn-dex-filter-wheel__pair {
+  display: grid;
+  grid-template-rows: repeat(2, calc(20 * var(--dn-u)));
+  gap: calc(3 * var(--dn-u));
+}
+
+.dn-dex-filter-wheel__keys .dn-dex-key {
+  width: calc(32 * var(--dn-u));
+  height: calc(32 * var(--dn-u));
+  min-width: 0;
+  padding: 0;
+  font-size: calc(12 * var(--dn-t));
+}
+
+.dn-dex-filter-wheel__pair .dn-dex-key {
+  height: 100%;
+  font-size: calc(8 * var(--dn-t));
+}
+
+/* A key with a word on it (REMOVE, HOLD): as wide as its word, never narrower than the others. */
+.dn-dex-filter-wheel__keys > .dn-dex-key--square {
+  width: auto;
+  min-width: calc(32 * var(--dn-u));
+  padding: 0 calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+}
+
+/* OK, the last key, its point at its right end: a little wider for it. */
+.dn-dex-filter-wheel__keys .dn-dex-key--go {
+  width: calc(38 * var(--dn-u));
+  padding-right: calc(4 * var(--dn-u));
+}
+
+/* A + or a − alone on a key: larger than a word, to be seen at a glance. */
+.dn-dex-filter-wheel__keys .dn-dex-key > [aria-hidden='true'] {
+  font-size: calc(20 * var(--dn-t));
+}
+
+/* Here the box takes the height the wheel leaves, and the key the box's. */
+.dn-dex-filter-wheel__foot .dn-dex-move-about {
+  height: auto;
+  margin-top: 0;
+}
+
+/* --- Step 2: who it is: its name, its sex, its roleplay attributes (decisions 291 and 302) ----------------------------- */
+/*
+ * The identity and the TV share one split (decision 306): a head of 45 for the name and sex, or for the nature, and the
+ * rest for the six boxes, the same on both screens. 45 is the nature's two rows of chips.
+ */
+.dn-dex-split {
+  position: absolute;
+  inset: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  display: grid;
+  grid-template-rows: calc(45 * var(--dn-u)) minmax(0, 1fr);
+  gap: calc(3 * var(--dn-u));
+}
+
+/* The name as large as its head: its letters larger too. */
+.dn-dex-identity .dn-dex-field {
+  grid-template-rows: calc(10 * var(--dn-u)) minmax(0, 1fr);
+}
+
+.dn-dex-identity .dn-dex-field__input {
+  font-size: calc(13 * var(--dn-t));
+}
+
+.dn-dex-identity .dn-dex-sex .dn-hud__gender {
+  width: calc(16 * var(--dn-u));
+  height: calc(20 * var(--dn-u));
+}
+
+/* Six numbers on one row, each box as tall as the row leaves: its keys large under a finger (decisions 302 and 305). */
+.dn-dex-box-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: calc(3 * var(--dn-u));
+  min-height: 0;
+}
+
+/*
+ * 90 high (decision 306): MAX, MIN and the number 15 each, the plus and minus keys 18, the name 9. Nothing to press is
+ * under 15, 24 px on a phone 412 px wide: the least WCAG 2.2 asks.
+ */
+.dn-dex-box-row .dn-stepper {
+  width: auto;
+  height: 100%;
+  grid-template-rows: calc(15 * var(--dn-u)) minmax(0, 1fr) calc(9 * var(--dn-u)) calc(15 * var(--dn-u)) minmax(0, 1fr) calc(15 * var(--dn-u));
+}
+
+.dn-dex-box-row .dn-stepper__name {
+  line-height: calc(9 * var(--dn-u));
+}
+
+.dn-dex-box-row .dn-stepper__value {
+  font-size: calc(12 * var(--dn-t));
+}
+
+.dn-dex-identity__top {
+  display: flex;
+  gap: calc(4 * var(--dn-u));
+}
+
+/* The name: its field takes the row, or what the two buttons of its sex leave. */
+.dn-dex-field {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: calc(9 * var(--dn-u)) minmax(0, 1fr);
+}
+
+.dn-dex-field__label {
+  padding-left: calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(9 * var(--dn-u));
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-field__input {
+  width: 100%;
+  min-width: 0;
+  padding: 0 calc(4 * var(--dn-u));
+  font: inherit;
+  font-size: calc(10 * var(--dn-t));
+  color: var(--dn-text);
+  background: var(--dn-slot);
+  border: calc(1 * var(--dn-u)) solid var(--dn-select-soft);
+  border-radius: 0;
+}
+
+.dn-dex-field__input::placeholder {
+  color: var(--dn-text-muted);
+  opacity: 1;
+}
+
+.dn-dex-field__input[aria-invalid='true'] {
+  border-color: var(--dn-slot-down-outline);
+}
+
+.dn-root .dn-dex-field__input:focus-visible {
+  outline-offset: calc(-2 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-dex-sexes {
+  display: flex;
+  gap: calc(4 * var(--dn-u));
+}
+
+/* One sex: its mark, large, on a dark key that lights up in the mark's colour once chosen. */
+.dn-dex-sex {
+  display: grid;
+  place-items: center;
+  width: calc(44 * var(--dn-u));
+  height: 100%;
+  background: var(--dn-dex-bar);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-sex .dn-hud__gender {
+  width: calc(12 * var(--dn-u));
+  height: calc(15 * var(--dn-u));
+  margin: 0;
+  opacity: 0.45;
+}
+
+.dn-dex-sex[aria-pressed='true'] {
+  background: var(--dn-dex-bar-lit);
+  border-color: var(--dn-dex-bar-line);
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-dex-bar-line);
+}
+
+.dn-dex-sex[aria-pressed='true'] .dn-hud__gender {
+  opacity: 1;
+}
+
+.dn-dex-sex:active {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+/* --- Step 3: how it fights: its nature, then its Ability (decision 302) ------------------------------------------------- */
+.dn-dex-combat {
+  position: absolute;
+  inset: calc(4 * var(--dn-u)) calc(4 * var(--dn-u)) calc(3 * var(--dn-u));
+  display: grid;
+  grid-template-rows: calc(24 * var(--dn-u)) minmax(0, 1fr);
+  gap: calc(8 * var(--dn-u));
+}
+
+/* The nature: the stat it raises on one row, the stat it lowers on the next, its name between them. */
+.dn-dex-nature {
+  display: grid;
+  grid-template-rows: repeat(2, calc(21 * var(--dn-u)));
+  gap: calc(3 * var(--dn-u));
+}
+
+.dn-dex-nature__row {
+  display: grid;
+  grid-template-columns: calc(26 * var(--dn-u)) repeat(5, minmax(0, 1fr));
+  gap: calc(2 * var(--dn-u));
+}
+
+.dn-dex-nature__row--lowered {
+  grid-row: 2;
+}
+
+.dn-dex-nature .dn-dex-chip {
+  height: 100%;
+}
+
+.dn-dex-nature__way {
+  display: grid;
+  place-items: center;
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-nature__way .dn-trend {
+  width: calc(9 * var(--dn-u));
+  height: calc(8 * var(--dn-u));
+  margin: 0;
+}
+
+.dn-dex-nature__row--raised {
+  color: var(--dn-stat-up-on-panel);
+}
+
+.dn-dex-nature__row--lowered {
+  color: var(--dn-exp);
+}
+
+.dn-dex-nature__row--raised .dn-dex-chip[aria-pressed='true'] {
+  border-color: var(--dn-stat-up-on-panel);
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-stat-up-on-panel);
+}
+
+.dn-dex-nature__row--lowered .dn-dex-chip[aria-pressed='true'] {
+  border-color: var(--dn-exp);
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-exp);
+}
+
+.dn-dex-nature__name {
+  grid-row: 2;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+}
+
+/* Every Pokémon is neutral in this campaign: said where the nature would be, on as many lines as it takes. */
+.dn-dex-nature__name--alone {
+  grid-row: auto;
+  padding: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  white-space: normal;
+  text-align: left;
+}
+
+/* The Abilities, two at a time; an arrow over an end where there are others to see (decisions 302 and 303). */
+.dn-dex-ability-strip {
+  position: relative;
+}
+
+.dn-dex-ability-strip .dn-arrow {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  width: calc(16 * var(--dn-u));
+  height: 100%;
+}
+
+.dn-dex-ability-strip .dn-arrow--previous {
+  left: 0;
+}
+
+.dn-dex-ability-strip .dn-arrow--next {
+  right: 0;
+}
+
+.dn-dex-abilities {
+  position: relative;
+  display: flex;
+  gap: calc(4 * var(--dn-u));
+  height: 100%;
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.dn-dex-abilities::-webkit-scrollbar {
+  display: none;
+}
+
+/* An Ability: a plain key, half as wide as the strip, lit once chosen as a sex is (decision 303). Its name keeps clear of the arrows. */
+.dn-dex-ability {
+  position: relative;
+  flex: 0 0 calc(50% - 2 * var(--dn-u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(3 * var(--dn-u));
+  min-width: 0;
+  height: 100%;
+  padding: 0 calc(16 * var(--dn-u));
+  scroll-snap-align: start;
+  font-size: calc(9 * var(--dn-t));
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+/* A Hidden Ability's mark: at the start of its key, a little in from its edge (decision 304). */
+.dn-dex-ability .dn-dex-hidden-mark {
+  position: absolute;
+  top: 50%;
+  left: calc(5 * var(--dn-u));
+  margin-top: calc(-1.5 * var(--dn-u));
+}
+
+.dn-dex-ability[aria-pressed='true'] {
+  background: var(--dn-dex-bar-lit);
+  border-color: var(--dn-dex-bar-line);
+  box-shadow: inset 0 0 0 calc(1 * var(--dn-u)) var(--dn-dex-bar-line);
+}
+
+.dn-dex-ability:active {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+/* The ring inside the key: the strip cuts off what goes past it. */
+.dn-root .dn-dex-ability:focus-visible {
+  outline-offset: calc(-2 * var(--dn-u));
+  box-shadow: none;
+}
+
+.dn-dex-ability__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* One Ability alone: in the middle. */
+.dn-dex-abilities--one {
+  justify-content: center;
+}
+
+/* A Hidden Ability: a small gold mark before its name, there to be noticed only by whoever looks (decision 302). */
+.dn-dex-hidden-mark {
+  flex: none;
+  width: calc(3 * var(--dn-u));
+  height: calc(3 * var(--dn-u));
+  background: var(--dn-label-gold);
+  rotate: 45deg;
+}
+
+/* What the Ability chosen does: a long text goes by, to be read (decision 301). */
+.dn-dex-ability-text {
+  margin: 0;
+  padding: calc(1 * var(--dn-u)) calc(3 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+}
+
+/* No Ability chosen yet: the box keeps its place, and shows nothing. */
+.dn-dex-ability-text--none {
+  visibility: hidden;
+}
+
+
+
+/* --- Step 5: the six places of its moves (decision 293) ------------------------------------------------------------------ */
+.dn-dex-sockets {
+  position: absolute;
+  left: calc(4 * var(--dn-u));
+  top: calc(3 * var(--dn-u));
+  display: grid;
+  grid-template-columns: repeat(2, calc(122 * var(--dn-u)));
+  grid-auto-rows: calc(44 * var(--dn-u));
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+}
+
+.dn-dex-socket {
+  display: grid;
+  align-content: center;
+  gap: calc(3 * var(--dn-u));
+  min-width: 0;
+  padding: 0 calc(5 * var(--dn-u));
+  text-align: left;
+  color: var(--dn-text);
+  background: var(--dn-dex-bar);
+  border: calc(1 * var(--dn-u)) solid var(--dn-ink);
+  transition:
+    translate var(--dn-press) var(--dn-ease-out),
+    filter var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-socket--filled {
+  background: var(--dn-dex-bar-lit);
+  border-color: var(--dn-dex-bar-line);
+}
+
+.dn-dex-socket:active:not(:disabled) {
+  translate: 0 calc(1 * var(--dn-u));
+  filter: brightness(1.25);
+}
+
+.dn-dex-socket:disabled {
+  opacity: 0.45;
+}
+
+.dn-dex-socket__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(11 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+}
+
+.dn-dex-socket__facts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: calc(9 * var(--dn-t));
+}
+
+/* A place and the cross that empties it, over its top right corner (decision 308). */
+.dn-dex-socket-place {
+  position: relative;
+  display: grid;
+  min-width: 0;
+}
+
+.dn-dex-socket--filled {
+  padding-right: calc(18 * var(--dn-u));
+}
+
+.dn-dex-socket__cross {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: calc(16 * var(--dn-u));
+  height: calc(16 * var(--dn-u));
+  transition: scale var(--dn-press) var(--dn-ease-out);
+}
+
+.dn-dex-socket__cross::before,
+.dn-dex-socket__cross::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(10 * var(--dn-u));
+  height: calc(3 * var(--dn-u));
+  margin: calc(-1.5 * var(--dn-u)) 0 0 calc(-5 * var(--dn-u));
+  background: var(--dn-dex-accent);
+  rotate: 45deg;
+}
+
+.dn-dex-socket__cross::before {
+  box-shadow: 0 0 0 calc(1 * var(--dn-u)) var(--dn-ink);
+}
+
+.dn-dex-socket__cross::after {
+  rotate: -45deg;
+}
+
+.dn-dex-socket__cross:active {
+  scale: 0.85;
+}
+
+/* An empty place: a plus, to say it takes a move. */
+.dn-dex-socket__plus {
+  position: relative;
+  justify-self: center;
+  width: calc(14 * var(--dn-u));
+  height: calc(14 * var(--dn-u));
+}
+
+.dn-dex-socket__plus::before,
+.dn-dex-socket__plus::after {
+  content: '';
+  position: absolute;
+  inset: calc(5 * var(--dn-u)) 0;
+  background: var(--dn-dex-key);
+}
+
+.dn-dex-socket__plus::after {
+  inset: 0 calc(5 * var(--dn-u));
+}
+
+/* What the row in the middle of a chooser in a tray is and does (decisions 301 and 308): a move, an Ability, an item. */
+.dn-dex-move-about {
+  height: calc(44 * var(--dn-u));
+  margin-top: calc(2 * var(--dn-u));
+  padding: calc(1 * var(--dn-u)) calc(4 * var(--dn-u));
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(10 * var(--dn-u));
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-move-about p {
+  margin: 0;
+}
+
+/* A move's figures, a little apart from its text (decision 302). */
+.dn-dex-move-about__facts {
+  display: flex;
+  gap: calc(8 * var(--dn-u));
+  margin-bottom: calc(2 * var(--dn-u));
+  color: var(--dn-label-gold);
+}
+
+/* With the move's type and category before its figures: as tall as its type label, the figures closer. */
+.dn-dex-move-about__facts--full {
+  align-items: center;
+  gap: calc(2 * var(--dn-u));
+  height: calc(13 * var(--dn-u));
+  margin-bottom: calc(3 * var(--dn-u));
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.dn-dex-move-about__known {
+  margin-left: auto;
+  color: var(--dn-stat-up-on-panel);
+}
+
+.dn-dex-move-about .dn-read__text {
+  color: var(--dn-text);
+}
+
+/* --- Step 6: the item pack (decision 294) -------------------------------------------------------------------------------- */
+/* The packs' wheel where the Pokémon's is, on the right; what the one in the middle holds on the left (decision 308). */
+.dn-dex-packs {
+  position: absolute;
+  left: calc(110 * var(--dn-u));
+  top: 0;
+  width: calc(142 * var(--dn-u));
+}
+
+.dn-dex-pack {
+  position: absolute;
+  left: calc(4 * var(--dn-u));
+  width: calc(102 * var(--dn-u));
+  top: calc(3 * var(--dn-u));
+  bottom: calc(3 * var(--dn-u));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: calc(2 * var(--dn-u));
+}
+
+.dn-dex-pack p {
+  margin: 0;
+}
+
+.dn-dex-pack__money,
+.dn-dex-pack__held {
+  padding: 0 calc(3 * var(--dn-u));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(11 * var(--dn-u));
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-pack__money {
+  color: var(--dn-label-gold);
+}
+
+/* What a pack holds: an icon, a name, how many, line after line. */
+.dn-dex-pack__items {
+  display: grid;
+  align-content: start;
+  gap: calc(1 * var(--dn-u));
+  margin: 0;
+  padding: calc(2 * var(--dn-u)) calc(3 * var(--dn-u));
+  list-style: none;
+  overflow: hidden;
+  font-size: calc(8 * var(--dn-t));
+  line-height: calc(12 * var(--dn-u));
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-pack__items li {
+  display: flex;
+  align-items: center;
+  gap: calc(3 * var(--dn-u));
+  height: calc(12 * var(--dn-u));
+  white-space: nowrap;
+}
+
+.dn-dex-pack__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Step 7: a last look (decision 295) ---------------------------------------------------------------------------------- */
+.dn-dex-review {
+  position: absolute;
+  inset: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+}
+
+.dn-dex-review__title {
+  margin: 0;
+  padding: 0 calc(3 * var(--dn-u));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: calc(8 * var(--dn-t));
+  font-weight: normal;
+  line-height: calc(10 * var(--dn-u));
+  color: var(--dn-label-gold);
+  background: var(--dn-dex-bar);
+}
+
+.dn-dex-review__moves {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(2 * var(--dn-u)) calc(4 * var(--dn-u));
+  margin: calc(2 * var(--dn-u)) 0 calc(3 * var(--dn-u));
+  padding: 0;
+  list-style: none;
+}
+
+.dn-dex-review__moves .dn-dex-bar {
+  height: calc(18 * var(--dn-u));
+  font-size: calc(9 * var(--dn-t));
+}
+
+.dn-dex-review__moves .dn-type {
+  min-width: 0;
+  width: calc(34 * var(--dn-u));
+  padding: 0;
+  font-size: calc(6 * var(--dn-t));
+}
+
+.dn-dex-bar--empty {
+  color: var(--dn-text-muted);
+}
+
+.dn-dex-review__bag {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: calc(8 * var(--dn-u));
+  margin-top: calc(2 * var(--dn-u));
+}

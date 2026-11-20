@@ -4,16 +4,16 @@ import { STAT_IDS, computeStats } from '../../game-rules/stats'
 import type { Language } from '../../i18n'
 import type { Messages } from '../../i18n/en'
 import { PokemonSprite, StatRow, TypeLabel } from '../../ui'
-import type { CreationDraft } from './draft'
+import type { CreationDraft } from '../creation/draft'
 
 /** What the facts beside the Pokémon are: its species' base stats, its roleplay attributes, or its stats at its level. */
-export type PreviewView = 'base' | 'attributes' | 'stats'
+export type BuildView = 'base' | 'attributes' | 'stats'
 
-export interface PreviewProps {
+export interface BuildPreviewProps {
   pack: DataPack
   draft: CreationDraft
   level: number
-  view: PreviewView
+  view: BuildView
   language: Language
   text: Messages['creation']
   levelText: string
@@ -23,10 +23,12 @@ export interface PreviewProps {
 const BASE_STAT_MAX = 255
 
 /**
- * The top screen of character creation: the Pokémon as it stands, redrawn at
- * every choice, with the numbers the current step is about.
+ * A Pokémon as it is being built, on a top screen: an enemy in its editor, a
+ * character whose points are being placed. Redrawn at every choice, with the
+ * numbers the screen below is about. (A character being created has the
+ * Pokédex's own top screen, decision 288.)
  */
-export function Preview({ pack, draft, level, view, language, text, levelText }: PreviewProps) {
+export function BuildPreview({ pack, draft, level, view, language, text, levelText }: BuildPreviewProps) {
   const species = draft.species ? pack.species[draft.species] : undefined
   if (!species) {
     return (

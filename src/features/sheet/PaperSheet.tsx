@@ -103,10 +103,7 @@ export function PaperSheet({ pack, character, numbers, language, messages, origi
               <tr>
                 <th scope="col">{text.stat}</th>
                 <th scope="col" className="dn-paper__figure">
-                  {text.ivs}
-                </th>
-                <th scope="col" className="dn-paper__figure">
-                  {text.evs}
+                  {text.tv}
                 </th>
                 <th scope="col" className="dn-paper__figure">
                   {text.value}
@@ -121,15 +118,13 @@ export function PaperSheet({ pack, character, numbers, language, messages, origi
                     {nature?.plus === stat && ' ▲'}
                     {nature?.minus === stat && ' ▼'}
                   </th>
-                  <td className="dn-paper__figure">{character.ivs[stat]}</td>
-                  <td className="dn-paper__figure">{character.evs[stat]}</td>
+                  <td className="dn-paper__figure">{numbers.tv[stat]}</td>
                   <td className="dn-paper__figure">{numbers.stats[stat]}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {numbers.unplaced.ivs > 0 && <p className="dn-paper__small">{text.ivsLeft(numbers.unplaced.ivs)}</p>}
-          {numbers.unplaced.evs > 0 && <p className="dn-paper__small">{text.evsLeft(numbers.unplaced.evs)}</p>}
+          {numbers.unplaced.tv > 0 && <p className="dn-paper__small">{text.tvLeft(numbers.unplaced.tv)}</p>}
         </div>
         <div className="dn-paper__code">
           <PaperQrCode text={characterLink(character, origin)} label={character.nickname} tooLong={text.tooLarge} />

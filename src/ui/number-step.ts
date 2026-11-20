@@ -7,8 +7,13 @@
 /** A held button: the wait before it repeats, the gap between two repeats, and when it starts going by ten. */
 export const HELD = { delayMs: 400, everyMs: 80, fastAfterMs: 2000, fastBy: 10 } as const
 
-/** By how much a button changes the number at a repeat, `heldMs` after it was pressed. */
-export function holdStep(heldMs: number): number {
+/**
+ * By how much a button changes the number at a repeat, `heldMs` after it was
+ * pressed: by one, then by ten. A button of a set `size` goes on by that size,
+ * however long it is held (decision 305: +5 goes on by five).
+ */
+export function holdStep(heldMs: number, size?: number): number {
+  if (size !== undefined) return size
   return heldMs >= HELD.fastAfterMs ? HELD.fastBy : 1
 }
 

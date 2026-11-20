@@ -1,0 +1,44 @@
+import { useState } from 'react'
+import type { DataPack } from '../../data/types'
+import type { Language } from '../../i18n'
+import type { Messages } from '../../i18n/en'
+import type { CampaignRules } from '../../shared/schema/rules'
+import { answers } from '../../shared/text/plain'
+import { PokemonIcon, Slot, TextField, TypeLabel } from '../../ui'
+import type { CreationDraft } from '../creation/draft'
+
+export interface EnemySpeciesProps {
+  pack: DataPack
+  rules: CampaignRules
+  draft: CreationDraft
+  language: Language
+  text: Messages['creation']['species']
+  onChoose: (species: string) => void
+}
+
+/** The Pokémon an enemy can be, in Pokédex order, with a field to find one by name: the list an enemy's editor was approved with (decision 141). */
+export function EnemySpecies({ pack, rules, draft, language, text, onChoose }: EnemySpeciesProps) {
+  const [search, setSearch] = useState('')
+  const offered = rules.species
+    .map((id) => pack.species[id])
+    .filter((species) => species !== undefined)
+    .sort((a, b) => a.num - b.num)
+  const shown = offered.filter((species) => answers(species.name[language], search))
+  return (
+    <div className="dn-stack">
+      <TextField label={text.search} value={search} onChange={setSearch} type="search" autoComplete="off" enterKeyHint="search" />
+      {shown.length === 0 && <p className="dn-note">{text.none}</p>}
+      {shown.map((species) => (
+        <Slot key={species.id} selected={draft.species === species.id} onClick={() => onChoose(species.id)}>
+          <PokemonIcon num={species.num} />
+          <span className="dn-slot__main dn-text-shadow">{species.name[language]}</span>
+          <span className="dn-slot__side">
+            {species.types.map((type) => (
+              <TypeLabel key={type} type={type} text={pack.types[type.toLowerCase()]?.name[language] ?? type} />
+            ))}
+          </span>
+        </Slot>
+      ))}
+    </div>
+  )
+}

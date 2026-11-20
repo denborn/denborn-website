@@ -38,6 +38,24 @@ export function inDexOrder(species: readonly string[], pack: DataPack): string[]
   return [...new Set(species)].sort((a, b) => (pack.species[a]?.num ?? 0) - (pack.species[b]?.num ?? 0))
 }
 
+// What a tap does with the species the picker shows. Nothing changes until a button is tapped: looking a Pokémon up by name
+// never unticks another. The rules keep the ticked species themselves, not the filters that led to them.
+
+/** Only these species, and no other: the species shown become the playable ones (decision 129). */
+export function only(species: readonly string[], pack: DataPack): string[] {
+  return inDexOrder(species, pack)
+}
+
+/** The chosen species with some more ticked. */
+export function ticked(chosen: readonly string[], species: readonly string[], pack: DataPack): string[] {
+  return inDexOrder([...chosen, ...species], pack)
+}
+
+/** The chosen species with some unticked. */
+export function unticked(chosen: readonly string[], species: readonly string[]): string[] {
+  return chosen.filter((id) => !species.includes(id))
+}
+
 /** A campaign not yet set: every species, the start values shown by default, and the rest to choose. */
 export function newDraft(pack: DataPack): RulesDraft {
   return {

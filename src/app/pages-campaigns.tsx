@@ -23,6 +23,7 @@ import { saveToDevice, textOfPickedFile } from '../storage/browser'
 import { campaignFile, storedCampaignFile } from '../storage/files'
 import { newId } from '../storage/ids'
 import { DualScreen, OptionButton, Screen, StepHeader } from '../ui'
+import { isForCharacter, withForCharacter } from './campaign-for-character'
 import { copyText } from './clipboard'
 import { useHosting } from './hosting'
 import { useLibrary } from './library-store'
@@ -139,6 +140,8 @@ export function CampaignPage() {
   const entry = id === undefined ? undefined : library.campaigns().find((stored) => stored.id === id)
   const campaign = entry?.read.ok ? entry.read.value : undefined
   const asked = search.get('rule')
+  // Made from character creation: saving it goes back there (decision 299).
+  const forCharacter = id === undefined && isForCharacter(search)
   // The code of the session of this campaign going on from this device, if there is one.
   const hostedCode = useHosting((state) => (state.hosted && state.hosted.campaignId === id ? state.hosted.code : undefined))
   usePageTitle(campaign?.name ?? messages.campaigns.newTitle)
@@ -157,10 +160,10 @@ export function CampaignPage() {
       campaign={campaign}
       rule={isRule(asked) ? asked : undefined}
       onRule={(rule) => {
-        if (rule) setSearch({ rule })
+        if (rule) setSearch(withForCharacter(forCharacter, { rule }))
         // Closing a rule goes back to the page it was opened from, when there is one in this visit's history.
         else if (location.key !== 'default') void navigate(-1)
-        else setSearch({}, { replace: true })
+        else setSearch(withForCharacter(forCharacter, {}), { replace: true })
       }}
       newId={newId}
       onSave={(made) => {
@@ -168,7 +171,8 @@ export function CampaignPage() {
         if (!kept.ok) return kept
         // Nothing is left to lose: moving a campaign just saved to its own address is not asked about.
         guard.onUnsaved(false)
-        if (id === undefined) void navigate(`/campaigns/${made.id}`, { replace: true })
+        if (forCharacter) void navigate(`/characters/new/${made.id}`, { replace: true })
+        else if (id === undefined) void navigate(`/campaigns/${made.id}`, { replace: true })
         return kept
       }}
       origin={window.location.origin}
@@ -178,7 +182,7 @@ export function CampaignPage() {
       onHost={() => void navigate(`/campaigns/${id ?? ''}/session`)}
       hosting={hostedCode}
       onEncounters={() => void navigate(`/campaigns/${id ?? ''}/encounters`)}
-      onBack={() => void navigate('/campaigns')}
+      onBack={() => void navigate(forCharacter ? '/characters/new' : '/campaigns')}
       onUnsaved={guard.onUnsaved}
       leaving={guard.leaving}
     />

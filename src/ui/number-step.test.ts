@@ -8,6 +8,11 @@ describe('a number set with a minus and a plus', () => {
     expect(holdStep(HELD.fastAfterMs)).toBe(HELD.fastBy)
   })
 
+  it('goes by its own size, however long it is held, when the button has one', () => {
+    expect(holdStep(HELD.delayMs, 5)).toBe(5)
+    expect(holdStep(HELD.fastAfterMs * 3, 5)).toBe(5)
+  })
+
   it('stops at the lowest and at the highest it can be', () => {
     expect(stepped(5, 1, 0, 10)).toBe(6)
     expect(stepped(5, -1, 0, 10)).toBe(4)
